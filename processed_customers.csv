@@ -1,5 +1,5 @@
 id,name,email,message,category,quote_eur,quote_usd,rate_date
-1,Ada,ada@example.com,I want to know your price,Sales,100.00,116.15,2026-09-03
+1,Ada,ada@example.com,I want to know your price,Sales,100.00,116.22,2026-09-07
 2,James,james@example.com,I need help with my account,Support,,,
 3,Sara,sara@example.com,Thank you for your service,Other,,,
-4,David,david@example.com,Can you tell me the price?,Sales,100.00,116.15,2026-09-03
+4,David,david@example.com,Can you tell me the price of your premium plan?,Sales,100.00,116.22,2026-09-07
