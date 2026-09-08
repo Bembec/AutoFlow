@@ -166,11 +166,12 @@ venv.bak/
 
 # mkdocs documentation
 /site
-
+email_previews.txt
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
+autoflow.db
 
 # Pyre type checker
 .pyre/

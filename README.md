@@ -38,6 +38,23 @@ It processes customer enquiries from CSV data, categorizes them, enriches sales 
 - Uses an environment safety switch to prevent accidental sending.
 - Records sent, rejected and failed email attempts in the activity log.
 
+## Version 5 — AI-Assisted Classification
+
+- Uses the Gemini API to classify enquiries as Sales, Support or Other.
+- Generates a short explanation for each classification.
+- Requires human approval or correction of AI decisions.
+- Uses keyword rules when AI is disabled or unavailable.
+- Includes a safety switch to control API usage.
+- Uses only fake customer data during free-tier development.
+
+## Version 6 — Database Persistence
+
+- Stores processed customers in SQLite.
+- Inserts new customers and updates existing customers by email.
+- Prevents duplicate customer records.
+- Records timestamped workflow execution history.
+- Provides database retrieval functions for the future API and dashboard.
+
 > During development, customer emails are redirected to a test Gmail account.
 > Gmail credentials are stored privately in `.env` and are never committed.
 

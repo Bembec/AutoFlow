@@ -19,7 +19,11 @@ from dotenv import load_dotenv
 from email_templates import create_email_preview
 from email_sender import send_email
 from ai_classifier import classify_with_ai
-
+from database import (
+    initialize_database,
+    record_workflow_run,
+    save_customers,
+)
 
 
 # Load the private Airtable configuration from .env
@@ -339,6 +343,10 @@ with file_path.open("r", newline="", encoding="utf-8") as file:
 
         processed_customers.append(customer)
 
+# Create the database and save all processed customer records
+initialize_database()
+save_customers(processed_customers)
+
 
 # Save the updated customer records into a new CSV file
 output_path = Path(__file__).parent / "processed_customers.csv"
@@ -463,3 +471,15 @@ with log_path.open("a", encoding="utf-8") as log:
         )
 
 print("Activity log saved.")
+
+# Record a summary of this completed workflow execution
+ai_was_used = any(
+    customer["classification_source"] != "Rules"
+    for customer in processed_customers
+)
+
+record_workflow_run(
+    customer_count=len(processed_customers),
+    ai_enabled=str(ai_was_used).lower(),
+    status="SUCCESS",
+)
