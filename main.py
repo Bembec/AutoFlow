@@ -18,6 +18,9 @@ from urllib.parse import quote
 from dotenv import load_dotenv
 from email_templates import create_email_preview
 from email_sender import send_email
+from ai_classifier import classify_with_ai
+
+
 
 # Load the private Airtable configuration from .env
 load_dotenv()
@@ -253,24 +256,82 @@ with file_path.open("r", newline="", encoding="utf-8") as file:
     customers = csv.DictReader(file)
 
     for customer in customers:
-        message = customer["message"].lower()
+        # Keep the original message for AI and a lowercase copy for rules
+        original_message = customer["message"].strip()
+        message = original_message.lower()
 
-        # Categorize each enquiry using simple keyword rules
-        if "price" in message:
-            category = "Sales"
-        elif "help" in message:
-            category = "Support"
+        # Ask AI for a category when AI classification is enabled
+        ai_result = classify_with_ai(original_message)
+
+        if ai_result is not None:
+            suggested_category = ai_result["category"]
+            classification_reason = ai_result["reason"]
+
+            # Show the AI decision for human review
+            print(f"\nAI suggestion for {customer['name']}:")
+            print("Category:", suggested_category)
+            print("Reason:", classification_reason)
+
+            classification_approval = input(
+                "Accept this AI category? (yes/no): "
+            ).strip().lower()
+
+            if classification_approval == "yes":
+                category = suggested_category
+                classification_source = "AI Approved"
+
+            else:
+                # Allow the user to correct the AI category
+                correction = input(
+                    "Enter Sales, Support, or Other: "
+                ).strip().title()
+
+                if correction in {"Sales", "Support", "Other"}:
+                    category = correction
+                    classification_source = "Human Correction"
+                    classification_reason = (
+                        f"Human changed the AI suggestion from "
+                        f"{suggested_category} to {correction}."
+                    )
+                else:
+                    category = suggested_category
+                    classification_source = "AI - Invalid Correction"
+                    classification_reason += (
+                        " The human correction was invalid."
+                    )
+
         else:
-            category = "Other"
+            # Use the original keyword rules as a safe fallback
+            if "price" in message:
+                category = "Sales"
+            elif "help" in message:
+                category = "Support"
+            else:
+                category = "Other"
 
-        print(customer["name"], "→", category)
+            classification_source = "Rules"
+            classification_reason = (
+                "Classified using keyword rules."
+            )
+
+        print(
+            customer["name"],
+            "→",
+            category,
+            f"({classification_source})",
+        )
 
         customer["category"] = category
+        customer["classification_source"] = classification_source
+        customer["classification_reason"] = classification_reason
+
+        print("  Reason:", classification_reason)
+
         customer["quote_eur"] = ""
         customer["quote_usd"] = ""
         customer["rate_date"] = ""
 
-        # Generate a sample converted quote only for Sales enquiries
+        # Generate a converted quote only for Sales enquiries
         if category == "Sales" and exchange_rate is not None:
             customer["quote_eur"] = "100.00"
             customer["quote_usd"] = f"{100 * exchange_rate:.2f}"
@@ -284,15 +345,17 @@ output_path = Path(__file__).parent / "processed_customers.csv"
 
 with output_path.open("w", newline="", encoding="utf-8") as file:
     columns = [
-        "id",
-        "name",
-        "email",
-        "message",
-        "category",
-        "quote_eur",
-        "quote_usd",
-        "rate_date",
-    ]
+    "id",
+    "name",
+    "email",
+    "message",
+    "category",
+    "classification_source",
+    "classification_reason",
+    "quote_eur",
+    "quote_usd",
+    "rate_date",
+]
 
     writer = csv.DictWriter(file, fieldnames=columns)
     writer.writeheader()
@@ -337,6 +400,7 @@ try:
 
     if selected_index < 0 or selected_index >= len(email_previews):
         print("Email sending skipped: invalid selection.")
+
     else:
         selected_preview = email_previews[selected_index]
 
@@ -351,25 +415,26 @@ try:
             "(yes/no): "
         ).strip().lower()
 
-    if approval == "yes":
-        email_sent = send_email(selected_preview)
+        if approval == "yes":
+            email_sent = send_email(selected_preview)
 
-        if email_sent:
-            email_status = "EMAIL_SENT"
+            if email_sent:
+                email_status = "EMAIL_SENT"
+            else:
+                email_status = "EMAIL_FAILED"
+
+            email_audit_entries.append({
+                "status": email_status,
+                "recipient": selected_preview["to"],
+            })
+
         else:
-            email_status = "EMAIL_FAILED"
+            print("Email sending skipped.")
 
-        email_audit_entries.append({
-            "status": email_status,
-            "recipient": selected_preview["to"],
-        })
-    else:
-        print("Email sending skipped.")
-
-        email_audit_entries.append({
-        "status": "EMAIL_REJECTED",
-        "recipient": selected_preview["to"],
-    })
+            email_audit_entries.append({
+                "status": "EMAIL_REJECTED",
+                "recipient": selected_preview["to"],
+            })
 
 except ValueError:
     print("Email sending skipped: enter a valid number.")
