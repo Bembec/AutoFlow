@@ -29,6 +29,18 @@ It processes customer enquiries from CSV data, categorizes them, enriches sales 
 - Supports Airtable pagination
 - Logs created, updated, unchanged, and failed operations
 
+
+## Version 4 — Controlled Email Automation
+
+- Generates personalized customer email responses.
+- Allows a human to inspect and approve each message.
+- Sends controlled test emails through Gmail.
+- Uses an environment safety switch to prevent accidental sending.
+- Records sent, rejected and failed email attempts in the activity log.
+
+> During development, customer emails are redirected to a test Gmail account.
+> Gmail credentials are stored privately in `.env` and are never committed.
+
 ## Installation
 
 Create and activate a virtual environment, then install the required packages:
