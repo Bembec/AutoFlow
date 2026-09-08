@@ -16,6 +16,8 @@ from datetime import datetime
 import os
 from urllib.parse import quote
 from dotenv import load_dotenv
+from email_templates import create_email_preview
+from email_sender import send_email
 
 # Load the private Airtable configuration from .env
 load_dotenv()
@@ -298,6 +300,80 @@ with output_path.open("w", newline="", encoding="utf-8") as file:
 
 print("Results saved to:", output_path)
 
+# Generate personalized email previews without contacting customers
+email_preview_path = Path(__file__).parent / "email_previews.txt"
+email_previews = []
+
+with email_preview_path.open("w", encoding="utf-8") as file:
+    for customer in processed_customers:
+        email_preview = create_email_preview(customer)
+        email_previews.append(email_preview)
+
+        file.write(f"To: {email_preview['to']}\n")
+        file.write(f"Subject: {email_preview['subject']}\n")
+        file.write(f"{email_preview['body']}\n")
+        file.write("-" * 60 + "\n")
+
+print("Email previews saved to:", email_preview_path)
+
+# Store email decisions so they can be written to the activity log
+email_audit_entries = []
+
+# Display available email previews for human selection
+print("\nAvailable email previews:")
+
+for number, preview in enumerate(email_previews, start=1):
+    print(
+        f"{number}. {preview['to']} — "
+        f"{preview['subject']}"
+    )
+
+selection = input(
+    "Enter the preview number you want to test: "
+).strip()
+
+try:
+    selected_index = int(selection) - 1
+
+    if selected_index < 0 or selected_index >= len(email_previews):
+        print("Email sending skipped: invalid selection.")
+    else:
+        selected_preview = email_previews[selected_index]
+
+        # Show the complete message before requesting approval
+        print("\n--- EMAIL PREVIEW ---")
+        print("Original recipient:", selected_preview["to"])
+        print("Subject:", selected_preview["subject"])
+        print(selected_preview["body"])
+
+        approval = input(
+            "\nApprove sending this to your test Gmail? "
+            "(yes/no): "
+        ).strip().lower()
+
+    if approval == "yes":
+        email_sent = send_email(selected_preview)
+
+        if email_sent:
+            email_status = "EMAIL_SENT"
+        else:
+            email_status = "EMAIL_FAILED"
+
+        email_audit_entries.append({
+            "status": email_status,
+            "recipient": selected_preview["to"],
+        })
+    else:
+        print("Email sending skipped.")
+
+        email_audit_entries.append({
+        "status": "EMAIL_REJECTED",
+        "recipient": selected_preview["to"],
+    })
+
+except ValueError:
+    print("Email sending skipped: enter a valid number.")
+
 # Synchronize processed customers with the Airtable CRM
 sync_customers_to_airtable(processed_customers)
 
@@ -307,6 +383,14 @@ log_path = Path(__file__).parent / "activity.log"
 timestamp = datetime.now().astimezone().isoformat(timespec="seconds")
 
 with log_path.open("a", encoding="utf-8") as log:
+    
+        # Record the approved, rejected or failed email decision
+    for email_event in email_audit_entries:
+        log.write(
+            f"{timestamp} | EMAIL | {email_event['status']} | "
+            f"Recipient: {email_event['recipient']}\n"
+        )    
+
     for customer in processed_customers:
         log.write(
             f"{timestamp} | ID: {customer['id']} | "
