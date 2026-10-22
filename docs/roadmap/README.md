@@ -1,5 +1,7 @@
 # Product roadmap
 
+Progress against this plan: [status.md](status.md).
+
 This is a public summary. The full plan (`AutoFlow-Full-Product-Roadmap.docx`) is private: keep it locally in this folder, where git ignores it.
 
 ## Summary
