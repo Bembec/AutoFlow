@@ -37,6 +37,8 @@ class ActionContext:
     mode: str
     # Only provided to actions that run inline (not in a timeout thread)
     session: Any = None
+    # Decrypted {"config", "secrets"} of the step's connection, if any
+    credentials: dict | None = None
 
 
 @dataclass
@@ -59,6 +61,8 @@ class Action:
     # Calls external services: run in a worker thread so a timeout can apply
     uses_network: bool = False
     simulate: Callable | None = field(default=None)
+    # Provider whose connection (named in the "connection" input) this needs
+    connection_provider: str | None = None
 
 
 REGISTRY: dict[str, Action] = {}
@@ -121,6 +125,7 @@ def describe_actions():
             "outputs": action.outputs,
             "side_effect": action.side_effect,
             "requires_approval": action.requires_approval,
+            "connection_provider": action.connection_provider,
         }
         for action in REGISTRY.values()
     ]
@@ -291,3 +296,7 @@ register(Action(
     side_effect=True,
     idempotent=True,
 ))
+
+
+# Connector actions register themselves into the same registry
+from autoflow.integrations import actions as _connector_actions  # noqa: E402,F401

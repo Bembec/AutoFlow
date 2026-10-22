@@ -1,5 +1,14 @@
 # Changelog
 
+## V12: Integrations
+- Secrets vault (`autoflow.security.vault`): Fernet encryption, key rotation through `AUTOFLOW_SECRET_KEYS`, and a development key file.
+- Connections per workspace for Airtable, SMTP, generic HTTP (API key) and Google (OAuth2). Secrets are encrypted, masked in the API, and only admins can manage them. Revoking deletes the stored credentials.
+- OAuth2 framework: encrypted 10-minute state, code exchange, automatic token refresh, and a revoked refresh token marks the connection for reconnecting.
+- Connector actions: `airtable_upsert`, `smtp_send_email` (approval-gated), `http_get`, `http_send` and `google_sheets_append_row`. The engine decrypts the step's connection just before it runs, and only from the same workspace.
+- SSRF protection for outbound HTTP: public addresses only, DNS-resolved checks, no redirects and no credentials in URLs.
+- Inbound webhooks: per-workflow secret URLs, HMAC signatures (AutoFlow with a replay window, or Shopify), duplicate-delivery idempotency, a 256 KB limit, and only published webhook-triggered workflows.
+- Migration 0003 (connections, webhook_endpoints).
+
 ## V11: AI workflow builder
 - `POST /workspaces/{id}/workflows/ai-draft`: plain-language request → validated workflow draft, with clarifying questions, assumptions and unsupported apps; optional save as a draft workflow.
 - The AI sees the live action catalogue and an example. Its output passes the standard validator, with up to 2 repair rounds that feed the validator's errors back.

@@ -68,6 +68,9 @@ def _invoke(action, ctx, inputs, timeout_seconds):
             return action.simulate(ctx, inputs)
         return {"dry_run": True}
 
+    if action.connection_provider and inputs.get("connection"):
+        ctx.credentials = _load_credentials(ctx, action, inputs["connection"])
+
     if not action.uses_network:
         return action.handler(ctx, inputs)
 
@@ -80,6 +83,21 @@ def _invoke(action, ctx, inputs, timeout_seconds):
         return future.result(timeout=timeout_seconds)
     finally:
         pool.shutdown(wait=False, cancel_futures=True)
+
+
+def _load_credentials(ctx, action, connection_name):
+    """Decrypt this workspace's connection (main thread, has the session)."""
+
+    from autoflow.integrations import connections
+
+    try:
+        config, secrets = connections.credentials_for(
+            ctx.session, ctx.workspace_id, connection_name, action.connection_provider
+        )
+    except connections.ReconnectNeeded as error:
+        raise ActionError(str(error), retryable=False) from error
+
+    return {"config": config, "secrets": secrets}
 
 
 def execute(session, execution):

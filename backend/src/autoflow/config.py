@@ -38,5 +38,8 @@ DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH.as_posix()}"
 # How long a login token stays valid
 ACCESS_TOKEN_TTL_HOURS = int(os.getenv("ACCESS_TOKEN_TTL_HOURS", "24"))
 
+# Public address of the API, used in webhook and OAuth callback URLs
+PUBLIC_URL = os.getenv("AUTOFLOW_PUBLIC_URL", "http://127.0.0.1:8000").rstrip("/")
+
 # Workspace used by the command-line workflow (python -m autoflow)
 LOCAL_WORKSPACE_SLUG = "local"

@@ -103,6 +103,38 @@ A workflow is **data**: a trigger plus ordered steps, each calling a registered 
 | POST | `/workspaces/{id}/executions/{ex}/cancel` | member | Cancel |
 | POST | `/workspaces/{id}/executions/{ex}/retry` | member | Retry from the failed step (`{"confirm_not_completed": true}` for `needs_attention`) |
 
+## Integrations (V12)
+
+**Connections** hold a workspace's own credentials for an app. Secrets are encrypted with Fernet (`AUTOFLOW_SECRET_KEYS`, rotatable), only decrypted when a step needs them, and never returned by the API (only masked, e.g. `pat…3456`). Only admins can manage connections.
+
+| App | Provider | Auth | Actions |
+| --- | --- | --- | --- |
+| Airtable | `airtable` | API token | `airtable_upsert` (create/update, matched on a field) |
+| Email (Gmail etc.) | `smtp` | App password | `smtp_send_email` (always needs approval; `EMAIL_SEND_ENABLED` switch; optional `test_recipient` redirect) |
+| Any REST API | `http` | API-key header | `http_get`, `http_send` |
+| Google Sheets | `google` | OAuth2 (auto-refresh) | `google_sheets_append_row` |
+
+- **Step inputs:** steps name their connection: `"inputs": {"connection": "crm", ...}`. A workflow can only use connections from its own workspace.
+- **OAuth:** `POST …/connections/oauth/google/start` returns the consent URL. Its `state` is encrypted and expires after 10 minutes. Google redirects to `/oauth/callback/google`, which stores the tokens. Access tokens are refreshed before expiry. If a refresh token is revoked, the connection is marked `error` ("reconnect"), so the step fails instead of retrying forever.
+- **HTTP safety:** `http_*` actions only reach public addresses. Loopback, private, link-local and cloud-metadata IPs are refused even behind DNS names, and redirects are not followed.
+
+**Webhooks** let other apps start a published workflow whose trigger is `webhook`:
+
+- `POST …/workflows/{wf}/webhook` returns a URL and a secret, shown once. Use `{"signature_scheme": "shopify", "secret": "<app secret>"}` for Shopify.
+- The sender signs every request: `X-AutoFlow-Timestamp` plus `X-AutoFlow-Signature: sha256=HMAC(secret, "<ts>.<body>")`, with a 5-minute replay window. Shopify uses its `X-Shopify-Hmac-Sha256` header instead.
+- Duplicate deliveries (`Idempotency-Key`, `X-Shopify-Webhook-Id`, `X-Request-Id`) return the first execution instead of starting another.
+
+| Method | Path | Role |
+| --- | --- | --- |
+| GET | `/integrations` | — |
+| GET / POST | `/workspaces/{id}/connections` | viewer / admin |
+| PUT | `/workspaces/{id}/connections/{c}/secrets` | admin |
+| DELETE | `/workspaces/{id}/connections/{c}` | admin |
+| POST | `/workspaces/{id}/connections/oauth/{provider}/start` | admin |
+| GET | `/oauth/callback/{provider}` | — (signed state) |
+| GET / POST / DELETE | `/workspaces/{id}/workflows/{wf}/webhook` | viewer / member / member |
+| POST | `/hooks/{public_id}` | — (signature) |
+
 ## AI workflow builder (V11)
 
 `POST /workspaces/{id}/workflows/ai-draft` (member)
