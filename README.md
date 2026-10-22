@@ -51,7 +51,7 @@ npm install
 npm run dev                        # http://localhost:3000
 ```
 
-Run the checks with `pytest` (backend) and with `npx tsc --noEmit && npm run lint && npm run build` (frontend).
+Run the checks with `pytest` (backend) and with `npm run typecheck && npm run lint && npm run build` (frontend).
 
 **Whole stack in Docker** (PostgreSQL, API, worker, web):
 

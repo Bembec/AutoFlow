@@ -44,7 +44,7 @@ URLs point here.
 ## Checks
 
 ```bash
-npx tsc --noEmit
+npm run typecheck   # generates route types, then tsc
 npm run lint
 npm run build
 ```

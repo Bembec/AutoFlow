@@ -44,6 +44,8 @@ def test_sign_in_is_rate_limited(client):
 
 def test_production_refuses_unsafe_settings(monkeypatch):
     monkeypatch.setattr(config, "ENVIRONMENT", "production")
+    monkeypatch.setattr(config, "DATABASE_URL", "sqlite:///autoflow.db")
+    monkeypatch.setattr(config, "PUBLIC_URL", "http://127.0.0.1:8000")
     monkeypatch.delenv("AUTOFLOW_SECRET_KEYS", raising=False)
 
     with pytest.raises(config.UnsafeConfiguration) as error:
