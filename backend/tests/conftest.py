@@ -8,6 +8,17 @@ os.environ.setdefault("AUTOFLOW_DATA_DIR", tempfile.mkdtemp(prefix="autoflow-tes
 os.environ["AI_CLASSIFICATION_ENABLED"] = "false"
 os.environ["EMAIL_SEND_ENABLED"] = "false"
 
+# Never use real credentials from backend/.env in tests
+# (load_dotenv does not override variables that are already set)
+for secret in (
+    "AIRTABLE_TOKEN",
+    "GEMINI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "EMAIL_ADDRESS",
+    "EMAIL_APP_PASSWORD",
+):
+    os.environ[secret] = ""
+
 from unittest.mock import patch  # noqa: E402
 
 import pytest  # noqa: E402

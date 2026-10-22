@@ -63,8 +63,12 @@ Executions currently run inside the API request. Because all state lives
 in the database, a background worker (or Temporal) can take over
 `executor.execute` later without changing the data model.
 
+## AI builder (V11)
+
+
+
 ## Next technical steps
 
-1. **V11, AI builder:** plain-language request → validated workflow definition, through a model router.
-2. **V12, integrations:** per-workspace encrypted credentials, webhooks with signature checks, and first connectors.
+1. **V12, integrations:** per-workspace encrypted credentials, webhooks with signature checks, and first connectors.
+2. **V13, AI steps and safety:** document/email extraction with confidence scores, prompt-injection guard, emergency stop, and action limits.
 3. **Later:** a background worker for executions and schedule triggers.

@@ -176,6 +176,34 @@ class WorkflowOut(OrmModel):
     versions: list[WorkflowVersionOut]
 
 
+class DraftAnswer(BaseModel):
+    question: str = Field(max_length=1000)
+    answer: str = Field(max_length=2000)
+
+
+class AIDraftRequest(BaseModel):
+    request: str = Field(
+        min_length=10,
+        max_length=4000,
+        description="What should be automated, in plain words",
+    )
+    answers: list[DraftAnswer] = Field(default_factory=list, max_length=20)
+    save: bool = Field(False, description="Save a valid draft as a new workflow")
+
+
+class AIDraftOut(BaseModel):
+    status: Literal["ready", "needs_details"]
+    name: str
+    description: str
+    definition: dict[str, Any] | None
+    questions: list[str]
+    assumptions: list[str]
+    unsupported: list[str]
+    provider: str
+    attempts: int
+    workflow: WorkflowOut | None = None
+
+
 class PublishRequest(BaseModel):
     version: int | None = Field(None, description="Omit to publish the draft; set to roll back")
 

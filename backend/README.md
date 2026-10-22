@@ -103,6 +103,24 @@ A workflow is **data**: a trigger plus ordered steps, each calling a registered 
 | POST | `/workspaces/{id}/executions/{ex}/cancel` | member | Cancel |
 | POST | `/workspaces/{id}/executions/{ex}/retry` | member | Retry from the failed step (`{"confirm_not_completed": true}` for `needs_attention`) |
 
+## AI workflow builder (V11)
+
+`POST /workspaces/{id}/workflows/ai-draft` (member)
+
+```json
+{"request": "When a customer sends an enquiry, classify it, quote sales leads in USD and email a reply",
+ "answers": [], "save": false}
+```
+
+- **What comes back:**
+  - `status: "ready"` with a validated `definition`; or
+  - `status: "needs_details"` with `questions`. Send them back in `answers` to continue.
+
+  The reply also lists the AI's `assumptions`, plus any `unsupported` apps it could not build with.
+- **Validation:** every draft goes through the same validator as hand-written workflows. The AI gets up to 2 repair attempts with the validator's errors. It never invents actions, and it cannot switch off mandatory approvals.
+- **Drafting only:** with `"save": true` a valid draft is stored as a **draft** workflow. A person still test-runs and publishes it.
+- **Model router (`autoflow.ai.providers`):** providers are tried in `AI_PROVIDER_ORDER` (Gemini, then Claude `claude-opus-5-5` with server-side refusal fallbacks). A provider without a key is skipped, and when one fails the next is used. If none is configured, the endpoint returns `503`.
+
 ### Human approval rules (V8)
 
 - AI classifications and outgoing emails made without a terminal wait as **pending approvals**.

@@ -1,5 +1,12 @@
 # Changelog
 
+## V11: AI workflow builder
+- `POST /workspaces/{id}/workflows/ai-draft`: plain-language request → validated workflow draft, with clarifying questions, assumptions and unsupported apps; optional save as a draft workflow.
+- The AI sees the live action catalogue and an example. Its output passes the standard validator, with up to 2 repair rounds that feed the validator's errors back.
+- Model router (`autoflow.ai.providers`): Gemini and Claude (`claude-opus-5-5`, server-side refusal fallbacks) with ordered fallback when a provider fails.
+- Tests can no longer pick up real credentials from `backend/.env`.
+- Verified live with Gemini: a five-step enquiry workflow was drafted valid on the first attempt.
+
 ## V10: Workflow engine
 - Workflows are defined as data: a trigger, ordered steps, `{{ }}` references to the trigger and earlier outputs, and `when` conditions for branching.
 - Action registry with input/output specs and safety flags (side effect, idempotent, requires approval). The existing capabilities became actions: classify, quote, compose, send, save customer and log.

@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Header, HTTPException, Query, Response
 
+from autoflow.ai import builder, providers
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
 from autoflow.engine import executor
@@ -85,6 +86,45 @@ def create_from_template(
         template["description"],
         user_id=membership.user_id,
     )
+
+
+@workspace_router.post("/workflows/ai-draft", response_model=schemas.AIDraftOut)
+def ai_draft(request: schemas.AIDraftRequest, membership: MemberAccess, session: Session):
+    """Describe a process in plain words; get a validated workflow draft."""
+
+    try:
+        draft = builder.draft_workflow(
+            request.request, [answer.model_dump() for answer in request.answers]
+        )
+    except providers.AIUnavailable as error:
+        raise HTTPException(status_code=503, detail=str(error))
+    except builder.DraftFailed as error:
+        raise HTTPException(status_code=422, detail=str(error))
+
+    workflow = None
+
+    if request.save and draft.definition is not None:
+        workflow = engine.create_workflow(
+            session,
+            membership.workspace_id,
+            draft.name,
+            draft.definition,
+            draft.description,
+            user_id=membership.user_id,
+        )
+
+    return {
+        "status": draft.status,
+        "name": draft.name,
+        "description": draft.description,
+        "definition": draft.definition,
+        "questions": draft.questions,
+        "assumptions": draft.assumptions,
+        "unsupported": draft.unsupported,
+        "provider": draft.provider,
+        "attempts": draft.attempts,
+        "workflow": workflow,
+    }
 
 
 @workspace_router.get("/workflows/{workflow_id}", response_model=schemas.WorkflowOut)
