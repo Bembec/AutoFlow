@@ -11,6 +11,7 @@ simulate side effects. Live runs always use the published version.
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from autoflow import config
 from autoflow.billing import service as billing
 from autoflow.engine import executor, limits
 from autoflow.engine.definition import WorkflowDefinition
@@ -313,5 +314,7 @@ def start_execution(
         session.rollback()
         return start_execution(session, workspace_id, workflow_id, mode, payload, idempotency_key, user_id)
 
-    executor.execute(session, execution)
+    if config.execution_mode() != "queue":
+        executor.execute(session, execution)
+
     return execution, True

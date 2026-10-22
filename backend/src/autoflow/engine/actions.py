@@ -305,6 +305,41 @@ register(Action(
 ))
 
 
+MAX_DELAY_DAYS = 30
+
+
+def _no_handler(ctx, inputs):  # pragma: no cover - the executor handles delays
+    raise ActionError("Delay steps are run by the executor.", retryable=False)
+
+
+register(Action(
+    name="delay",
+    description="Wait before the next step (e.g. follow up after 2 days). Needs the background worker.",
+    handler=_no_handler,
+    inputs={
+        "minutes": InputSpec("number", required=False),
+        "hours": InputSpec("number", required=False),
+        "days": InputSpec("number", required=False, description=f"Up to {MAX_DELAY_DAYS} days in total"),
+    },
+    outputs={"resume_at": "date-time"},
+))
+
+
+def delay_seconds(inputs):
+    """Total delay of a delay step, validated."""
+
+    seconds = (
+        float(inputs.get("minutes") or 0) * 60
+        + float(inputs.get("hours") or 0) * 3600
+        + float(inputs.get("days") or 0) * 86400
+    )
+    if seconds <= 0:
+        raise ActionError("A delay needs minutes, hours or days greater than 0.", retryable=False)
+    if seconds > MAX_DELAY_DAYS * 86400:
+        raise ActionError(f"A delay can be at most {MAX_DELAY_DAYS} days.", retryable=False)
+    return seconds
+
+
 # Connector actions register themselves into the same registry
 from autoflow.integrations import actions as _connector_actions  # noqa: E402,F401
 from autoflow.ai import steps as _ai_steps  # noqa: E402,F401

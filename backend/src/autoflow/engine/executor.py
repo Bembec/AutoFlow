@@ -18,10 +18,12 @@ later be driven by a background worker or a durable engine (Temporal).
 
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 
+from autoflow import config
 from autoflow.billing import service as billing
 from autoflow.engine import limits
-from autoflow.engine.actions import ActionContext, ActionError, get_action, validate_inputs
+from autoflow.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templating import evaluate_condition, render
 from autoflow.storage.db import utc_now
@@ -29,6 +31,9 @@ from autoflow.storage.models import Approval, StepExecution, Workspace
 
 
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled", "needs_attention"}
+
+# Longest wait between retry attempts (keeps heartbeats frequent)
+MAX_BACKOFF_SECONDS = 300
 
 # Replaced in tests so retries do not really wait
 sleep = time.sleep
@@ -114,6 +119,8 @@ def execute(session, execution):
 
     execution.status = "running"
     execution.started_at = execution.started_at or utc_now()
+    execution.heartbeat_at = utc_now()
+    execution.run_after = None
     session.commit()
 
     for position, step in enumerate(definition.steps):
@@ -155,6 +162,12 @@ def execute(session, execution):
         inputs = render(step.inputs, context)
         record.input = inputs
 
+        if action.name == "delay":
+            if not _delay_elapsed(session, execution, step, record, inputs):
+                return execution
+            context["steps"][step.id] = {"output": record.output}
+            continue
+
         needs_approval = step.needs_approval() or (
             workspace.approve_all_side_effects and action.side_effect
         )
@@ -180,6 +193,51 @@ def execute(session, execution):
 
     _finish(session, execution, "succeeded")
     return execution
+
+
+def _delay_elapsed(session, execution, step, record, inputs):
+    """Handle a delay step. Returns True once the wait is over.
+
+    The first time, the execution is parked as "queued" with run_after set
+    to the resume time; a worker continues it then. Test runs skip waits.
+    """
+
+    if execution.mode == "test":
+        record.status = "succeeded"
+        record.output = {"skipped_in_test": True}
+        record.finished_at = utc_now()
+        session.commit()
+        return True
+
+    resume_at = (record.output or {}).get("resume_at")
+
+    if resume_at is None:
+        try:
+            seconds = delay_seconds(inputs)
+        except ActionError as error:
+            record.status = "failed"
+            record.error = str(error)
+            _finish(session, execution, "failed", f"Step {step.id} failed: {error}")
+            return False
+
+        resume = utc_now() + timedelta(seconds=seconds)
+        record.output = {"resume_at": resume.isoformat()}
+        record.started_at = utc_now()
+    else:
+        resume = datetime.fromisoformat(resume_at)
+
+    if utc_now() >= resume:
+        record.status = "succeeded"
+        record.finished_at = utc_now()
+        session.commit()
+        return True
+
+    record.status = "waiting"
+    execution.status = "queued"
+    execution.run_after = resume
+    execution.claimed_by = None
+    session.commit()
+    return False
 
 
 def _request_approval(session, execution, step, record, inputs, review=None):
@@ -260,6 +318,7 @@ def _run_step(session, execution, step, record, action, inputs):
         record.status = "running"
         record.error = None
         record.started_at = utc_now()
+        execution.heartbeat_at = utc_now()
         session.commit()
 
         try:
@@ -308,7 +367,8 @@ def _run_step(session, execution, step, record, action, inputs):
 
         record.error = error
         session.commit()
-        sleep(step.retry.backoff_seconds * 2 ** (record.attempts - 1))
+        # Capped so the execution's heartbeat never goes quiet for long
+        sleep(min(MAX_BACKOFF_SECONDS, step.retry.backoff_seconds * 2 ** (record.attempts - 1)))
 
 
 # --- operator actions -------------------------------------------------------
@@ -360,6 +420,18 @@ def retry(session, execution, confirm_not_completed=False):
     execution.finished_at = None
     session.commit()
 
+    return _continue(session, execution)
+
+
+def _continue(session, execution):
+    """Run now (inline mode) or hand the execution to the workers (queue mode)."""
+
+    if config.execution_mode() == "queue":
+        execution.status = "queued"
+        execution.claimed_by = None
+        session.commit()
+        return execution
+
     return execute(session, execution)
 
 
@@ -386,4 +458,4 @@ def resume_after_decision(session, execution, step_id, approved, review=False, c
         record.status = "approved"
 
     session.commit()
-    return execute(session, execution)
+    return _continue(session, execution)

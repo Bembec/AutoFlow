@@ -24,6 +24,7 @@ const STATUS_RING: Record<string, string> = {
   failed: "border-red-400 bg-red-50",
   rejected: "border-red-400 bg-red-50",
   waiting_approval: "border-amber-400 bg-amber-50",
+  waiting: "border-amber-400 bg-amber-50",
   running: "border-blue-400 bg-blue-50",
 };
 
@@ -105,6 +106,10 @@ export function WorkflowCanvas({
           badges.push("needs approval");
         }
         if (step.retry && step.retry.max_attempts > 1) badges.push(`retry ×${step.retry.max_attempts}`);
+        if (step.action === "delay") {
+          const { minutes, hours, days } = step.inputs as { minutes?: number; hours?: number; days?: number };
+          badges.push(`wait ${[days && `${days}d`, hours && `${hours}h`, minutes && `${minutes}m`].filter(Boolean).join(" ")}`);
+        }
         if (step.action.startsWith("ai_") || step.action === "classify_enquiry") badges.push("AI");
 
         return {

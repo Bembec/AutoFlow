@@ -44,7 +44,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 1. **Decide the open questions** (they change what gets built): first niche and its 3 automations, launch country, brand name, build vs. buy integrations.
 2. **Three niche automations** as templates, e.g. for e-commerce: order → invoice, abandoned-cart follow-up, review replies. This needs a Shopify API connector beyond webhooks.
 3. **Drag-and-drop canvas editing** (today: AI drafting + JSON editor).
-4. **Background execution queue**, so long workflows don't run inside the HTTP request, plus `delay` steps.
+4. ~~Background execution queue and `delay` steps~~: done in V17.
 5. **Email/document triggers**, such as a Gmail inbox watch or PDF upload with OCR, to feed `ai_extract`.
 6. **Choose and set up a cloud host** (AWS/GCP), managed PostgreSQL, uptime monitoring, error tracking and a status page.
 7. **Website and legal**: terms, privacy policy, DPA, sub-processor list (see the full roadmap).

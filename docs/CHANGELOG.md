@@ -1,5 +1,13 @@
 # Changelog
 
+## V17: Background execution queue and delays
+- Queue mode (`AUTOFLOW_EXECUTION_MODE=queue`): API, webhooks and schedules only queue runs, and workers execute them. Inline mode stays the default.
+- Atomic claims (no execution runs twice), heartbeats, and recovery of runs from a dead worker. An uncertain side effect still becomes `needs_attention`.
+- `delay` action (minutes/hours/days, max 30 days): the execution parks as queued with `run_after` and resumes in a worker. Test runs skip delays.
+- Retry backoff is capped at 5 minutes so heartbeats stay fresh. Approvals and retries go back to the queue in queue mode.
+- Web app shows waiting steps, delay badges and the resume time. Docker compose runs in queue mode.
+- Migration 0007 (run_after, claimed_by, heartbeat_at).
+
 ## V16: Operations and production readiness
 - Environments: `AUTOFLOW_ENV` is development, staging or production. Outside development, startup fails unless secret keys, PostgreSQL and an https public URL are set; production also requires no email test redirect.
 - In staging and production, migrations run as a deploy step (no automatic migration). `/ready` reports database reachability and schema currency, and API docs are hidden in production.

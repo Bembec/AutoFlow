@@ -77,6 +77,7 @@ const STATUS_STYLES: Record<string, string> = {
   queued: "bg-blue-50 text-blue-700 ring-blue-600/20",
   draft: "bg-blue-50 text-blue-700 ring-blue-600/20",
   waiting_approval: "bg-amber-50 text-amber-800 ring-amber-600/30",
+  waiting: "bg-amber-50 text-amber-800 ring-amber-600/30",
   pending: "bg-amber-50 text-amber-800 ring-amber-600/30",
   paused: "bg-amber-50 text-amber-800 ring-amber-600/30",
   needs_attention: "bg-orange-50 text-orange-800 ring-orange-600/30",

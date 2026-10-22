@@ -1,17 +1,23 @@
 """
-Background worker: runs scheduled workflows and housekeeping.
+Background worker: runs queued executions, scheduled workflows and
+housekeeping. Run as many workers as needed.
 
     python -m autoflow.worker
 
-Every TICK_SECONDS it starts each published, active workflow whose
-schedule trigger (cron, UTC) was due since the previous tick. Each due
-time gets the idempotency key "schedule:<workflow>:<time>", so restarts
-or several workers running at once never start the same slot twice.
+- Every second it runs due queued executions (queue mode, and executions
+  resuming after a delay step). Claims are atomic, so workers never run
+  the same execution twice.
+- Every TICK_SECONDS it starts each published, active workflow whose
+  schedule trigger (cron, UTC) was due. Each due time gets the
+  idempotency key "schedule:<workflow>:<time>", so restarts or several
+  workers never start the same slot twice. It also re-queues executions
+  whose worker died, and removes long-expired login tokens.
 """
 
 import logging
 import os
 import signal
+import socket
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -19,6 +25,7 @@ from croniter import croniter
 from sqlalchemy import delete, select
 
 from autoflow import config
+from autoflow.engine import queue
 from autoflow.engine import service as engine
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.storage.db import session_scope, utc_now
@@ -102,22 +109,35 @@ def main():
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    logger.info("Worker started (tick %ss, environment %s)", TICK_SECONDS, config.ENVIRONMENT)
+    worker_id = f"{socket.gethostname()}-{os.getpid()}"
+    logger.info(
+        "Worker %s started (tick %ss, execution mode %s, environment %s)",
+        worker_id, TICK_SECONDS, config.execution_mode(), config.ENVIRONMENT,
+    )
+    next_tick = 0.0
 
     while not stopping:
         try:
-            with session_scope() as session:
-                started = run_schedules(session)
-                housekeeping(session)
-            if started:
-                logger.info("Started %s scheduled run(s)", started)
-        except Exception:  # noqa: BLE001 - keep the worker alive; the next tick retries
-            logger.exception("Worker tick failed")
+            if time.monotonic() >= next_tick:
+                next_tick = time.monotonic() + TICK_SECONDS
+                with session_scope() as session:
+                    recovered = queue.recover_stale(session)
+                    started = run_schedules(session)
+                    housekeeping(session)
+                if recovered:
+                    logger.warning("Re-queued %s execution(s) from a stopped worker", recovered)
+                if started:
+                    logger.info("Started %s scheduled run(s)", started)
 
-        for _ in range(TICK_SECONDS):
-            if stopping:
-                break
-            time.sleep(1)
+            with session_scope() as session:
+                ran = queue.run_due(session, worker_id)
+            if ran:
+                logger.info("Ran %s queued execution(s)", ran)
+                continue  # more may be waiting
+        except Exception:  # noqa: BLE001 - keep the worker alive; the next loop retries
+            logger.exception("Worker loop failed")
+
+        time.sleep(1)
 
     logger.info("Worker stopped")
 

@@ -248,6 +248,13 @@ class WorkflowExecution(Base):
     started_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
+    # --- background queue (V17) ---
+    # A queued execution is not picked up before this time (delay steps)
+    run_after: Mapped[datetime | None] = mapped_column(UTCDateTime, index=True)
+    # Worker currently running it, and its last sign of life
+    claimed_by: Mapped[str | None] = mapped_column(String(100))
+    heartbeat_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
     version: Mapped[WorkflowVersion] = relationship()
     steps: Mapped[list["StepExecution"]] = relationship(
         back_populates="execution",

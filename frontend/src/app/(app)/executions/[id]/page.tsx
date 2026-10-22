@@ -67,6 +67,11 @@ export default function ExecutionPage() {
       </div>
 
       <ErrorNote message={action.error ?? execution.error} />
+      {execution.status === "queued" && execution.run_after && (
+        <p className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">
+          Waiting on a delay step. Resumes {formatTime(execution.run_after)}.
+        </p>
+      )}
       {execution.status === "waiting_approval" && (
         <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
           This run is waiting for a decision. <Link href="/approvals" className="underline">Go to approvals</Link>

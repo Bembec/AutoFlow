@@ -250,4 +250,5 @@ class ExecutionOut(OrmModel):
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
+    run_after: datetime | None = None
     steps: list[StepExecutionOut]

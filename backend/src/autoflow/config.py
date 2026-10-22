@@ -71,6 +71,12 @@ def check_deployment_settings():
         raise UnsafeConfiguration(f"Unsafe {ENVIRONMENT} settings: " + " ".join(problems))
 
 
+def execution_mode():
+    """inline: runs execute inside the request (development default).
+    queue: requests only queue runs; `python -m autoflow.worker` runs them."""
+    return os.getenv("AUTOFLOW_EXECUTION_MODE", "inline").lower()
+
+
 # Public address of the API, used in webhook and OAuth callback URLs
 PUBLIC_URL = os.getenv("AUTOFLOW_PUBLIC_URL", "http://127.0.0.1:8000").rstrip("/")
 

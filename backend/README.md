@@ -144,6 +144,13 @@ These are the roadmap's starting proposals, defined in `billing/plans.json`; ove
 
 Policies cover daily limits on executions (1000), AI calls (200) and live emails (100), plus `approve_all_side_effects`, which requires human approval for every side effect. These are enforced by the engine and cannot be bypassed by a workflow.
 
+## Background execution and delays (V17)
+
+- `AUTOFLOW_EXECUTION_MODE=queue`: starting a workflow (API, webhook or schedule) only queues it; `python -m autoflow.worker` processes runs, as many workers as you like. `inline` (default) runs inside the request.
+- Workers claim executions with an atomic conditional update, so no execution runs twice. Running executions send heartbeats. If a worker dies, its runs are re-queued after 15 minutes (`AUTOFLOW_STALE_EXECUTION_MINUTES`) and resumed; an interrupted non-idempotent step becomes `needs_attention` instead of repeating.
+- `delay` step: `{"action": "delay", "inputs": {"days": 2}}` (minutes/hours/days, up to 30 days). The execution waits as `queued` with `run_after` set, and a worker resumes it then. Test runs skip delays.
+- In queue mode, approvals and retries hand the run back to the workers instead of running inside the API request.
+
 ## Integrations (V12)
 
 **Connections** hold a workspace's own credentials for an app. Secrets are encrypted with Fernet (`AUTOFLOW_SECRET_KEYS`, rotatable), only decrypted when a step needs them, and never returned by the API (only masked, e.g. `pat…3456`). Only admins can manage connections.
