@@ -37,12 +37,15 @@ def migrated_database():
 
 @pytest.fixture(autouse=True)
 def clean_database():
-    """Give every test empty tables."""
+    """Give every test empty tables and a fresh sign-in rate limit."""
+
+    from autoflow.api.middleware import auth_limiter
 
     with engine.begin() as connection:
         for table in reversed(Base.metadata.sorted_tables):
             connection.execute(table.delete())
 
+    auth_limiter.hits.clear()
     yield
 
 

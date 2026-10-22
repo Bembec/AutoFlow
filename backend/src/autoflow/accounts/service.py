@@ -186,6 +186,46 @@ def add_member(session, acting_membership, email, role):
     return membership
 
 
+def _owner_count(session, workspace_id):
+    return len([m for m in list_workspace_members(session, workspace_id) if m.role == "owner"])
+
+
+def change_role(session, acting_membership, user_id, role):
+    """Change a member's role, without exceeding the actor's own role."""
+
+    if role not in ROLES:
+        raise AccountError(f"Unknown role: {role}")
+
+    target = get_membership(session, user_id, acting_membership.workspace_id)
+    if target is None:
+        raise AccountError("This user is not a member.")
+
+    if not role_at_least(acting_membership.role, role) or not role_at_least(acting_membership.role, target.role):
+        raise AccountError("You cannot change a role above your own.")
+
+    if target.role == "owner" and role != "owner" and _owner_count(session, target.workspace_id) == 1:
+        raise AccountError("A workspace needs at least one owner.")
+
+    target.role = role
+    session.flush()
+    return target
+
+
+def remove_member(session, acting_membership, user_id):
+    target = get_membership(session, user_id, acting_membership.workspace_id)
+    if target is None:
+        raise AccountError("This user is not a member.")
+
+    if not role_at_least(acting_membership.role, target.role):
+        raise AccountError("You cannot remove someone with a higher role.")
+
+    if target.role == "owner" and _owner_count(session, target.workspace_id) == 1:
+        raise AccountError("A workspace needs at least one owner.")
+
+    session.delete(target)
+    session.flush()
+
+
 def ensure_local_workspace(session):
     """Return the workspace used by the command-line workflow."""
 

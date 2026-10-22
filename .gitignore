@@ -238,3 +238,6 @@ Thumbs.db
 
 # Private planning documents (kept locally, never published)
 docs/roadmap/*.docx
+
+# docker compose settings (copy of deploy/compose.env.example)
+deploy/compose.env

@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 const apiUrl = process.env.AUTOFLOW_API_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  // Self-contained server for the Docker image (.next/standalone)
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

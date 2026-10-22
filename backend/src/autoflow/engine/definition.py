@@ -21,6 +21,7 @@ runs workflows whose actions, inputs and references are known to be valid.
 
 from typing import Any, Literal
 
+from croniter import croniter
 from pydantic import BaseModel, Field, model_validator
 
 from autoflow.engine.actions import get_action
@@ -118,8 +119,11 @@ class WorkflowDefinition(BaseModel):
 
             seen.add(step.id)
 
-        if self.trigger.type == "schedule" and not self.trigger.schedule:
-            raise ValueError("Schedule triggers need a cron expression")
+        if self.trigger.type == "schedule":
+            if not self.trigger.schedule:
+                raise ValueError("Schedule triggers need a cron expression")
+            if not croniter.is_valid(self.trigger.schedule):
+                raise ValueError(f"Invalid cron expression: {self.trigger.schedule}")
 
         return self
 

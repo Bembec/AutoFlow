@@ -1,5 +1,16 @@
 # Changelog
 
+## V16: Operations and production readiness
+- Environments: `AUTOFLOW_ENV` is development, staging or production. Outside development, startup fails unless secret keys, PostgreSQL and an https public URL are set; production also requires no email test redirect.
+- In staging and production, migrations run as a deploy step (no automatic migration). `/ready` reports database reachability and schema currency, and API docs are hidden in production.
+- HTTP middleware: request IDs and access logs, security headers (HSTS outside development), a sign-in rate limit (10/min per IP), and optional CORS.
+- Background worker (`python -m autoflow.worker`): cron-scheduled workflows with idempotent slots, honouring the emergency stop and pause, plus token housekeeping. Cron expressions are validated.
+- Data ownership: workspace export (no secrets), workspace deletion with name confirmation, and account deletion that protects shared workspaces. New endpoints change member roles and remove members, and the last owner is protected.
+- PostgreSQL support (psycopg 3). An empty `DATABASE_URL` means the SQLite default.
+- Docker images for the API/worker and the web app (non-root, Next.js standalone), plus docker-compose (PostgreSQL, migrate, API, worker, web).
+- GitHub Actions CI: backend tests on SQLite and PostgreSQL, a migration round-trip and `alembic check`, frontend type check/lint/build, and image builds.
+- Operations runbook (`docs/operations.md`): deploy, rollback, monitoring, backups and restore tests, key rotation, incident response, data requests.
+
 ## V15: Billing and usage
 - Plans (Free, Starter, Growth, Business, Enterprise) from a JSON config, with limits on included tasks, workflows and seats.
 - Usage metering on the roadmap's billable-task definition. Events are unique per step run (no double billing) and recorded in the same commit as the step's success. Rules-only classification is not billed.

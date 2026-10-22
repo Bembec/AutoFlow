@@ -53,11 +53,21 @@ npm run dev                        # http://localhost:3000
 
 Run the checks with `pytest` (backend) and with `npx tsc --noEmit && npm run lint && npm run build` (frontend).
 
+**Whole stack in Docker** (PostgreSQL, API, worker, web):
+
+```bash
+cp deploy/compose.env.example deploy/compose.env
+docker compose up --build          # http://localhost:3000
+```
+
+Scheduled workflows need the worker: `python -m autoflow.worker`.
+
 Safety switches (`EMAIL_SEND_ENABLED`, `AI_CLASSIFICATION_ENABLED`) default to `false`. During development, emails are redirected to a test inbox and only fake customer data is used.
 
 ## Documentation
 
 - [Product roadmap (summary)](docs/roadmap/README.md)
 - [Architecture](docs/architecture.md)
+- [Operations runbook](docs/operations.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Backend reference](backend/README.md) · [Frontend](frontend/README.md)

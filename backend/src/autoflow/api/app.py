@@ -5,20 +5,49 @@ Start the development server with:  python -m autoflow.api
 Interactive documentation is then available at /docs.
 """
 
+import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from autoflow import __version__
+from autoflow import __version__, config
 from autoflow.api import schemas
-from autoflow.api.routes import auth, billing, dashboard, integrations, workflow, workflows, workspaces
-from autoflow.storage import initialize_storage
+from autoflow.api.middleware import http_middleware
+from autoflow.api.routes import (
+    auth,
+    billing,
+    dashboard,
+    data,
+    integrations,
+    workflow,
+    workflows,
+    workspaces,
+)
+from autoflow.storage import database_status, initialize_storage
+
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+
+
+def auto_migrate():
+    """Development migrates on start; staging/production migrate as a deploy step."""
+    default = "true" if config.ENVIRONMENT == "development" else "false"
+    return os.getenv("AUTOFLOW_AUTO_MIGRATE", default).lower() == "true"
 
 
 @asynccontextmanager
 async def lifespan(app):
-    # Bring the database schema up to date before the first request
-    initialize_storage()
+    config.check_deployment_settings()
+
+    if auto_migrate():
+        initialize_storage()
+
     yield
 
 
@@ -29,11 +58,33 @@ def create_app():
         title="AutoFlow API",
         version=__version__,
         lifespan=lifespan,
+        # No public API docs in production
+        docs_url=None if config.ENVIRONMENT == "production" else "/docs",
+        redoc_url=None,
     )
+
+    app.middleware("http")(http_middleware)
+
+    if config.CORS_ORIGINS:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=config.CORS_ORIGINS,
+            allow_methods=["*"],
+            allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
+        )
 
     @app.get("/health", response_model=schemas.Health, tags=["system"])
     def health():
+        """Liveness: the process is up."""
         return {"status": "ok", "version": __version__}
+
+    @app.get("/ready", tags=["system"])
+    def ready():
+        """Readiness: the database answers and its schema is up to date."""
+
+        status = database_status()
+        code = 200 if status["database"] == "ok" and status["schema"] == "current" else 503
+        return JSONResponse({**status, "version": __version__}, status_code=code)
 
     app.include_router(auth.router)
     app.include_router(workspaces.router)
@@ -44,6 +95,7 @@ def create_app():
     app.include_router(integrations.workspace_router)
     app.include_router(dashboard.router)
     app.include_router(billing.router)
+    app.include_router(data.router)
 
     return app
 

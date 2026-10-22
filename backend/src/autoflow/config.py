@@ -33,10 +33,43 @@ DATABASE_PATH = OUTPUT_DIR / "autoflow.db"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # SQLite by default; set DATABASE_URL for PostgreSQL in production
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH.as_posix()}")
+DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{DATABASE_PATH.as_posix()}"
 
 # How long a login token stays valid
 ACCESS_TOKEN_TTL_HOURS = int(os.getenv("ACCESS_TOKEN_TTL_HOURS", "24"))
+
+# development | staging | production
+ENVIRONMENT = os.getenv("AUTOFLOW_ENV", "development").lower()
+
+# Browser origins allowed to call the API directly (comma-separated).
+# Not needed when the web app proxies /api on the same origin.
+CORS_ORIGINS = [o.strip() for o in os.getenv("AUTOFLOW_CORS_ORIGINS", "").split(",") if o.strip()]
+
+
+class UnsafeConfiguration(Exception):
+    """Staging/production settings that would put customer data at risk."""
+
+
+def check_deployment_settings():
+    """Refuse to start staging/production with development-only settings."""
+
+    if ENVIRONMENT == "development":
+        return
+
+    problems = []
+
+    if not os.getenv("AUTOFLOW_SECRET_KEYS"):
+        problems.append("AUTOFLOW_SECRET_KEYS must be set (no development key file).")
+    if DATABASE_URL.startswith("sqlite"):
+        problems.append("DATABASE_URL must point to PostgreSQL.")
+    if not PUBLIC_URL.startswith("https://"):
+        problems.append("AUTOFLOW_PUBLIC_URL must use https.")
+    if ENVIRONMENT == "production" and os.getenv("EMAIL_TEST_RECIPIENT"):
+        problems.append("EMAIL_TEST_RECIPIENT redirects real emails; unset it in production.")
+
+    if problems:
+        raise UnsafeConfiguration(f"Unsafe {ENVIRONMENT} settings: " + " ".join(problems))
+
 
 # Public address of the API, used in webhook and OAuth callback URLs
 PUBLIC_URL = os.getenv("AUTOFLOW_PUBLIC_URL", "http://127.0.0.1:8000").rstrip("/")

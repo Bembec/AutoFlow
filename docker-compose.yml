@@ -1,0 +1,69 @@
+# AutoFlow stack: PostgreSQL, migrations, API, worker and web app.
+#
+#   cp deploy/compose.env.example deploy/compose.env   # then fill it in
+#   docker compose up --build
+#
+# Web app: http://localhost:3000  (it forwards /api and /hooks to the API)
+
+x-backend: &backend
+  build: ./backend
+  env_file: deploy/compose.env
+  environment:
+    DATABASE_URL: postgresql+psycopg://autoflow:${POSTGRES_PASSWORD:-autoflow}@db:5432/autoflow
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: autoflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autoflow}
+      POSTGRES_DB: autoflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autoflow"]
+      interval: 5s
+      retries: 10
+
+  # Runs once per deploy, before the API and worker start
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
+  api:
+    <<: *backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
+      interval: 15s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "autoflow.worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        AUTOFLOW_API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

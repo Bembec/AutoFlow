@@ -18,6 +18,7 @@ The workflow:
 | --- | --- |
 | Run the workflow (local workspace) | `python -m autoflow` (or `autoflow`) |
 | Start the API server | `python -m autoflow.api`, then open http://127.0.0.1:8000/docs |
+| Start the background worker (schedules) | `python -m autoflow.worker` |
 | Run the tests | `pytest` |
 | Apply database migrations | `alembic upgrade head` (also runs automatically on start) |
 | Create a migration after changing `storage/models.py` | `alembic revision --autogenerate -m "describe change"` |

@@ -48,6 +48,31 @@ def list_members(membership: ViewerAccess, session: Session):
     ]
 
 
+class RoleChange(BaseModel):
+    role: schemas.Role
+
+
+@router.patch("/workspaces/{workspace_id}/members/{user_id}", response_model=schemas.MemberOut)
+def change_member_role(user_id: int, request: RoleChange, membership: AdminAccess, session: Session):
+    try:
+        changed = accounts.change_role(session, membership, user_id, request.role)
+    except accounts.AccountError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+    session.commit()
+    return _member_out(changed)
+
+
+@router.delete("/workspaces/{workspace_id}/members/{user_id}", status_code=204)
+def remove_member(user_id: int, membership: AdminAccess, session: Session):
+    try:
+        accounts.remove_member(session, membership, user_id)
+    except accounts.AccountError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+    session.commit()
+
+
 class EmergencyStop(BaseModel):
     reason: str | None = Field(None, max_length=500)
 
