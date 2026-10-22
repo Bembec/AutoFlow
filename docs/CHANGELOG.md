@@ -1,5 +1,15 @@
 # Changelog
 
+## V9: Core foundation (accounts, workspaces, tenant isolation)
+- Moved storage to SQLAlchemy 2 with Alembic migrations. SQLite is the default and PostgreSQL is set via `DATABASE_URL`. Migrations run automatically on start.
+- New tables: users, workspaces, memberships (roles: viewer, member, admin, owner) and access tokens.
+- Customers, workflow runs and approvals now belong to a workspace. Every query is scoped to it, and the same customer email can exist in different workspaces.
+- Auth: register (creates an owned workspace), login (bearer token, stored only as a hash), logout (revocation) and token expiry. Passwords are hashed with scrypt.
+- API reorganized into routers; all data routes live under `/workspaces/{id}/…` with role checks. Unknown or foreign workspaces return 404.
+- Approvals record which user decided them.
+- The CLI runs in a "local" workspace. Only that workspace writes local files or uses the `.env` Airtable account, so one tenant's data never reaches another's CRM.
+- Tests cover isolation, roles, token expiry and revocation, and run the real migrations.
+
 ## V8: Approvals as data
 - New `approvals` table and approval service (`autoflow.approvals`).
 - Runs without a terminal queue AI classifications and emails as pending approvals.

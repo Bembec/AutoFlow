@@ -3,33 +3,35 @@ Human-in-the-loop decisions for AutoFlow.
 
 Sensitive actions (accepting an AI classification, emailing a customer)
 wait as pending approvals until a person approves, corrects or rejects
-them. Each approval can be decided exactly once.
+them. Each approval can be decided exactly once, within one workspace.
 """
 
 from autoflow.activity_log import timestamp_now, write_log_lines
 from autoflow.emails.sender import send_email
 from autoflow.emails.templates import create_email_preview
 from autoflow.storage import approvals as approval_store
-from autoflow.storage import database
+from autoflow.storage import customers as customer_store
 
 
 CATEGORIES = ("Sales", "Support", "Other")
 
 
 class ApprovalNotFound(Exception):
-    """No approval exists with the requested id."""
+    """No approval exists with the requested id in this workspace."""
 
 
 class ApprovalConflict(Exception):
     """The approval cannot be decided in its current state."""
 
 
-def request_classification_review(customer, ai_result):
+def request_classification_review(session, workspace_id, customer, ai_result):
     """Queue an AI category suggestion for human review."""
 
     approval_store.upsert_pending_approval(
+        session,
+        workspace_id,
         "classification",
-        customer["email"].strip().lower(),
+        customer["email"],
         {
             "name": customer["name"],
             "message": customer["message"],
@@ -39,78 +41,76 @@ def request_classification_review(customer, ai_result):
     )
 
 
-def request_email_approval(email_preview):
+def request_email_approval(session, workspace_id, email_preview):
     """Queue an outgoing email for human approval."""
 
     approval_store.upsert_pending_approval(
-        "email",
-        email_preview["to"].strip().lower(),
-        email_preview,
+        session, workspace_id, "email", email_preview["to"], email_preview
     )
 
 
 def _log_decision(approval, status):
     write_log_lines([
-        f"{timestamp_now()} | APPROVAL | {approval['kind'].upper()} "
-        f"#{approval['id']} {status.upper()} | "
-        f"Email: {approval['customer_email']}"
+        f"{timestamp_now()} | APPROVAL | Workspace: {approval.workspace_id} | "
+        f"{approval.kind.upper()} #{approval.id} {status.upper()} | "
+        f"Email: {approval.customer_email}"
     ])
 
 
-def _get_pending(approval_id):
-    approval = approval_store.get_approval(approval_id)
+def _get_pending(session, workspace_id, approval_id):
+    approval = approval_store.get_approval(session, workspace_id, approval_id)
 
     if approval is None:
         raise ApprovalNotFound(approval_id)
 
-    if approval["status"] != "pending":
+    if approval.status != "pending":
         raise ApprovalConflict(
-            f"Approval {approval_id} is already {approval['status']}."
+            f"Approval {approval_id} is already {approval.status}."
         )
 
     return approval
 
 
-def _claim(approval, status, decision):
+def _claim(session, approval, status, decision, user_id):
     # Only one caller can move a pending approval forward
     if not approval_store.claim_pending_approval(
-        approval["id"], status, decision
+        session, approval.workspace_id, approval.id, status, decision, user_id
     ):
         raise ApprovalConflict(
-            f"Approval {approval['id']} was decided by someone else."
+            f"Approval {approval.id} was decided by someone else."
         )
 
 
-def reject(approval_id):
+def reject(session, workspace_id, approval_id, user_id=None):
     """Reject a pending approval; nothing is changed or sent."""
 
-    approval = _get_pending(approval_id)
-    _claim(approval, "rejected", {"approved": False})
+    approval = _get_pending(session, workspace_id, approval_id)
+    _claim(session, approval, "rejected", {"approved": False}, user_id)
     _log_decision(approval, "rejected")
 
-    return approval_store.get_approval(approval_id)
+    return approval_store.get_approval(session, workspace_id, approval_id)
 
 
-def approve(approval_id, category=None):
+def approve(session, workspace_id, approval_id, category=None, user_id=None):
     """Approve a pending approval and carry out its action.
 
     For classifications, `category` optionally corrects the AI suggestion.
     """
 
-    approval = _get_pending(approval_id)
+    approval = _get_pending(session, workspace_id, approval_id)
 
-    if approval["kind"] == "classification":
-        _approve_classification(approval, category)
+    if approval.kind == "classification":
+        _approve_classification(session, approval, category, user_id)
     else:
         if category is not None:
             raise ApprovalConflict("A category only applies to classifications.")
-        _approve_email(approval)
+        _approve_email(session, approval, user_id)
 
-    return approval_store.get_approval(approval_id)
+    return approval_store.get_approval(session, workspace_id, approval_id)
 
 
-def _approve_classification(approval, category):
-    suggested = approval["payload"]["suggested_category"]
+def _approve_classification(session, approval, category, user_id):
+    suggested = approval.payload["suggested_category"]
     final_category = category or suggested
 
     if final_category not in CATEGORIES:
@@ -118,7 +118,7 @@ def _approve_classification(approval, category):
 
     if final_category == suggested:
         source = "AI Approved"
-        reason = approval["payload"]["reason"]
+        reason = approval.payload["reason"]
     else:
         source = "Human Correction"
         reason = (
@@ -126,33 +126,50 @@ def _approve_classification(approval, category):
             f"{suggested} to {final_category}."
         )
 
-    _claim(approval, "approved", {"approved": True, "category": final_category})
+    _claim(
+        session,
+        approval,
+        "approved",
+        {"approved": True, "category": final_category},
+        user_id,
+    )
 
-    email = approval["customer_email"]
-    database.update_customer_classification(email, final_category, source, reason)
+    workspace_id = approval.workspace_id
+    email = approval.customer_email
+    customer = customer_store.update_customer_classification(
+        session, workspace_id, email, final_category, source, reason
+    )
     _log_decision(approval, "approved")
 
     # The email wording depends on the category, so refresh any pending email
-    customer = database.get_customer_by_email(email)
-    pending_emails = [
-        pending
-        for pending in approval_store.list_approvals("pending", "email")
-        if pending["customer_email"] == email
-    ]
+    pending_email = approval_store.list_approvals(
+        session, workspace_id, "pending", "email", email
+    )
 
-    if customer is not None and pending_emails:
-        request_email_approval(create_email_preview(customer))
+    if customer is not None and pending_email:
+        request_email_approval(
+            session,
+            workspace_id,
+            create_email_preview({
+                "name": customer.name,
+                "email": customer.email,
+                "category": customer.category,
+                "quote_usd": customer.quote_usd or "",
+            }),
+        )
+
+    session.commit()
 
 
-def _approve_email(approval):
-    email = approval["customer_email"]
-
+def _approve_email(session, approval, user_id):
     # Never email a customer whose category is still unreviewed
-    unreviewed = [
-        pending
-        for pending in approval_store.list_approvals("pending", "classification")
-        if pending["customer_email"] == email
-    ]
+    unreviewed = approval_store.list_approvals(
+        session,
+        approval.workspace_id,
+        "pending",
+        "classification",
+        approval.customer_email,
+    )
 
     if unreviewed:
         raise ApprovalConflict(
@@ -160,8 +177,10 @@ def _approve_email(approval):
         )
 
     # Claim first so a retry or double click can never send twice
-    _claim(approval, "approved", {"approved": True})
+    _claim(session, approval, "approved", {"approved": True}, user_id)
 
-    status = "sent" if send_email(approval["payload"]) else "failed"
-    approval_store.set_approval_status(approval["id"], status)
+    status = "sent" if send_email(approval.payload) else "failed"
+    approval_store.set_approval_status(
+        session, approval.workspace_id, approval.id, status
+    )
     _log_decision(approval, status)

@@ -11,12 +11,15 @@ Run with:  python -m autoflow
 When run without a terminal (interactive=False, e.g. from the API), AI
 suggestions and outgoing emails are queued as pending approvals that a
 person decides through the API. Nothing is sent without approval.
+
+Every run belongs to one workspace. The command line uses the "local"
+workspace; the API uses the caller's workspace.
 """
 
 import csv
 
-from autoflow import config
-from autoflow import approvals
+from autoflow import approvals, config
+from autoflow.accounts.service import ensure_local_workspace
 from autoflow.activity_log import timestamp_now, write_log_lines
 from autoflow.classification.ai_classifier import classify_with_ai
 from autoflow.emails.sender import send_email
@@ -24,7 +27,9 @@ from autoflow.emails.templates import create_email_preview
 from autoflow.integrations.airtable import sync_customers_to_airtable
 from autoflow.integrations.exchange_rates import fetch_eur_to_usd
 from autoflow.storage import initialize_storage
-from autoflow.storage.database import record_workflow_run, save_customers
+from autoflow.storage.customers import save_customers
+from autoflow.storage.db import session_scope
+from autoflow.storage.workflow_runs import record_workflow_run
 
 
 PROCESSED_COLUMNS = [
@@ -86,9 +91,14 @@ def review_ai_suggestion(customer, ai_result):
 
 
 def process_customers(exchange_rate, rate_date, interactive=True):
-    """Read, classify and enrich every customer in the input CSV."""
+    """Read, classify and enrich every customer in the input CSV.
+
+    Returns the processed customers and the AI suggestions that still
+    need a human review (only when not interactive).
+    """
 
     processed_customers = []
+    pending_reviews = []
 
     with config.INPUT_CSV_PATH.open("r", newline="", encoding="utf-8") as file:
         for customer in csv.DictReader(file):
@@ -107,7 +117,7 @@ def process_customers(exchange_rate, rate_date, interactive=True):
                 category = ai_result["category"]
                 classification_source = "AI Pending Review"
                 classification_reason = ai_result["reason"]
-                approvals.request_classification_review(customer, ai_result)
+                pending_reviews.append((customer, ai_result))
             else:
                 # Use the original keyword rules as a safe fallback
                 category = classify_with_rules(original_message.lower())
@@ -138,7 +148,7 @@ def process_customers(exchange_rate, rate_date, interactive=True):
 
             processed_customers.append(customer)
 
-    return processed_customers
+    return processed_customers, pending_reviews
 
 
 def save_processed_csv(processed_customers):
@@ -154,23 +164,17 @@ def save_processed_csv(processed_customers):
     print("Results saved to:", config.PROCESSED_CSV_PATH)
 
 
-def write_email_previews(processed_customers):
-    """Generate personalized email previews without contacting customers."""
-
-    email_previews = []
+def write_email_previews(email_previews):
+    """Save email previews to a text file for local inspection."""
 
     with config.EMAIL_PREVIEWS_PATH.open("w", encoding="utf-8") as file:
-        for customer in processed_customers:
-            email_preview = create_email_preview(customer)
-            email_previews.append(email_preview)
-
+        for email_preview in email_previews:
             file.write(f"To: {email_preview['to']}\n")
             file.write(f"Subject: {email_preview['subject']}\n")
             file.write(f"{email_preview['body']}\n")
             file.write("-" * 60 + "\n")
 
     print("Email previews saved to:", config.EMAIL_PREVIEWS_PATH)
-    return email_previews
 
 
 def review_and_send_email(email_previews):
@@ -229,10 +233,10 @@ def review_and_send_email(email_previews):
     return email_audit_entries
 
 
-def write_activity_log(processed_customers, email_audit_entries):
+def write_activity_log(workspace_id, processed_customers, email_audit_entries):
     """Append a timestamped record of email decisions and enquiries."""
 
-    timestamp = timestamp_now()
+    timestamp = f"{timestamp_now()} | Workspace: {workspace_id}"
     lines = []
 
     # Record the approved, rejected or failed email decision
@@ -252,41 +256,51 @@ def write_activity_log(processed_customers, email_audit_entries):
     print("Activity log saved.")
 
 
-def run(interactive=True):
-    """Execute the complete AutoFlow workflow once.
+def run_for_workspace(session, workspace_id, interactive=False, is_local=False):
+    """Execute the workflow once for one workspace and return a summary.
 
-    Returns a summary of the run. With interactive=False no terminal input
-    is requested and the human-approval email step is skipped.
+    With interactive=False no terminal input is requested: AI suggestions
+    and emails are queued as approvals. Local files (CSV, previews) and the
+    .env-configured Airtable sync are only used by the local workspace, so
+    one business's data never reaches another's files or CRM.
     """
 
     exchange_rate, rate_date = fetch_eur_to_usd()
 
-    processed_customers = process_customers(
+    processed_customers, pending_reviews = process_customers(
         exchange_rate, rate_date, interactive
     )
 
-    # Create the database tables and save all processed customer records
-    initialize_storage()
-    save_customers(processed_customers)
+    save_customers(session, workspace_id, processed_customers)
 
-    save_processed_csv(processed_customers)
+    for customer, ai_result in pending_reviews:
+        approvals.request_classification_review(
+            session, workspace_id, customer, ai_result
+        )
 
-    email_previews = write_email_previews(processed_customers)
+    email_previews = [
+        create_email_preview(customer) for customer in processed_customers
+    ]
+
+    if is_local:
+        save_processed_csv(processed_customers)
+        write_email_previews(email_previews)
 
     if interactive:
         email_audit_entries = review_and_send_email(email_previews)
     else:
         # Queue every email; a person approves each one through the API
         for email_preview in email_previews:
-            approvals.request_email_approval(email_preview)
+            approvals.request_email_approval(session, workspace_id, email_preview)
 
         print(f"Emails queued for approval: {len(email_previews)}")
         email_audit_entries = []
 
-    # Synchronize processed customers with the Airtable CRM
-    sync_customers_to_airtable(processed_customers)
+    if is_local:
+        # Synchronize processed customers with the Airtable CRM
+        sync_customers_to_airtable(processed_customers)
 
-    write_activity_log(processed_customers, email_audit_entries)
+    write_activity_log(workspace_id, processed_customers, email_audit_entries)
 
     # Record a summary of this completed workflow execution
     ai_was_used = any(
@@ -295,10 +309,13 @@ def run(interactive=True):
     )
 
     run_id = record_workflow_run(
+        session,
+        workspace_id,
         customer_count=len(processed_customers),
-        ai_enabled=str(ai_was_used).lower(),
+        ai_enabled=ai_was_used,
         status="SUCCESS",
     )
+    session.commit()
 
     return {
         "run_id": run_id,
@@ -313,6 +330,20 @@ def run(interactive=True):
         },
         "emails": email_audit_entries,
     }
+
+
+def run(interactive=True):
+    """Run the workflow from the command line in the local workspace."""
+
+    initialize_storage()
+
+    with session_scope() as session:
+        workspace = ensure_local_workspace(session)
+        session.commit()
+
+        return run_for_workspace(
+            session, workspace.id, interactive=interactive, is_local=True
+        )
 
 
 if __name__ == "__main__":

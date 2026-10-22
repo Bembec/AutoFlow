@@ -31,3 +31,12 @@ ACTIVITY_LOG_PATH = OUTPUT_DIR / "activity.log"
 DATABASE_PATH = OUTPUT_DIR / "autoflow.db"
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# SQLite by default; set DATABASE_URL for PostgreSQL in production
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH.as_posix()}")
+
+# How long a login token stays valid
+ACCESS_TOKEN_TTL_HOURS = int(os.getenv("ACCESS_TOKEN_TTL_HOURS", "24"))
+
+# Workspace used by the command-line workflow (python -m autoflow)
+LOCAL_WORKSPACE_SLUG = "local"

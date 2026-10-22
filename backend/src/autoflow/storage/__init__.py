@@ -1,11 +1,24 @@
 """Persistence layer for AutoFlow."""
 
+from pathlib import Path
+
+
+MIGRATIONS_DIR = Path(__file__).parent / "migrations"
+
+
+def alembic_config():
+    """Return an Alembic configuration pointing at AutoFlow's migrations."""
+
+    from alembic.config import Config
+
+    configuration = Config()
+    configuration.set_main_option("script_location", str(MIGRATIONS_DIR))
+    return configuration
+
 
 def initialize_storage():
-    """Create every database table AutoFlow needs."""
+    """Bring the database schema up to the latest migration."""
 
-    from autoflow.storage.approvals import initialize_approvals_table
-    from autoflow.storage.database import initialize_database
+    from alembic import command
 
-    initialize_database()
-    initialize_approvals_table()
+    command.upgrade(alembic_config(), "head")

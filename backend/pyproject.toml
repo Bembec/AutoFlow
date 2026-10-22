@@ -4,16 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "autoflow"
-version = "0.8.0"
+version = "0.9.0"
 description = "AI-powered business workflow automation — backend and workflow engine."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "alembic",
+    "email-validator",
     "fastapi",
     "google-genai",
     "pydantic>=2",
     "python-dotenv",
     "requests",
+    "sqlalchemy>=2",
     "uvicorn",
 ]
 
@@ -25,6 +28,9 @@ autoflow = "autoflow.pipeline:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+autoflow = ["storage/migrations/*.mako", "storage/migrations/*.py", "storage/migrations/versions/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

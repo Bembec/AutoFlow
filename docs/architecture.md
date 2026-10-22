@@ -1,19 +1,31 @@
 # Architecture
 
-## Current (V6)
-
-A single-process Python workflow (`backend/src/autoflow/pipeline.py`) runs
-these steps in order and asks for human approval in the terminal:
+## Current (V9)
 
 ```
-CSV input → classify (Gemini + human review | keyword rules) → exchange-rate quotes
-          → SQLite + CSV → email previews → approved test email (Gmail)
-          → Airtable sync → activity log + workflow_runs record
+Client ──HTTPS──▶ FastAPI (autoflow.api)
+                   ├─ auth: bearer token → user
+                   ├─ require_role: user + workspace_id → membership (404 if none)
+                   └─ routes ──▶ services (pipeline, approvals, accounts)
+                                   └─▶ repositories (storage/*): every query filtered by workspace_id
+                                         └─▶ SQLAlchemy ──▶ SQLite (dev) / PostgreSQL (prod)
 ```
 
-Each external service has its own module (`classification/`, `emails/`,
-`integrations/`, `storage/`), so the steps can later become reusable
-workflow-engine actions.
+| Package | Responsibility |
+| --- | --- |
+| `autoflow.api` | HTTP layer: routers, request/response schemas, auth and role dependencies |
+| `autoflow.accounts` | Users, workspaces, memberships, password hashing, access tokens |
+| `autoflow.pipeline` | The customer-enquiry workflow, run per workspace |
+| `autoflow.approvals` | Human-in-the-loop decisions (classification, email) |
+| `autoflow.storage` | Models, repositories, Alembic migrations |
+| `autoflow.classification`, `emails`, `integrations` | AI and external services |
+
+### Tenant isolation rules
+
+1. Every business table has a `workspace_id`.
+2. Repository functions take `workspace_id` as a required argument and always filter by it.
+3. API routes get `workspace_id` only through the `require_role` dependency, which checks membership first.
+4. Credentials from `.env` (Airtable) are used only by the local CLI workspace.
 
 ## Target (from the roadmap)
 
@@ -31,6 +43,6 @@ every run is predictable, logged and retryable.
 
 ## Next technical steps
 
-1. Expose the stored data and workflow runs through a FastAPI layer (V7).
-2. Replace terminal `input()` approvals with approval records the API and dashboard can act on.
-3. Turn each pipeline step into an engine action with idempotency keys and retries.
+1. **V10, workflow engine:** workflow definitions (steps as data), step runs, retries, timeouts, idempotency keys, and draft/test/publish modes. The current pipeline becomes the first workflow built from engine actions.
+2. **V11, AI builder:** plain-language request → validated workflow definition.
+3. **V12, integrations:** per-workspace encrypted credentials, webhooks with signature checks, and first connectors.
