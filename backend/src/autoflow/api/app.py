@@ -11,7 +11,7 @@ from fastapi import FastAPI
 
 from autoflow import __version__
 from autoflow.api import schemas
-from autoflow.api.routes import auth, workflow, workspaces
+from autoflow.api.routes import auth, workflow, workflows, workspaces
 from autoflow.storage import initialize_storage
 
 
@@ -38,6 +38,8 @@ def create_app():
     app.include_router(auth.router)
     app.include_router(workspaces.router)
     app.include_router(workflow.router)
+    app.include_router(workflows.router)
+    app.include_router(workflows.workspace_router)
 
     return app
 

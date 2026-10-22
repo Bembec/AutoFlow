@@ -1,5 +1,20 @@
 # Changelog
 
+## V10: Workflow engine
+- Workflows are defined as data: a trigger, ordered steps, `{{ }}` references to the trigger and earlier outputs, and `when` conditions for branching.
+- Action registry with input/output specs and safety flags (side effect, idempotent, requires approval). The existing capabilities became actions: classify, quote, compose, send, save customer and log.
+- Strict definition validation; mandatory approvals cannot be switched off.
+- Versioning: draft, publish, new draft on edit, and rollback to any version. Workflows can be archived.
+- Test mode (side effects simulated) vs live mode (published version only).
+- Executor:
+  - retries with exponential backoff, per-step timeouts, and non-retryable input errors;
+  - resumes from the failed step and never repeats succeeded steps;
+  - uncertain non-idempotent side effects become `needs_attention` instead of being retried blindly;
+  - honours the `Idempotency-Key` header, and supports cancel and approval-gated steps.
+- Built-in template: customer enquiry triage.
+- New tables: workflows, workflow_versions, workflow_executions and step_executions. Approvals can now gate an execution step.
+- SQLite runs in WAL mode (commits about 30× faster); added a constraint naming convention for future migrations.
+
 ## V9: Core foundation (accounts, workspaces, tenant isolation)
 - Moved storage to SQLAlchemy 2 with Alembic migrations. SQLite is the default and PostgreSQL is set via `DATABASE_URL`. Migrations run automatically on start.
 - New tables: users, workspaces, memberships (roles: viewer, member, admin, owner) and access tokens.

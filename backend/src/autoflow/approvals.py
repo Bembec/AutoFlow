@@ -88,7 +88,19 @@ def reject(session, workspace_id, approval_id, user_id=None):
     _claim(session, approval, "rejected", {"approved": False}, user_id)
     _log_decision(approval, "rejected")
 
+    if approval.kind == "step":
+        _resume_execution(session, approval, approved=False)
+
     return approval_store.get_approval(session, workspace_id, approval_id)
+
+
+def _resume_execution(session, approval, approved):
+    # Imported here: the engine depends on storage, not on this module
+    from autoflow.engine import executor
+    from autoflow.engine.service import get_execution
+
+    execution = get_execution(session, approval.workspace_id, approval.execution_id)
+    executor.resume_after_decision(session, execution, approval.step_id, approved)
 
 
 def approve(session, workspace_id, approval_id, category=None, user_id=None):
@@ -99,7 +111,13 @@ def approve(session, workspace_id, approval_id, category=None, user_id=None):
 
     approval = _get_pending(session, workspace_id, approval_id)
 
-    if approval.kind == "classification":
+    if approval.kind == "step":
+        if category is not None:
+            raise ApprovalConflict("A category only applies to classifications.")
+        _claim(session, approval, "approved", {"approved": True}, user_id)
+        _log_decision(approval, "approved")
+        _resume_execution(session, approval, approved=True)
+    elif approval.kind == "classification":
         _approve_classification(session, approval, category, user_id)
     else:
         if category is not None:

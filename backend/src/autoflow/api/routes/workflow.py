@@ -20,8 +20,8 @@ from autoflow.storage import workflow_runs as run_store
 
 router = APIRouter(prefix="/workspaces/{workspace_id}")
 
-ApprovalStatus = Literal["pending", "approved", "rejected", "sent", "failed"]
-ApprovalKind = Literal["classification", "email"]
+ApprovalStatus = Literal["pending", "approved", "rejected", "sent", "failed", "cancelled"]
+ApprovalKind = Literal["classification", "email", "step"]
 
 
 @router.get(

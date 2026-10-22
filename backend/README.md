@@ -58,6 +58,51 @@ Send `Authorization: Bearer <token>` on every request except health, register an
 | POST | `/workspaces/{id}/approvals/{approval_id}/approve` | member | Approve (body `{"category": "Support"}` corrects a classification) |
 | POST | `/workspaces/{id}/approvals/{approval_id}/reject` | member | Reject; nothing is changed or sent |
 
+## Workflow engine (V10)
+
+A workflow is **data**: a trigger plus ordered steps, each calling a registered action.
+
+```json
+{
+  "trigger": {"type": "manual", "sample_payload": {"name": "Ada", "email": "ada@example.com", "message": "Price?"}},
+  "steps": [
+    {"id": "classify", "action": "classify_enquiry", "inputs": {"message": "{{trigger.message}}"}},
+    {"id": "quote", "action": "exchange_rate_quote", "inputs": {"amount_eur": 100},
+     "when": {"left": "{{steps.classify.output.category}}", "op": "eq", "right": "Sales"},
+     "retry": {"max_attempts": 3, "backoff_seconds": 2}, "timeout_seconds": 20},
+    {"id": "send", "action": "send_email",
+     "inputs": {"to": "{{trigger.email}}", "subject": "Hi", "body": "Thanks!"}}
+  ]
+}
+```
+
+- **Actions:** `classify_enquiry`, `exchange_rate_quote`, `compose_email`, `send_email` (always needs approval), `save_customer` and `log_activity`. `GET /actions` lists them with their inputs and outputs.
+- **Validation:** before saving, the engine checks for unknown actions or inputs, missing inputs, duplicate step ids, references to later steps, and attempts to switch off a mandatory approval.
+- **Versions:** a new workflow is a draft. Publishing freezes it, and editing a published workflow starts a new draft. `POST …/publish {"version": 1}` rolls back.
+- **Test vs live:** test runs use the draft and *simulate* side effects. Live runs use the published version.
+- **Reliability:**
+  - Retries use exponential backoff, and timeouts are enforced.
+  - Bad input fails at once, without retrying.
+  - Succeeded steps are never repeated, so a retry continues from the failed step.
+  - If a non-idempotent side effect (sending email) times out or is interrupted, the execution becomes `needs_attention`. It can only be retried after someone confirms the step did not complete.
+  - An `Idempotency-Key` header returns the existing execution instead of starting a duplicate.
+- **Approvals:** live steps that need approval pause the execution (`waiting_approval`). Approving resumes it, while rejecting or cancelling stops it.
+
+| Method | Path | Role | Description |
+| --- | --- | --- | --- |
+| GET | `/actions` | — | Action catalogue |
+| GET | `/templates` | — | Ready-made workflows |
+| GET/POST | `/workspaces/{id}/workflows` | viewer/member | List / create |
+| POST | `/workspaces/{id}/workflows/from-template` | member | Install a template (`{"template": "customer-enquiry-triage"}`) |
+| GET/PATCH | `/workspaces/{id}/workflows/{wf}` | viewer/member | View / edit (edits change the draft) |
+| POST | `/workspaces/{id}/workflows/{wf}/publish` | member | Publish draft, or `{"version": n}` to roll back |
+| POST | `/workspaces/{id}/workflows/{wf}/archive` | member | Archive |
+| POST | `/workspaces/{id}/workflows/{wf}/executions` | member | Run: `{"mode": "test"\|"live", "payload": {...}}`, optional `Idempotency-Key` header |
+| GET | `/workspaces/{id}/executions?status=failed` | viewer | Run history |
+| GET | `/workspaces/{id}/executions/{ex}` | viewer | One execution, step by step |
+| POST | `/workspaces/{id}/executions/{ex}/cancel` | member | Cancel |
+| POST | `/workspaces/{id}/executions/{ex}/retry` | member | Retry from the failed step (`{"confirm_not_completed": true}` for `needs_attention`) |
+
 ### Human approval rules (V8)
 
 - AI classifications and outgoing emails made without a terminal wait as **pending approvals**.

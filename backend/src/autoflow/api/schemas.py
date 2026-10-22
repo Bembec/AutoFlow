@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from autoflow.engine.definition import WorkflowDefinition
+
 
 Role = Literal["viewer", "member", "admin", "owner"]
 Category = Literal["Sales", "Support", "Other"]
@@ -121,15 +123,97 @@ class WorkflowRunResult(BaseModel):
 
 class Approval(OrmModel):
     id: int
-    kind: Literal["classification", "email"]
+    kind: Literal["classification", "email", "step"]
     status: str
     customer_email: str
     payload: dict[str, Any]
     decision: dict[str, Any] | None
     decided_by_user_id: int | None
+    execution_id: int | None
+    step_id: str | None
     created_at: datetime
     decided_at: datetime | None
 
 
 class ApprovalDecision(BaseModel):
     category: Category | None = None
+
+
+# --- workflow engine ---
+
+class WorkflowCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    description: str = ""
+    definition: WorkflowDefinition
+
+
+class WorkflowFromTemplate(BaseModel):
+    template: str
+    name: str | None = Field(None, min_length=1, max_length=200)
+
+
+class WorkflowUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    definition: WorkflowDefinition | None = None
+
+
+class WorkflowVersionOut(OrmModel):
+    number: int
+    state: Literal["draft", "published", "archived"]
+    definition: dict[str, Any]
+    created_at: datetime
+    published_at: datetime | None
+
+
+class WorkflowOut(OrmModel):
+    id: int
+    name: str
+    description: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    versions: list[WorkflowVersionOut]
+
+
+class PublishRequest(BaseModel):
+    version: int | None = Field(None, description="Omit to publish the draft; set to roll back")
+
+
+class ExecutionStart(BaseModel):
+    mode: Literal["test", "live"] = "live"
+    payload: dict[str, Any] | None = Field(
+        None, description="Trigger data; test runs default to the sample payload"
+    )
+
+
+class ExecutionRetry(BaseModel):
+    confirm_not_completed: bool = False
+
+
+class StepExecutionOut(OrmModel):
+    step_id: str
+    position: int
+    action: str
+    status: str
+    attempts: int
+    input: dict[str, Any] | None
+    output: dict[str, Any] | None
+    error: str | None
+    started_at: datetime | None
+    finished_at: datetime | None
+
+
+class ExecutionOut(OrmModel):
+    id: int
+    workflow_id: int
+    version_id: int
+    mode: str
+    status: str
+    trigger_payload: dict[str, Any]
+    idempotency_key: str | None
+    error: str | None
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    steps: list[StepExecutionOut]

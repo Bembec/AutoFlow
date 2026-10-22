@@ -1,0 +1,196 @@
+"""Workflow engine API: workflows, versions, executions and the action catalogue."""
+
+from typing import Annotated, Literal
+
+from fastapi import APIRouter, Header, HTTPException, Query, Response
+
+from autoflow.api import schemas
+from autoflow.api.deps import MemberAccess, Session, ViewerAccess
+from autoflow.engine import executor
+from autoflow.engine import service as engine
+from autoflow.engine.actions import describe_actions
+from autoflow.engine.templates import TEMPLATES
+
+
+router = APIRouter(tags=["workflows"])
+workspace_router = APIRouter(prefix="/workspaces/{workspace_id}", tags=["workflows"])
+
+ExecutionStatus = Literal[
+    "queued", "running", "waiting_approval", "succeeded",
+    "failed", "cancelled", "needs_attention",
+]
+
+
+def _errors(action):
+    try:
+        return action()
+    except engine.NotFound:
+        raise HTTPException(status_code=404, detail="Not found")
+    except (engine.WorkflowError, executor.ExecutionConflict) as error:
+        raise HTTPException(status_code=409, detail=str(error))
+    except ValueError as error:
+        # A stored definition no longer validates (e.g. an action was removed)
+        raise HTTPException(status_code=422, detail=str(error))
+
+
+@router.get("/actions")
+def list_actions():
+    """Every action a workflow step can use."""
+    return describe_actions()
+
+
+@router.get("/templates")
+def list_templates():
+    return [
+        {"slug": t["slug"], "name": t["name"], "description": t["description"]}
+        for t in TEMPLATES.values()
+    ]
+
+
+@workspace_router.get("/workflows", response_model=list[schemas.WorkflowOut])
+def list_workflows(
+    membership: ViewerAccess, session: Session, include_archived: bool = False
+):
+    return engine.list_workflows(session, membership.workspace_id, include_archived)
+
+
+@workspace_router.post("/workflows", response_model=schemas.WorkflowOut, status_code=201)
+def create_workflow(request: schemas.WorkflowCreate, membership: MemberAccess, session: Session):
+    return engine.create_workflow(
+        session,
+        membership.workspace_id,
+        request.name,
+        request.definition,
+        request.description,
+        user_id=membership.user_id,
+    )
+
+
+@workspace_router.post(
+    "/workflows/from-template", response_model=schemas.WorkflowOut, status_code=201
+)
+def create_from_template(
+    request: schemas.WorkflowFromTemplate, membership: MemberAccess, session: Session
+):
+    template = TEMPLATES.get(request.template)
+
+    if template is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    return engine.create_workflow(
+        session,
+        membership.workspace_id,
+        request.name or template["name"],
+        template["definition"],
+        template["description"],
+        user_id=membership.user_id,
+    )
+
+
+@workspace_router.get("/workflows/{workflow_id}", response_model=schemas.WorkflowOut)
+def get_workflow(workflow_id: int, membership: ViewerAccess, session: Session):
+    return _errors(lambda: engine.get_workflow(session, membership.workspace_id, workflow_id))
+
+
+@workspace_router.patch("/workflows/{workflow_id}", response_model=schemas.WorkflowOut)
+def update_workflow(
+    workflow_id: int,
+    request: schemas.WorkflowUpdate,
+    membership: MemberAccess,
+    session: Session,
+):
+    return _errors(lambda: engine.update_workflow(
+        session,
+        membership.workspace_id,
+        workflow_id,
+        request.name,
+        request.description,
+        request.definition,
+    ))
+
+
+@workspace_router.post("/workflows/{workflow_id}/publish", response_model=schemas.WorkflowOut)
+def publish_workflow(
+    workflow_id: int,
+    membership: MemberAccess,
+    session: Session,
+    request: schemas.PublishRequest | None = None,
+):
+    version = request.version if request else None
+    return _errors(lambda: engine.publish(session, membership.workspace_id, workflow_id, version))
+
+
+@workspace_router.post("/workflows/{workflow_id}/archive", response_model=schemas.WorkflowOut)
+def archive_workflow(workflow_id: int, membership: MemberAccess, session: Session):
+    return _errors(lambda: engine.archive(session, membership.workspace_id, workflow_id))
+
+
+@workspace_router.post(
+    "/workflows/{workflow_id}/executions",
+    response_model=schemas.ExecutionOut,
+    status_code=201,
+)
+def start_execution(
+    workflow_id: int,
+    membership: MemberAccess,
+    session: Session,
+    response: Response,
+    request: schemas.ExecutionStart | None = None,
+    idempotency_key: Annotated[str | None, Header(max_length=200)] = None,
+):
+    request = request or schemas.ExecutionStart()
+
+    execution, created = _errors(lambda: engine.start_execution(
+        session,
+        membership.workspace_id,
+        workflow_id,
+        mode=request.mode,
+        payload=request.payload,
+        idempotency_key=idempotency_key,
+        user_id=membership.user_id,
+    ))
+
+    if not created:
+        # Same Idempotency-Key as an earlier request: nothing new was started
+        response.status_code = 200
+
+    return execution
+
+
+@workspace_router.get("/executions", response_model=list[schemas.ExecutionOut])
+def list_executions(
+    membership: ViewerAccess,
+    session: Session,
+    workflow_id: int | None = None,
+    status: ExecutionStatus | None = None,
+    limit: int = Query(20, ge=1, le=100),
+):
+    return engine.list_executions(session, membership.workspace_id, workflow_id, status, limit)
+
+
+@workspace_router.get("/executions/{execution_id}", response_model=schemas.ExecutionOut)
+def get_execution(execution_id: int, membership: ViewerAccess, session: Session):
+    return _errors(lambda: engine.get_execution(session, membership.workspace_id, execution_id))
+
+
+@workspace_router.post("/executions/{execution_id}/cancel", response_model=schemas.ExecutionOut)
+def cancel_execution(execution_id: int, membership: MemberAccess, session: Session):
+    return _errors(lambda: executor.cancel(
+        session, engine.get_execution(session, membership.workspace_id, execution_id)
+    ))
+
+
+@workspace_router.post("/executions/{execution_id}/retry", response_model=schemas.ExecutionOut)
+def retry_execution(
+    execution_id: int,
+    membership: MemberAccess,
+    session: Session,
+    request: schemas.ExecutionRetry | None = None,
+):
+    confirm = request.confirm_not_completed if request else False
+
+    return _errors(lambda: executor.retry(
+        session,
+        engine.get_execution(session, membership.workspace_id, execution_id),
+        confirm_not_completed=confirm,
+    ))

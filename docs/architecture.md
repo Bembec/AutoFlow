@@ -41,8 +41,30 @@ every run is predictable, logged and retryable.
 | AI models | Several providers behind one router |
 | Data | PostgreSQL (+ pgvector), Redis, S3-compatible storage |
 
+## Workflow engine (V10)
+
+```
+definition (JSON) ──validate──▶ WorkflowVersion (draft → published → archived)
+                                      │
+start (test|live, payload, Idempotency-Key)
+                                      ▼
+                         WorkflowExecution ──▶ StepExecution × n
+                                      │
+for each step: cancelled? → done/skipped? → `when` → render inputs
+            → approval gate (live) → mark running + commit → action (retry/timeout)
+```
+
+`autoflow.engine` modules: `definition` (schema and validation), `templating`
+(`{{ }}` references and conditions), `actions` (registry), `executor`
+(execution and recovery), `service` (workflows, versions, starting runs),
+`templates`.
+
+Executions currently run inside the API request. Because all state lives
+in the database, a background worker (or Temporal) can take over
+`executor.execute` later without changing the data model.
+
 ## Next technical steps
 
-1. **V10, workflow engine:** workflow definitions (steps as data), step runs, retries, timeouts, idempotency keys, and draft/test/publish modes. The current pipeline becomes the first workflow built from engine actions.
-2. **V11, AI builder:** plain-language request → validated workflow definition.
-3. **V12, integrations:** per-workspace encrypted credentials, webhooks with signature checks, and first connectors.
+1. **V11, AI builder:** plain-language request → validated workflow definition, through a model router.
+2. **V12, integrations:** per-workspace encrypted credentials, webhooks with signature checks, and first connectors.
+3. **Later:** a background worker for executions and schedule triggers.
