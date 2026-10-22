@@ -57,7 +57,7 @@ def list_workflows(
 
 @workspace_router.post("/workflows", response_model=schemas.WorkflowOut, status_code=201)
 def create_workflow(request: schemas.WorkflowCreate, membership: MemberAccess, session: Session):
-    return engine.create_workflow(
+    return _errors(lambda: engine.create_workflow(
         session,
         membership.workspace_id,
         request.name,
@@ -65,7 +65,7 @@ def create_workflow(request: schemas.WorkflowCreate, membership: MemberAccess, s
         request.description,
         user_id=membership.user_id,
         minutes_saved_per_run=request.minutes_saved_per_run,
-    )
+    ))
 
 
 @workspace_router.post(
@@ -79,14 +79,14 @@ def create_from_template(
     if template is None:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    return engine.create_workflow(
+    return _errors(lambda: engine.create_workflow(
         session,
         membership.workspace_id,
         request.name or template["name"],
         template["definition"],
         template["description"],
         user_id=membership.user_id,
-    )
+    ))
 
 
 @workspace_router.post("/workflows/ai-draft", response_model=schemas.AIDraftOut)
@@ -105,14 +105,14 @@ def ai_draft(request: schemas.AIDraftRequest, membership: MemberAccess, session:
     workflow = None
 
     if request.save and draft.definition is not None:
-        workflow = engine.create_workflow(
+        workflow = _errors(lambda: engine.create_workflow(
             session,
             membership.workspace_id,
             draft.name,
             draft.definition,
             draft.description,
             user_id=membership.user_id,
-        )
+        ))
 
     return {
         "status": draft.status,

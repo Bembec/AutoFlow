@@ -1,5 +1,18 @@
 # Changelog
 
+## V15: Billing and usage
+- Plans (Free, Starter, Growth, Business, Enterprise) from a JSON config, with limits on included tasks, workflows and seats.
+- Usage metering on the roadmap's billable-task definition. Events are unique per step run (no double billing) and recorded in the same commit as the step's success. Rules-only classification is not billed.
+- Plan enforcement:
+  - a hard cap on billable steps (optional on paid plans);
+  - workflow and seat limits;
+  - alerts at 80% and 100%, for projected overage, and for failed payments;
+  - straight-line projection of each period's usage.
+- Stripe: Checkout, customer portal, and a signed, idempotent webhook for checkout, subscription create/update/delete, failed and paid invoices, with a grace period while past due.
+- Staff-only manual plan changes for invoiced pilots; customers can't upgrade themselves without paying.
+- Web app: "Plan & usage" page with a usage meter, limits, alerts, plan cards and upgrade/manage buttons.
+- Migration 0006 (subscriptions, billable_events, processed_stripe_events).
+
 ## V14: Web app
 - Next.js 16 app in `frontend/` (TypeScript, Tailwind 4, React Flow). The browser talks to the API through same-origin `/api` and `/hooks` rewrites.
 - Pages:

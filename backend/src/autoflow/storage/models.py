@@ -9,7 +9,7 @@ read or change another business's data.
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, ForeignKey, Index, String, Text, UniqueConstraint, false, text
+from sqlalchemy import JSON, ForeignKey, Index, String, Text, UniqueConstraint, false, text, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from autoflow.storage.db import Base, UTCDateTime, utc_now
@@ -330,3 +330,57 @@ class WebhookEndpoint(Base):
     encrypted_secret: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
     last_called_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+# --- Billing (V15) ----------------------------------------------------------
+
+class Subscription(Base):
+    """A workspace's plan. Workspaces without a row are on the free plan."""
+
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), unique=True
+    )
+    plan: Mapped[str] = mapped_column(String(30), default="free")
+    # active | trialing | past_due | canceled
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    # manual (invoiced pilots) | stripe
+    provider: Mapped[str] = mapped_column(String(20), default="manual")
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(100), index=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(100))
+    current_period_start: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    current_period_end: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    cancel_at_period_end: Mapped[bool] = mapped_column(default=False, server_default=false())
+    # Stop billable steps when the included tasks are used up
+    hard_cap: Mapped[bool] = mapped_column(default=True, server_default=true())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, onupdate=utc_now)
+
+
+class BillableEvent(Base):
+    """One billable task. Unique per step run, so nothing is billed twice."""
+
+    __tablename__ = "billable_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    step_execution_id: Mapped[int] = mapped_column(
+        ForeignKey("step_executions.id", ondelete="CASCADE"), unique=True
+    )
+    action: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
+    # When the event was sent to the payment provider's usage meter
+    reported_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class ProcessedStripeEvent(Base):
+    """Stripe webhook events already handled (Stripe may deliver twice)."""
+
+    __tablename__ = "processed_stripe_events"
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    type: Mapped[str] = mapped_column(String(100))
+    received_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)

@@ -65,6 +65,9 @@ class Action:
     connection_provider: str | None = None
     # Live results with a lower `confidence` wait for human review
     review_below_confidence: float | None = None
+    # Billing: None = billable when it uses the network; or a function of
+    # the output, for actions that only sometimes call an app or AI model
+    billable: Callable | None = None
 
 
 REGISTRY: dict[str, Action] = {}
@@ -164,6 +167,8 @@ register(Action(
     inputs={"message": InputSpec("string", description="The customer's message")},
     outputs={"category": "Sales | Support | Other", "reason": "Why", "source": "AI | Rules"},
     uses_network=True,
+    # Keyword rules run locally; only an AI classification is billable
+    billable=lambda output: output.get("source") == "AI",
 ))
 
 

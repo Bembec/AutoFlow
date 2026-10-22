@@ -103,6 +103,27 @@ A workflow is **data**: a trigger plus ordered steps, each calling a registered 
 | POST | `/workspaces/{id}/executions/{ex}/cancel` | member | Cancel |
 | POST | `/workspaces/{id}/executions/{ex}/retry` | member | Retry from the failed step (`{"confirm_not_completed": true}` for `needs_attention`) |
 
+## Billing and usage (V15)
+
+**Billable task:** one step that **succeeds**, in a **live** run, and **calls an app or AI model**. Failed steps, retries, test runs and local steps (compose, log, save) are free. Rules-only classification is free too. Each billable step creates one `billable_events` row, unique per step run, so nothing is billed twice.
+
+| Plan | $/month | Tasks/month | Workflows | Seats |
+| --- | --- | --- | --- | --- |
+| Free | 0 | 500 | 5 | 1 |
+| Starter | 29 | 5,000 | 20 | 2 |
+| Growth | 99 | 25,000 | unlimited | 5 |
+| Business | 299 | 100,000 | unlimited | 20 |
+| Enterprise | custom | custom | unlimited | unlimited |
+
+These are the roadmap's starting proposals, defined in `billing/plans.json`; override them with `AUTOFLOW_PLANS_FILE`.
+
+- **Hard cap:** reaching the included tasks pauses *billable* steps. Free plans always have the cap; owners on paid plans can turn it off.
+- **Alerts:** the billing summary warns at 80% and 100% of included tasks, when the projected usage will exceed the plan, and when a payment has failed.
+- **Stripe:**
+  - `POST …/billing/checkout {"plan"}` returns a Checkout URL, and `POST …/billing/portal` returns the customer-portal URL (cards, invoices, downgrades, cancellation).
+  - `POST /billing/stripe-webhook` verifies `Stripe-Signature`, applies each event once, and handles checkout, subscription create/update/delete (plan from the price id), `invoice.payment_failed` (→ `past_due`, plan kept during the grace period) and `invoice.paid`.
+- **Manual billing (pilots):** staff listed in `AUTOFLOW_STAFF_EMAILS` can set a plan with `PUT /admin/workspaces/{id}/plan`. Customers cannot change their own plan except through payment.
+
 ## AI steps and safety controls (V13)
 
 **AI actions**: `ai_extract` (named fields from emails/documents), `ai_classify` (into *your* categories), `ai_summarize`, `ai_draft_reply`, `ai_translate`.

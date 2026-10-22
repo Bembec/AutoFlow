@@ -19,6 +19,7 @@ later be driven by a background worker or a durable engine (Temporal).
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from autoflow.billing import service as billing
 from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, get_action, validate_inputs
 from autoflow.engine.definition import WorkflowDefinition
@@ -164,7 +165,9 @@ def execute(session, execution):
 
         try:
             limits.check_can_run_step(session, workspace, action.name, execution.mode)
-        except limits.LimitReached as limit:
+            if billing.is_billable(action, execution.mode):
+                billing.check_can_run_billable(session, workspace.id)
+        except (limits.LimitReached, billing.PlanLimitReached) as limit:
             record.status = "failed"
             record.error = str(limit)
             _finish(session, execution, "failed", f"Step {step.id} stopped: {limit}")
@@ -290,6 +293,9 @@ def _run_step(session, execution, step, record, action, inputs):
 
             record.status = "succeeded"
             record.finished_at = utc_now()
+            if billing.is_billable(action, execution.mode, record.output):
+                # Same commit as the success, so it is counted exactly once
+                billing.record_billable(session, execution.workspace_id, record, action.name)
             session.commit()
             return True
 

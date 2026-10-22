@@ -1,0 +1,42 @@
+{
+  "free": {
+    "label": "Free",
+    "price_usd_month": 0,
+    "included_tasks": 500,
+    "max_workflows": 5,
+    "max_seats": 1,
+    "description": "Trying it out"
+  },
+  "starter": {
+    "label": "Starter",
+    "price_usd_month": 29,
+    "included_tasks": 5000,
+    "max_workflows": 20,
+    "max_seats": 2,
+    "description": "Solo owners and micro-businesses"
+  },
+  "growth": {
+    "label": "Growth",
+    "price_usd_month": 99,
+    "included_tasks": 25000,
+    "max_workflows": null,
+    "max_seats": 5,
+    "description": "Small teams"
+  },
+  "business": {
+    "label": "Business",
+    "price_usd_month": 299,
+    "included_tasks": 100000,
+    "max_workflows": null,
+    "max_seats": 20,
+    "description": "Mid-sized companies"
+  },
+  "enterprise": {
+    "label": "Enterprise",
+    "price_usd_month": null,
+    "included_tasks": null,
+    "max_workflows": null,
+    "max_seats": null,
+    "description": "Custom terms; set up by our team"
+  }
+}

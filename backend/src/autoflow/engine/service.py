@@ -11,6 +11,7 @@ simulate side effects. Live runs always use the published version.
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from autoflow.billing import service as billing
 from autoflow.engine import executor, limits
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.storage.db import utc_now
@@ -60,6 +61,11 @@ def version_in_state(workflow, state):
 def create_workflow(
     session, workspace_id, name, definition, description="", user_id=None, minutes_saved_per_run=5
 ):
+    try:
+        billing.check_can_create_workflow(session, workspace_id)
+    except billing.PlanLimitReached as limit:
+        raise WorkflowError(str(limit)) from limit
+
     workflow = Workflow(
         workspace_id=workspace_id,
         name=name,

@@ -14,6 +14,7 @@ const NAV = [
   { href: "/executions", label: "Run history" },
   { href: "/approvals", label: "Approvals" },
   { href: "/connections", label: "Connected apps" },
+  { href: "/billing", label: "Plan & usage" },
   { href: "/settings", label: "Settings" },
 ];
 

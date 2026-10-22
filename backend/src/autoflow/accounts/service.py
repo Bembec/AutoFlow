@@ -169,6 +169,13 @@ def add_member(session, acting_membership, email, role):
     if get_membership(session, user.id, acting_membership.workspace_id):
         raise AccountError("This user is already a member.")
 
+    from autoflow.billing.service import PlanLimitReached, check_can_add_member
+
+    try:
+        check_can_add_member(session, acting_membership.workspace_id)
+    except PlanLimitReached as limit:
+        raise AccountError(str(limit)) from limit
+
     membership = Membership(
         user_id=user.id,
         workspace_id=acting_membership.workspace_id,

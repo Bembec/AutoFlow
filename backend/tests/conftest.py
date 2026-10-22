@@ -67,7 +67,7 @@ def client(no_external_calls):
 def signup(client):
     """Register and log in a user; return (auth headers, workspace id)."""
 
-    def _signup(email="owner@example.com", name="Owner", password="correct-horse"):
+    def _signup(email="owner@example.com", name="Owner", password="correct-horse", plan="business"):
         client.post(
             "/auth/register",
             json={"email": email, "name": name, "password": password},
@@ -77,6 +77,15 @@ def signup(client):
         ).json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         workspace_id = client.get("/me", headers=headers).json()["workspaces"][0]["id"]
+
+        # Most tests are not about plan limits; billing tests pass plan="free"
+        if plan != "free":
+            from autoflow.billing.service import set_plan
+            from autoflow.storage.db import session_scope
+
+            with session_scope() as session:
+                set_plan(session, workspace_id, plan)
+
         return headers, workspace_id
 
     return _signup
