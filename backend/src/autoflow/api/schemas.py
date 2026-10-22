@@ -1,5 +1,7 @@
 """Response models that define the public shape of the API."""
 
+from typing import Any, Literal
+
 from pydantic import BaseModel
 
 
@@ -37,6 +39,21 @@ class WorkflowRun(BaseModel):
 class EmailDecision(BaseModel):
     status: str
     recipient: str
+
+
+class Approval(BaseModel):
+    id: int
+    kind: Literal["classification", "email"]
+    status: str
+    customer_email: str
+    payload: dict[str, Any]
+    decision: dict[str, Any] | None
+    created_at: str
+    decided_at: str | None
+
+
+class ApprovalDecision(BaseModel):
+    category: Literal["Sales", "Support", "Other"] | None = None
 
 
 class WorkflowRunResult(BaseModel):

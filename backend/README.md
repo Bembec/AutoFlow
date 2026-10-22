@@ -24,7 +24,7 @@ Python package `autoflow`. It currently runs the V1–V6 customer-enquiry workfl
 
 `scripts/checks/create_airtable_test_record.py` writes one test record to Airtable.
 
-## REST API (V7)
+## REST API
 
 | Method | Path | Description |
 | --- | --- | --- |
@@ -32,7 +32,20 @@ Python package `autoflow`. It currently runs the V1–V6 customer-enquiry workfl
 | GET | `/customers?category=Sales` | Stored customers, optionally filtered |
 | GET | `/customers/{id}` | One customer with every field |
 | GET | `/workflow-runs?limit=10` | Most recent workflow runs |
-| POST | `/workflow-runs` | Run the workflow without a terminal (AI results stay unreviewed, no email is sent) |
+| POST | `/workflow-runs` | Run the workflow without a terminal; decisions are queued as approvals |
+| GET | `/approvals?status=pending&kind=email` | Approval queue |
+| GET | `/approvals/{id}` | One approval |
+| POST | `/approvals/{id}/approve` | Approve (body `{"category": "Support"}` corrects a classification) |
+| POST | `/approvals/{id}/reject` | Reject; nothing is changed or sent |
+
+### Human approval rules (V8)
+
+- AI classifications and outgoing emails made without a terminal wait as **pending approvals**.
+- Re-running the workflow refreshes a pending approval instead of duplicating it.
+- An email cannot be approved while that customer's classification is unreviewed.
+- Correcting a category regenerates the pending email with the right wording.
+- Each approval is decided exactly once (a second attempt returns `409`), so an email is never sent twice.
+- `EMAIL_SEND_ENABLED` and the test-recipient redirect still apply to approved emails.
 
 ## Configuration
 

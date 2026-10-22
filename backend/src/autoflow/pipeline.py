@@ -9,23 +9,22 @@ email, synchronizes Airtable and records the activity.
 Run with:  python -m autoflow
 
 When run without a terminal (interactive=False, e.g. from the API), AI
-suggestions are stored as "AI Pending Review" and no email is sent.
+suggestions and outgoing emails are queued as pending approvals that a
+person decides through the API. Nothing is sent without approval.
 """
 
 import csv
 
 from autoflow import config
+from autoflow import approvals
 from autoflow.activity_log import timestamp_now, write_log_lines
 from autoflow.classification.ai_classifier import classify_with_ai
 from autoflow.emails.sender import send_email
 from autoflow.emails.templates import create_email_preview
 from autoflow.integrations.airtable import sync_customers_to_airtable
 from autoflow.integrations.exchange_rates import fetch_eur_to_usd
-from autoflow.storage.database import (
-    initialize_database,
-    record_workflow_run,
-    save_customers,
-)
+from autoflow.storage import initialize_storage
+from autoflow.storage.database import record_workflow_run, save_customers
 
 
 PROCESSED_COLUMNS = [
@@ -104,10 +103,11 @@ def process_customers(exchange_rate, rate_date, interactive=True):
                     review_ai_suggestion(customer, ai_result)
                 )
             elif ai_result is not None:
-                # Nobody is available to review: keep it visibly unreviewed
+                # Nobody is available to review: queue it for a human
                 category = ai_result["category"]
                 classification_source = "AI Pending Review"
                 classification_reason = ai_result["reason"]
+                approvals.request_classification_review(customer, ai_result)
             else:
                 # Use the original keyword rules as a safe fallback
                 category = classify_with_rules(original_message.lower())
@@ -265,8 +265,8 @@ def run(interactive=True):
         exchange_rate, rate_date, interactive
     )
 
-    # Create the database and save all processed customer records
-    initialize_database()
+    # Create the database tables and save all processed customer records
+    initialize_storage()
     save_customers(processed_customers)
 
     save_processed_csv(processed_customers)
@@ -276,7 +276,11 @@ def run(interactive=True):
     if interactive:
         email_audit_entries = review_and_send_email(email_previews)
     else:
-        print("Email review skipped: no human reviewer available.")
+        # Queue every email; a person approves each one through the API
+        for email_preview in email_previews:
+            approvals.request_email_approval(email_preview)
+
+        print(f"Emails queued for approval: {len(email_previews)}")
         email_audit_entries = []
 
     # Synchronize processed customers with the Airtable CRM

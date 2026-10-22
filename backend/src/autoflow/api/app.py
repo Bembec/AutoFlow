@@ -10,19 +10,22 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 
-from autoflow import __version__
+from autoflow import __version__, approvals
 from autoflow.api import schemas
 from autoflow.pipeline import run as run_pipeline
-from autoflow.storage import database
+from autoflow.storage import approvals as approval_store
+from autoflow.storage import database, initialize_storage
 
 
 Category = Literal["Sales", "Support", "Other"]
+ApprovalStatus = Literal["pending", "approved", "rejected", "sent", "failed"]
+ApprovalKind = Literal["classification", "email"]
 
 
 @asynccontextmanager
 async def lifespan(app):
     # Make sure the tables exist before the first request
-    database.initialize_database()
+    initialize_storage()
     yield
 
 
@@ -75,10 +78,62 @@ def create_app():
         tags=["workflow runs"],
     )
     def start_workflow_run():
-        # Runs without a terminal: AI results stay unreviewed, no email is sent
+        # Runs without a terminal: decisions are queued as approvals
         return run_pipeline(interactive=False)
 
+    @app.get(
+        "/approvals",
+        response_model=list[schemas.Approval],
+        tags=["approvals"],
+    )
+    def list_approvals(
+        status: ApprovalStatus | None = None,
+        kind: ApprovalKind | None = None,
+    ):
+        return approval_store.list_approvals(status, kind)
+
+    @app.get(
+        "/approvals/{approval_id}",
+        response_model=schemas.Approval,
+        tags=["approvals"],
+    )
+    def get_approval(approval_id: int):
+        approval = approval_store.get_approval(approval_id)
+
+        if approval is None:
+            raise HTTPException(status_code=404, detail="Approval not found")
+
+        return approval
+
+    @app.post(
+        "/approvals/{approval_id}/approve",
+        response_model=schemas.Approval,
+        tags=["approvals"],
+    )
+    def approve(approval_id: int, decision: schemas.ApprovalDecision | None = None):
+        category = decision.category if decision else None
+        return _decide(lambda: approvals.approve(approval_id, category))
+
+    @app.post(
+        "/approvals/{approval_id}/reject",
+        response_model=schemas.Approval,
+        tags=["approvals"],
+    )
+    def reject(approval_id: int):
+        return _decide(lambda: approvals.reject(approval_id))
+
     return app
+
+
+def _decide(action):
+    """Translate approval errors into HTTP responses."""
+
+    try:
+        return action()
+    except approvals.ApprovalNotFound:
+        raise HTTPException(status_code=404, detail="Approval not found")
+    except approvals.ApprovalConflict as error:
+        raise HTTPException(status_code=409, detail=str(error))
 
 
 app = create_app()

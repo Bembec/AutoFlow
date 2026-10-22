@@ -213,6 +213,48 @@ def get_workflow_runs(limit=10):
     return [dict(row) for row in rows]
 
 
+def get_customer_by_email(email):
+    """Return one stored customer with every field, or None."""
+
+    with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+
+        row = connection.execute(
+            "SELECT * FROM customers WHERE email = ?",
+            (email,),
+        ).fetchone()
+
+    return dict(row) if row is not None else None
+
+
+def update_customer_classification(email, category, source, reason):
+    """Store a human-reviewed category for an existing customer.
+
+    Quotes only apply to Sales enquiries, so they are cleared otherwise.
+    """
+
+    updated_at = datetime.now().astimezone().isoformat(timespec="seconds")
+
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(
+            """
+            UPDATE customers
+            SET category = ?,
+                classification_source = ?,
+                classification_reason = ?,
+                quote_eur = CASE WHEN ? = 'Sales' THEN quote_eur ELSE '' END,
+                quote_usd = CASE WHEN ? = 'Sales' THEN quote_usd ELSE '' END,
+                rate_date = CASE WHEN ? = 'Sales' THEN rate_date ELSE '' END,
+                updated_at = ?
+            WHERE email = ?
+            """,
+            (
+                category, source, reason,
+                category, category, category,
+                updated_at, email,
+            ),
+        )
+
 if __name__ == "__main__":
     initialize_database()
 

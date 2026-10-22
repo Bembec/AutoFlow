@@ -1,5 +1,13 @@
 # Changelog
 
+## V8: Approvals as data
+- New `approvals` table and approval service (`autoflow.approvals`).
+- Runs without a terminal queue AI classifications and emails as pending approvals.
+- API: list, view, approve (with optional category correction) and reject approvals.
+- Safety: decisions are atomic and final, emails are blocked until the customer's classification is reviewed, and a correction regenerates the pending email.
+- Approval decisions are written to the activity log.
+- Added `.gitattributes` to normalize line endings.
+
 ## V7: REST API
 - FastAPI application (`autoflow.api`) with interactive docs at `/docs`.
 - Endpoints for health, customers (with category filter), customer detail, and listing and starting workflow runs.
