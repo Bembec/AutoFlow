@@ -137,6 +137,9 @@ class Approval(OrmModel):
 
 class ApprovalDecision(BaseModel):
     category: Category | None = None
+    output: dict[str, Any] | None = Field(
+        None, description="AI result reviews: corrected step output, e.g. {\"data\": {...}}"
+    )
 
 
 # --- workflow engine ---

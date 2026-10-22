@@ -160,6 +160,17 @@ def publish_workflow(
     return _errors(lambda: engine.publish(session, membership.workspace_id, workflow_id, version))
 
 
+@workspace_router.post("/workflows/{workflow_id}/pause", response_model=schemas.WorkflowOut)
+def pause_workflow(workflow_id: int, membership: MemberAccess, session: Session):
+    """Emergency stop for one workflow: cancels its open runs."""
+    return _errors(lambda: engine.pause(session, membership.workspace_id, workflow_id))
+
+
+@workspace_router.post("/workflows/{workflow_id}/resume", response_model=schemas.WorkflowOut)
+def resume_workflow(workflow_id: int, membership: MemberAccess, session: Session):
+    return _errors(lambda: engine.resume(session, membership.workspace_id, workflow_id))
+
+
 @workspace_router.post("/workflows/{workflow_id}/archive", response_model=schemas.WorkflowOut)
 def archive_workflow(workflow_id: int, membership: MemberAccess, session: Session):
     return _errors(lambda: engine.archive(session, membership.workspace_id, workflow_id))

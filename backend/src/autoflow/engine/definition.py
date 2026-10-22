@@ -49,6 +49,15 @@ class Step(BaseModel):
     # None = the action's default. Approval can be added, never removed
     # from actions that require it.
     requires_approval: bool | None = None
+    # AI steps: send live results below this confidence to a human
+    # (None = the action's default, 0 = never)
+    review_below_confidence: float | None = Field(None, ge=0, le=1)
+
+    def review_threshold(self):
+        if self.review_below_confidence is not None:
+            return self.review_below_confidence
+        action = get_action(self.action)
+        return (action.review_below_confidence if action else None) or 0
 
     def needs_approval(self):
         action = get_action(self.action)

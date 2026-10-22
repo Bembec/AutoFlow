@@ -11,7 +11,7 @@ simulate side effects. Live runs always use the published version.
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from autoflow.engine import executor
+from autoflow.engine import executor, limits
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.storage.db import utc_now
 from autoflow.storage.models import Workflow, WorkflowExecution, WorkflowVersion
@@ -35,7 +35,7 @@ def list_workflows(session, workspace_id, include_archived=False):
     query = select(Workflow).where(Workflow.workspace_id == workspace_id)
 
     if not include_archived:
-        query = query.where(Workflow.status == "active")
+        query = query.where(Workflow.status != "archived")
 
     return session.scalars(query.order_by(Workflow.id)).all()
 
@@ -140,6 +140,69 @@ def archive(session, workspace_id, workflow_id):
     return workflow
 
 
+def _cancel_open_executions(session, workspace_id, workflow_id=None, reason="Stopped"):
+    query = select(WorkflowExecution).where(
+        WorkflowExecution.workspace_id == workspace_id,
+        WorkflowExecution.status.not_in(executor.TERMINAL_STATUSES),
+    )
+    if workflow_id is not None:
+        query = query.where(WorkflowExecution.workflow_id == workflow_id)
+
+    stopped = 0
+    for execution in session.scalars(query).all():
+        executor.cancel(session, execution)
+        execution.error = reason
+        stopped += 1
+
+    session.commit()
+    return stopped
+
+
+def pause(session, workspace_id, workflow_id):
+    """Emergency stop for one workflow: cancel its runs, refuse new live ones."""
+
+    workflow = get_workflow(session, workspace_id, workflow_id)
+
+    if workflow.status == "archived":
+        raise WorkflowError("Archived workflows cannot be paused.")
+
+    workflow.status = "paused"
+    session.commit()
+    _cancel_open_executions(session, workspace_id, workflow.id, "Workflow paused (emergency stop).")
+    return workflow
+
+
+def resume(session, workspace_id, workflow_id):
+    workflow = get_workflow(session, workspace_id, workflow_id)
+
+    if workflow.status != "paused":
+        raise WorkflowError("Only paused workflows can be resumed.")
+
+    workflow.status = "active"
+    session.commit()
+    return workflow
+
+
+def emergency_stop(session, workspace_id, reason=None):
+    """Stop every automation in a workspace at once."""
+
+    workspace = limits.get_workspace(session, workspace_id)
+    workspace.automation_paused = True
+    workspace.paused_reason = reason or "Emergency stop"
+    session.commit()
+    return _cancel_open_executions(
+        session, workspace_id, reason=f"Emergency stop: {workspace.paused_reason}"
+    )
+
+
+def resume_automations(session, workspace_id):
+    workspace = limits.get_workspace(session, workspace_id)
+    workspace.automation_paused = False
+    workspace.paused_reason = None
+    session.commit()
+    return workspace
+
+
 def get_execution(session, workspace_id, execution_id):
     execution = session.scalar(
         select(WorkflowExecution)
@@ -190,9 +253,23 @@ def start_execution(
             return existing, False
 
     workflow = get_workflow(session, workspace_id, workflow_id)
+    workspace = limits.get_workspace(session, workspace_id)
 
     if workflow.status == "archived":
         raise WorkflowError("Archived workflows cannot run.")
+
+    if workspace.automation_paused:
+        raise WorkflowError(
+            f"Automations are stopped for this workspace: {workspace.paused_reason or 'emergency stop'}."
+        )
+
+    if workflow.status == "paused" and mode == "live":
+        raise WorkflowError("This workflow is paused.")
+
+    try:
+        limits.check_can_start(session, workspace)
+    except limits.LimitReached as limit:
+        raise WorkflowError(str(limit)) from limit
 
     if mode == "live":
         version = version_in_state(workflow, "published")

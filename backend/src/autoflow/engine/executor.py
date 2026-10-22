@@ -19,11 +19,12 @@ later be driven by a background worker or a durable engine (Temporal).
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, get_action, validate_inputs
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templating import evaluate_condition, render
 from autoflow.storage.db import utc_now
-from autoflow.storage.models import Approval, StepExecution
+from autoflow.storage.models import Approval, StepExecution, Workspace
 
 
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled", "needs_attention"}
@@ -108,6 +109,7 @@ def execute(session, execution):
 
     definition = WorkflowDefinition.model_validate(execution.version.definition)
     context = {"trigger": execution.trigger_payload, "steps": {}}
+    workspace = session.get(Workspace, execution.workspace_id)
 
     execution.status = "running"
     execution.started_at = execution.started_at or utc_now()
@@ -152,12 +154,20 @@ def execute(session, execution):
         inputs = render(step.inputs, context)
         record.input = inputs
 
-        if (
-            execution.mode == "live"
-            and step.needs_approval()
-            and record.status != "approved"
-        ):
+        needs_approval = step.needs_approval() or (
+            workspace.approve_all_side_effects and action.side_effect
+        )
+
+        if execution.mode == "live" and needs_approval and record.status != "approved":
             _request_approval(session, execution, step, record, inputs)
+            return execution
+
+        try:
+            limits.check_can_run_step(session, workspace, action.name, execution.mode)
+        except limits.LimitReached as limit:
+            record.status = "failed"
+            record.error = str(limit)
+            _finish(session, execution, "failed", f"Step {step.id} stopped: {limit}")
             return execution
 
         if not _run_step(session, execution, step, record, action, inputs):
@@ -169,37 +179,64 @@ def execute(session, execution):
     return execution
 
 
-def _request_approval(session, execution, step, record, inputs):
-    record.status = "waiting_approval"
+def _request_approval(session, execution, step, record, inputs, review=None):
+    """Pause the execution until a human decides.
 
-    existing = next(
-        (
-            approval
-            for approval in session.query(Approval).filter_by(
-                execution_id=execution.id, step_id=step.id
-            )
-        ),
-        None,
-    )
+    Without `review` this gates the step before it runs. With `review`
+    ({"reason", "output"}) the step already ran and a person checks (and
+    may correct) its output before the workflow continues.
+    """
+
+    record.status = "waiting_approval"
+    payload = {
+        "execution_id": execution.id,
+        "step_id": step.id,
+        "step_name": step.name or step.id,
+        "action": step.action,
+        "inputs": inputs,
+    }
+    if review is not None:
+        payload.update({"review": True, **review})
+
+    existing = session.query(Approval).filter_by(
+        execution_id=execution.id, step_id=step.id
+    ).first()
 
     if existing is None:
         session.add(Approval(
             workspace_id=execution.workspace_id,
             kind="step",
             customer_email=str(inputs.get("to") or inputs.get("email") or ""),
-            payload={
-                "execution_id": execution.id,
-                "step_id": step.id,
-                "step_name": step.name or step.id,
-                "action": step.action,
-                "inputs": inputs,
-            },
+            payload=payload,
             execution_id=execution.id,
             step_id=step.id,
         ))
+    elif existing.status != "pending":
+        # The step was approved to run; now its result needs a review too
+        payload["previous_decision"] = existing.decision
+        existing.payload = payload
+        existing.status = "pending"
+        existing.decision = None
+        existing.decided_at = None
+        existing.decided_by_user_id = None
 
     execution.status = "waiting_approval"
     session.commit()
+
+
+def _review_reason(step, output):
+    """Why a live AI result must be checked by a person (None if not)."""
+
+    if output.get("injection_suspected"):
+        return "The input may contain a prompt-injection attempt."
+
+    threshold = step.review_threshold()
+    confidence = output.get("confidence")
+
+    if threshold and isinstance(confidence, (int, float)) and confidence < threshold:
+        return f"Confidence {confidence:.2f} is below the review threshold {threshold:.2f}."
+
+    return None
 
 
 def _run_step(session, execution, step, record, action, inputs):
@@ -241,8 +278,17 @@ def _run_step(session, execution, step, record, action, inputs):
         except Exception as unexpected:  # noqa: BLE001 - any action bug fails the step
             error, retryable = f"Unexpected error: {unexpected}", False
         else:
-            record.status = "succeeded"
             record.output = output if isinstance(output, dict) else {"result": output}
+            reason = _review_reason(step, record.output) if execution.mode == "live" else None
+
+            if reason:
+                _request_approval(
+                    session, execution, step, record, inputs,
+                    review={"reason": reason, "output": record.output},
+                )
+                return False
+
+            record.status = "succeeded"
             record.finished_at = utc_now()
             session.commit()
             return True
@@ -311,14 +357,27 @@ def retry(session, execution, confirm_not_completed=False):
     return execute(session, execution)
 
 
-def resume_after_decision(session, execution, step_id, approved):
-    """Continue (approved) or stop (rejected) after a step approval."""
+def resume_after_decision(session, execution, step_id, approved, review=False, corrected_output=None):
+    """Continue (approved) or stop (rejected) after a step approval.
+
+    For a review, approving accepts the step's output (or the reviewer's
+    corrected output) and the workflow continues after that step.
+    """
 
     record = next(r for r in execution.steps if r.step_id == step_id)
-    record.status = "approved" if approved else "rejected"
 
     if not approved:
+        record.status = "rejected"
         record.finished_at = utc_now()
+    elif review:
+        if corrected_output is not None:
+            record.output = {**(record.output or {}), **corrected_output, "reviewed": True}
+        else:
+            record.output = {**(record.output or {}), "reviewed": True}
+        record.status = "succeeded"
+        record.finished_at = utc_now()
+    else:
+        record.status = "approved"
 
     session.commit()
     return execute(session, execution)

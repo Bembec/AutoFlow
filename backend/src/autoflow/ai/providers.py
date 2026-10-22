@@ -7,9 +7,21 @@ A provider without an API key is skipped; if a configured provider fails
 working when one AI vendor is down.
 """
 
+import json
 import os
 
 from autoflow import config  # noqa: F401  (loads .env)
+
+
+def extract_json(text):
+    """Parse the first JSON object in a reply, tolerating code fences."""
+
+    start, end = text.find("{"), text.rfind("}")
+
+    if start == -1 or end <= start:
+        raise ValueError("The reply contained no JSON object.")
+
+    return json.loads(text[start:end + 1])
 
 
 class AIUnavailable(Exception):

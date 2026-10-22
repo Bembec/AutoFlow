@@ -63,6 +63,8 @@ class Action:
     simulate: Callable | None = field(default=None)
     # Provider whose connection (named in the "connection" input) this needs
     connection_provider: str | None = None
+    # Live results with a lower `confidence` wait for human review
+    review_below_confidence: float | None = None
 
 
 REGISTRY: dict[str, Action] = {}
@@ -300,3 +302,4 @@ register(Action(
 
 # Connector actions register themselves into the same registry
 from autoflow.integrations import actions as _connector_actions  # noqa: E402,F401
+from autoflow.ai import steps as _ai_steps  # noqa: E402,F401

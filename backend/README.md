@@ -103,6 +103,25 @@ A workflow is **data**: a trigger plus ordered steps, each calling a registered 
 | POST | `/workspaces/{id}/executions/{ex}/cancel` | member | Cancel |
 | POST | `/workspaces/{id}/executions/{ex}/retry` | member | Retry from the failed step (`{"confirm_not_completed": true}` for `needs_attention`) |
 
+## AI steps and safety controls (V13)
+
+**AI actions**: `ai_extract` (named fields from emails/documents), `ai_classify` (into *your* categories), `ai_summarize`, `ai_draft_reply`, `ai_translate`.
+
+- **Containment:** AI steps only produce data. They have no tools and cannot act. Their JSON is validated against what the step asked for: extraction returns only the requested fields, and classification cannot invent categories.
+- **Prompt-injection guard:** untrusted text is fenced inside a random boundary that the sender cannot close, and the model is told it is data, never instructions. Injection phrasing is also detected. A suspected injection always goes to a human in live mode.
+- **Confidence review:** live AI results below `review_below_confidence` (default 0.7 for `ai_extract`, `0` disables) pause for review. The reviewer approves, or corrects the output with `{"output": {"data": {...}}}`, and later steps use the corrected data.
+
+**Emergency stop and policies**
+
+| Method | Path | Role | Effect |
+| --- | --- | --- | --- |
+| POST | `/workspaces/{id}/emergency-stop` | admin | Stop all automations, cancel open runs and pending step approvals, block webhooks |
+| POST | `/workspaces/{id}/resume-automations` | admin | Lift the stop |
+| POST | `/workspaces/{id}/workflows/{wf}/pause` · `/resume` | member | Stop one workflow (test runs still allowed) |
+| GET / PATCH | `/workspaces/{id}/policies` | viewer / admin | Daily limits and today's usage |
+
+Policies cover daily limits on executions (1000), AI calls (200) and live emails (100), plus `approve_all_side_effects`, which requires human approval for every side effect. These are enforced by the engine and cannot be bypassed by a workflow.
+
 ## Integrations (V12)
 
 **Connections** hold a workspace's own credentials for an app. Secrets are encrypted with Fernet (`AUTOFLOW_SECRET_KEYS`, rotatable), only decrypted when a step needs them, and never returned by the API (only masked, e.g. `pat…3456`). Only admins can manage connections.

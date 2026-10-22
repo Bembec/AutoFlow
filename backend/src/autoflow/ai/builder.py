@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pydantic import ValidationError
 
 from autoflow.ai import providers
+from autoflow.ai.providers import extract_json
 from autoflow.engine.actions import describe_actions
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templates import ENQUIRY_TRIAGE
@@ -76,17 +77,6 @@ def build_prompt(request_text, answers=None):
         parts.append(f"Answers to your earlier questions:\n{answered}")
 
     return "\n\n".join(parts)
-
-
-def extract_json(text):
-    """Parse the first JSON object in a reply, tolerating code fences."""
-
-    start, end = text.find("{"), text.rfind("}")
-
-    if start == -1 or end <= start:
-        raise ValueError("The reply contained no JSON object.")
-
-    return json.loads(text[start:end + 1])
 
 
 def _validate(reply):

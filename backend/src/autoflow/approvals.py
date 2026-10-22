@@ -94,29 +94,43 @@ def reject(session, workspace_id, approval_id, user_id=None):
     return approval_store.get_approval(session, workspace_id, approval_id)
 
 
-def _resume_execution(session, approval, approved):
+def _resume_execution(session, approval, approved, corrected_output=None):
     # Imported here: the engine depends on storage, not on this module
     from autoflow.engine import executor
     from autoflow.engine.service import get_execution
 
     execution = get_execution(session, approval.workspace_id, approval.execution_id)
-    executor.resume_after_decision(session, execution, approval.step_id, approved)
+    executor.resume_after_decision(
+        session,
+        execution,
+        approval.step_id,
+        approved,
+        review=bool(approval.payload.get("review")),
+        corrected_output=corrected_output,
+    )
 
 
-def approve(session, workspace_id, approval_id, category=None, user_id=None):
+def approve(session, workspace_id, approval_id, category=None, user_id=None, output=None):
     """Approve a pending approval and carry out its action.
 
     For classifications, `category` optionally corrects the AI suggestion.
+    For AI-result reviews, `output` optionally corrects the step's output.
     """
 
     approval = _get_pending(session, workspace_id, approval_id)
 
+    if output is not None and not (approval.kind == "step" and approval.payload.get("review")):
+        raise ApprovalConflict("A corrected output only applies to AI result reviews.")
+
     if approval.kind == "step":
         if category is not None:
             raise ApprovalConflict("A category only applies to classifications.")
-        _claim(session, approval, "approved", {"approved": True}, user_id)
+        decision = {"approved": True}
+        if output is not None:
+            decision["corrected_output"] = output
+        _claim(session, approval, "approved", decision, user_id)
         _log_decision(approval, "approved")
-        _resume_execution(session, approval, approved=True)
+        _resume_execution(session, approval, approved=True, corrected_output=output)
     elif approval.kind == "classification":
         _approve_classification(session, approval, category, user_id)
     else:

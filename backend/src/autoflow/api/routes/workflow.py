@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query
 from autoflow import approvals
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
+from autoflow.engine.limits import get_workspace
 from autoflow.pipeline import run_for_workspace
 from autoflow.storage import approvals as approval_store
 from autoflow.storage import customers as customer_store
@@ -73,6 +74,9 @@ def list_workflow_runs(
     tags=["workflow runs"],
 )
 def start_workflow_run(membership: MemberAccess, session: Session):
+    if get_workspace(session, membership.workspace_id).automation_paused:
+        raise HTTPException(status_code=409, detail="Automations are stopped for this workspace.")
+
     # Runs without a terminal: decisions are queued as approvals
     return run_for_workspace(session, membership.workspace_id, interactive=False)
 
@@ -121,6 +125,7 @@ def approve(
     decision: schemas.ApprovalDecision | None = None,
 ):
     category = decision.category if decision else None
+    output = decision.output if decision else None
 
     return _decide(lambda: approvals.approve(
         session,
@@ -128,6 +133,7 @@ def approve(
         approval_id,
         category,
         user_id=membership.user_id,
+        output=output,
     ))
 
 

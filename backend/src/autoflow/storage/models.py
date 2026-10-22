@@ -9,7 +9,7 @@ read or change another business's data.
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, ForeignKey, Index, String, Text, UniqueConstraint, text
+from sqlalchemy import JSON, ForeignKey, Index, String, Text, UniqueConstraint, false, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from autoflow.storage.db import Base, UTCDateTime, utc_now
@@ -40,6 +40,16 @@ class Workspace(Base):
     name: Mapped[str] = mapped_column(String(200))
     slug: Mapped[str] = mapped_column(String(100), unique=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+
+    # --- safety policies (V13) ---
+    # Emergency stop: no workflow in this workspace may run
+    automation_paused: Mapped[bool] = mapped_column(default=False, server_default=false())
+    paused_reason: Mapped[str | None] = mapped_column(Text)
+    # Every side effect (not only sensitive ones) waits for a human
+    approve_all_side_effects: Mapped[bool] = mapped_column(default=False, server_default=false())
+    max_executions_per_day: Mapped[int] = mapped_column(default=1000, server_default=text("1000"))
+    max_ai_calls_per_day: Mapped[int] = mapped_column(default=200, server_default=text("200"))
+    max_emails_per_day: Mapped[int] = mapped_column(default=100, server_default=text("100"))
 
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
