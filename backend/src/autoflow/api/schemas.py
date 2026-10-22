@@ -148,6 +148,7 @@ class WorkflowCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     description: str = ""
     definition: WorkflowDefinition
+    minutes_saved_per_run: int = Field(5, ge=0, le=10_000)
 
 
 class WorkflowFromTemplate(BaseModel):
@@ -159,6 +160,7 @@ class WorkflowUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=200)
     description: str | None = None
     definition: WorkflowDefinition | None = None
+    minutes_saved_per_run: int | None = Field(None, ge=0, le=10_000)
 
 
 class WorkflowVersionOut(OrmModel):
@@ -174,6 +176,7 @@ class WorkflowOut(OrmModel):
     name: str
     description: str
     status: str
+    minutes_saved_per_run: int
     created_at: datetime
     updated_at: datetime
     versions: list[WorkflowVersionOut]

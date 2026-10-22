@@ -1,5 +1,19 @@
 # Changelog
 
+## V14: Web app
+- Next.js 16 app in `frontend/` (TypeScript, Tailwind 4, React Flow). The browser talks to the API through same-origin `/api` and `/hooks` rewrites.
+- Pages:
+  - landing, sign-in and registration;
+  - dashboard (time saved, today's runs and limits, recent runs);
+  - AI workflow builder with clarifying questions, plus templates;
+  - workflow canvas with step inspector, test/live runs, publish, pause, archive, versions and rollback, a definition editor, webhook setup and the time-saved setting;
+  - run history and step-by-step execution view with cancel and retry;
+  - approvals inbox (email preview, category correction, AI result review and correction);
+  - connected apps (including Google OAuth callback);
+  - settings (emergency stop, limits, team, new workspace).
+- Backend: `GET /workspaces/{id}/dashboard`, and a per-workflow `minutes_saved_per_run` for the roadmap's time-saved dashboard (migration 0005). Test runs never count as time saved.
+- Verified end to end through the web proxy: register, template, test run, publish, live run, approval, then the email step was safely blocked by `EMAIL_SEND_ENABLED`.
+
 ## V13: AI steps and safety controls
 - AI actions: `ai_extract`, `ai_classify`, `ai_summarize`, `ai_draft_reply` and `ai_translate`, using the model router. Outputs are validated (only requested fields, only allowed categories) and include `confidence` and `injection_suspected`.
 - Prompt-injection guard: an unguessable boundary around untrusted text, safety rules in the system prompt, and pattern detection. Suspected injections always go to human review in live mode.

@@ -2,52 +2,62 @@
 
 AutoFlow (working name) lets a small or mid-sized business describe a process in plain words and get a working, AI-powered automation, with no developers needed.
 
-This repository holds the whole product as a monorepo. Today it contains the
-**V1–V6 enquiry-automation prototype** (Python). It will grow into the platform
-described in the [product roadmap](docs/roadmap/README.md).
+> “Tell it what you want done. AutoFlow builds the workflow, connects your apps, and runs it for you.”
+
+This monorepo holds the product as described in the [product roadmap](docs/roadmap/README.md):
+
+- **Accounts and workspaces:** each business's data is isolated, with roles from viewer to owner.
+- **Workflow engine:** retries, timeouts, idempotency, approvals, versioning, and test vs live runs.
+- **AI workflow builder:** plain words in, validated workflow out, through a Gemini/Claude router.
+- **AI steps:** extract, classify, summarise, reply and translate, with prompt-injection defences and confidence review.
+- **Integrations:** encrypted per-workspace connections (Airtable, SMTP, REST APIs, Google OAuth) and signed webhooks (including Shopify).
+- **Safety controls:** emergency stop, daily limits, and "approve everything" mode.
+- **Web app:** dashboard with time saved, canvas, run history, approvals inbox, connected apps and settings.
 
 ## Repository layout
 
 ```
 AutoFlow/
-├── backend/                 Python backend and workflow engine
-│   ├── src/autoflow/        Application package
-│   │   ├── pipeline.py      Customer-enquiry workflow (entry point)
-│   │   ├── config.py        Paths and .env settings
-│   │   ├── activity_log.py  Timestamped audit log
-│   │   ├── classification/  AI (Gemini) classification
-│   │   ├── emails/          Email templates and Gmail sender
-│   │   ├── integrations/    Airtable, exchange rates
-│   │   └── storage/         SQLite persistence
-│   ├── scripts/checks/      Manual connectivity checks for each external service
-│   ├── tests/               Automated tests (pytest)
-│   ├── data/sample/         Sample (fake) input data
-│   ├── data/output/         Generated output (git-ignored)
-│   ├── pyproject.toml
-│   └── requirements.txt     Pinned dependency versions
-├── frontend/                Web app (Next.js), starts at the prototype stage
-└── docs/                    Roadmap, architecture and changelog
+├── backend/                  Python API and workflow engine (FastAPI, SQLAlchemy, Alembic)
+│   ├── src/autoflow/
+│   │   ├── api/              HTTP routes, schemas, auth and role dependencies
+│   │   ├── accounts/         Users, workspaces, memberships, tokens
+│   │   ├── engine/           Definitions, actions, executor, versions, limits, templates
+│   │   ├── ai/               Model router, AI builder, AI steps
+│   │   ├── integrations/     Connections, OAuth, webhooks, connector actions
+│   │   ├── security/         Secrets vault, prompt-injection guard, SSRF protection
+│   │   ├── storage/          Models, repositories, migrations
+│   │   └── pipeline.py       The original V1–V6 enquiry workflow
+│   ├── tests/                pytest suite
+│   └── scripts/checks/       Manual connectivity checks for external services
+├── frontend/                 Next.js web app (React Flow canvas)
+└── docs/                     Roadmap summary, architecture, changelog
 ```
 
-## Quick start (backend)
+## Quick start
 
 ```bash
+# API
 cd backend
 python -m venv .venv
-.venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
+.venv\Scripts\activate             # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt -e ".[dev]"
-copy .env.example .env            # macOS/Linux: cp .env.example .env, then fill it in
+copy .env.example .env             # macOS/Linux: cp …; then fill it in
+python -m autoflow.api             # http://127.0.0.1:8000 (docs at /docs)
 
-python -m autoflow                # run the workflow
-pytest                            # run the tests
+# Web app (second terminal)
+cd frontend
+npm install
+npm run dev                        # http://localhost:3000
 ```
 
-Safety switches in `.env` (`AI_CLASSIFICATION_ENABLED`, `EMAIL_SEND_ENABLED`)
-are `false` by default. During development every email is redirected to
-`EMAIL_TEST_RECIPIENT`, and only fake customer data is used.
+Run the checks with `pytest` (backend) and with `npx tsc --noEmit && npm run lint && npm run build` (frontend).
+
+Safety switches (`EMAIL_SEND_ENABLED`, `AI_CLASSIFICATION_ENABLED`) default to `false`. During development, emails are redirected to a test inbox and only fake customer data is used.
 
 ## Documentation
 
-- [Product roadmap](docs/roadmap/README.md)
-- [Architecture: current and target](docs/architecture.md)
-- [Changelog (V1–V6)](docs/CHANGELOG.md)
+- [Product roadmap (summary)](docs/roadmap/README.md)
+- [Architecture](docs/architecture.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Backend reference](backend/README.md) · [Frontend](frontend/README.md)

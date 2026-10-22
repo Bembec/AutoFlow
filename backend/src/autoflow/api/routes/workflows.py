@@ -64,6 +64,7 @@ def create_workflow(request: schemas.WorkflowCreate, membership: MemberAccess, s
         request.definition,
         request.description,
         user_id=membership.user_id,
+        minutes_saved_per_run=request.minutes_saved_per_run,
     )
 
 
@@ -146,6 +147,7 @@ def update_workflow(
         request.name,
         request.description,
         request.definition,
+        request.minutes_saved_per_run,
     ))
 
 

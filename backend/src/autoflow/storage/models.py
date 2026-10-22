@@ -177,8 +177,10 @@ class Workflow(Base):
     )
     name: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
-    # active | archived
+    # active | paused | archived
     status: Mapped[str] = mapped_column(String(20), default="active")
+    # Owner's estimate of manual work one successful run replaces
+    minutes_saved_per_run: Mapped[int] = mapped_column(default=5, server_default=text("5"))
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )

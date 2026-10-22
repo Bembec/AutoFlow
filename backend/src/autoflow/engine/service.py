@@ -57,12 +57,15 @@ def version_in_state(workflow, state):
     return next((v for v in workflow.versions if v.state == state), None)
 
 
-def create_workflow(session, workspace_id, name, definition, description="", user_id=None):
+def create_workflow(
+    session, workspace_id, name, definition, description="", user_id=None, minutes_saved_per_run=5
+):
     workflow = Workflow(
         workspace_id=workspace_id,
         name=name,
         description=description,
         created_by_user_id=user_id,
+        minutes_saved_per_run=minutes_saved_per_run,
     )
     workflow.versions.append(
         WorkflowVersion(number=1, state="draft", definition=_definition_json(definition))
@@ -72,7 +75,10 @@ def create_workflow(session, workspace_id, name, definition, description="", use
     return workflow
 
 
-def update_workflow(session, workspace_id, workflow_id, name=None, description=None, definition=None):
+def update_workflow(
+    session, workspace_id, workflow_id, name=None, description=None, definition=None,
+    minutes_saved_per_run=None,
+):
     workflow = get_workflow(session, workspace_id, workflow_id)
 
     if workflow.status == "archived":
@@ -82,6 +88,8 @@ def update_workflow(session, workspace_id, workflow_id, name=None, description=N
         workflow.name = name
     if description is not None:
         workflow.description = description
+    if minutes_saved_per_run is not None:
+        workflow.minutes_saved_per_run = minutes_saved_per_run
 
     if definition is not None:
         draft = version_in_state(workflow, "draft")

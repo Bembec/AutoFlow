@@ -53,3 +53,26 @@ def test_invalid_category_is_rejected(client, signup):
     )
 
     assert response.status_code == 422
+
+
+def test_dashboard_reports_time_saved(client, signup):
+    headers, workspace_id = signup()
+    base = f"/workspaces/{workspace_id}"
+    definition = {"steps": [{"id": "log", "action": "log_activity", "inputs": {"message": "x"}}]}
+    workflow = client.post(
+        f"{base}/workflows",
+        json={"name": "Log", "definition": definition, "minutes_saved_per_run": 12},
+        headers=headers,
+    ).json()
+    client.post(f"{base}/workflows/{workflow['id']}/publish", headers=headers)
+
+    for mode in ("live", "live", "test"):
+        client.post(f"{base}/workflows/{workflow['id']}/executions", json={"mode": mode}, headers=headers)
+
+    dashboard = client.get(f"{base}/dashboard", headers=headers).json()
+
+    # Test runs do not count as time saved
+    assert dashboard["minutes_saved_30d"] == 24
+    assert dashboard["per_workflow"][0]["runs_succeeded_30d"] == 2
+    assert dashboard["executions_today"] == {"succeeded": 3}
+    assert dashboard["recent_executions"][0]["workflow_name"] == "Log"
