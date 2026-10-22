@@ -241,3 +241,6 @@ docs/roadmap/*.docx
 
 # docker compose settings (copy of deploy/compose.env.example)
 deploy/compose.env
+
+# The Python "lib/" rule above must not hide the web app's source
+!frontend/src/lib/
