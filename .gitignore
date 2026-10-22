@@ -217,3 +217,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- AutoFlow ---
+# Generated workflow output (database, logs, CSV results, email previews)
+backend/data/output/*
+!backend/data/output/.gitkeep
+*.db
+*.sqlite3
+
+# Frontend (Next.js) — used from the roadmap's prototype stage onwards
+node_modules/
+.next/
+out/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Private planning documents (kept locally, never published)
+docs/roadmap/*.docx

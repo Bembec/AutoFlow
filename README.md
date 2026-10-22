@@ -1,66 +1,53 @@
 # AutoFlow AI
 
-AutoFlow AI is a developing Python business-workflow automation system.
+AutoFlow (working name) lets a small or mid-sized business describe a process in plain words and get a working, AI-powered automation, with no developers needed.
 
-It processes customer enquiries from CSV data, categorizes them, enriches sales enquiries with exchange-rate information, synchronizes records with Airtable, prevents duplicates, and records activity logs.
+This repository holds the whole product as a monorepo. Today it contains the
+**V1–V6 enquiry-automation prototype** (Python). It will grow into the platform
+described in the [product roadmap](docs/roadmap/README.md).
 
-## Current Features
+## Repository layout
 
-### Version 1 — CSV Processing
+```
+AutoFlow/
+├── backend/                 Python backend and workflow engine
+│   ├── src/autoflow/        Application package
+│   │   ├── pipeline.py      Customer-enquiry workflow (entry point)
+│   │   ├── config.py        Paths and .env settings
+│   │   ├── activity_log.py  Timestamped audit log
+│   │   ├── classification/  AI (Gemini) classification
+│   │   ├── emails/          Email templates and Gmail sender
+│   │   ├── integrations/    Airtable, exchange rates
+│   │   └── storage/         SQLite persistence
+│   ├── scripts/checks/      Manual connectivity checks for each external service
+│   ├── tests/               Automated tests (pytest)
+│   ├── data/sample/         Sample (fake) input data
+│   ├── data/output/         Generated output (git-ignored)
+│   ├── pyproject.toml
+│   └── requirements.txt     Pinned dependency versions
+├── frontend/                Web app (Next.js), starts at the prototype stage
+└── docs/                    Roadmap, architecture and changelog
+```
 
-- Reads customer enquiries from `customers.csv`
-- Categorizes enquiries as Sales, Support, or Other
-- Saves processed records to `processed_customers.csv`
-- Creates timestamped activity logs
-
-### Version 2 — API Enrichment
-
-- Retrieves EUR-to-USD reference rates
-- Generates sample converted quotes for Sales enquiries
-- Continues processing safely if the API is unavailable
-
-### Version 3 — Airtable Integration
-
-- Authenticates using a Personal Access Token
-- Creates Airtable records with `POST`
-- Updates changed records with `PATCH`
-- Prevents duplicate customers using email addresses
-- Validates required fields and email format
-- Supports Airtable pagination
-- Logs created, updated, unchanged, and failed operations
-
-
-## Version 4 — Controlled Email Automation
-
-- Generates personalized customer email responses.
-- Allows a human to inspect and approve each message.
-- Sends controlled test emails through Gmail.
-- Uses an environment safety switch to prevent accidental sending.
-- Records sent, rejected and failed email attempts in the activity log.
-
-## Version 5 — AI-Assisted Classification
-
-- Uses the Gemini API to classify enquiries as Sales, Support or Other.
-- Generates a short explanation for each classification.
-- Requires human approval or correction of AI decisions.
-- Uses keyword rules when AI is disabled or unavailable.
-- Includes a safety switch to control API usage.
-- Uses only fake customer data during free-tier development.
-
-## Version 6 — Database Persistence
-
-- Stores processed customers in SQLite.
-- Inserts new customers and updates existing customers by email.
-- Prevents duplicate customer records.
-- Records timestamped workflow execution history.
-- Provides database retrieval functions for the future API and dashboard.
-
-> During development, customer emails are redirected to a test Gmail account.
-> Gmail credentials are stored privately in `.env` and are never committed.
-
-## Installation
-
-Create and activate a virtual environment, then install the required packages:
+## Quick start (backend)
 
 ```bash
-pip install -r requirements.txt
+cd backend
+python -m venv .venv
+.venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt -e ".[dev]"
+copy .env.example .env            # macOS/Linux: cp .env.example .env, then fill it in
+
+python -m autoflow                # run the workflow
+pytest                            # run the tests
+```
+
+Safety switches in `.env` (`AI_CLASSIFICATION_ENABLED`, `EMAIL_SEND_ENABLED`)
+are `false` by default. During development every email is redirected to
+`EMAIL_TEST_RECIPIENT`, and only fake customer data is used.
+
+## Documentation
+
+- [Product roadmap](docs/roadmap/README.md)
+- [Architecture: current and target](docs/architecture.md)
+- [Changelog (V1–V6)](docs/CHANGELOG.md)

@@ -7,10 +7,11 @@ If AI is disabled or unavailable, AutoFlow returns to keyword rules.
 import os
 from typing import Literal
 
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
+
+from autoflow import config  # noqa: F401  (loads .env)
 
 
 # Define the exact structure Gemini must return
@@ -21,8 +22,8 @@ class ClassificationResult(BaseModel):
     )
 
 
-load_dotenv()
 gemini_api_key = os.getenv("GEMINI_API_KEY")
+gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
 
 def classify_with_ai(message):
@@ -44,7 +45,7 @@ def classify_with_ai(message):
     try:
         # Require Gemini to return JSON matching ClassificationResult
         response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=gemini_model,
             contents=(
                 "Classify this customer enquiry as Sales, Support, "
                 "or Other. Give one short reason.\n\n"

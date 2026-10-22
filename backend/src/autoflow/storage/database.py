@@ -7,15 +7,16 @@ preparing AutoFlow for its future API and web dashboard.
 
 import sqlite3
 from datetime import datetime
-from pathlib import Path
+
+from autoflow import config
 
 
-# Store the database beside the project files
-database_path = Path(__file__).parent / "autoflow.db"
+# Store the database in the generated-data folder
+database_path = config.DATABASE_PATH
 
 
 def initialize_database():
-    """Create the customers table if it does not already exist."""
+    """Create the database tables if they do not already exist."""
 
     with sqlite3.connect(database_path) as connection:
         connection.execute(
@@ -37,20 +38,21 @@ def initialize_database():
             """
         )
 
+        # Store the history of every AutoFlow execution
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workflow_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_timestamp TEXT NOT NULL,
+                customer_count INTEGER NOT NULL,
+                ai_enabled TEXT NOT NULL,
+                status TEXT NOT NULL
+            )
+            """
+        )
+
     print("AutoFlow database initialized:", database_path)
 
-    # Store the history of every AutoFlow execution
-    connection.execute(
-            """
-        CREATE TABLE IF NOT EXISTS workflow_runs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            run_timestamp TEXT NOT NULL,
-            customer_count INTEGER NOT NULL,
-            ai_enabled TEXT NOT NULL,
-            status TEXT NOT NULL
-        )
-            """
-    )
 
 def save_customers(customers):
     """Insert new customers or update existing ones using their email."""
@@ -109,6 +111,7 @@ def save_customers(customers):
 
     print(f"Database synchronized: {len(customers)} customers.")
 
+
 def record_workflow_run(
     customer_count,
     ai_enabled,
@@ -140,6 +143,7 @@ def record_workflow_run(
         )
 
     print("Workflow run recorded in the database.")
+
 
 def get_all_customers():
     """Return every stored customer as a list of dictionaries."""
@@ -187,6 +191,7 @@ def get_workflow_runs(limit=10):
         ).fetchall()
 
     return [dict(row) for row in rows]
+
 
 if __name__ == "__main__":
     initialize_database()

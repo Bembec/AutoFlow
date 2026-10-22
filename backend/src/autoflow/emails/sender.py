@@ -10,12 +10,10 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
-from dotenv import load_dotenv
+from autoflow import config  # noqa: F401  (loads .env)
 
 
-# Load private Gmail settings from .env
-load_dotenv()
-
+# Private Gmail settings from .env
 email_address = os.getenv("EMAIL_ADDRESS")
 email_password = os.getenv("EMAIL_APP_PASSWORD")
 test_recipient = os.getenv("EMAIL_TEST_RECIPIENT")
