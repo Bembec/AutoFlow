@@ -43,7 +43,13 @@ def list_actions():
 @router.get("/templates")
 def list_templates():
     return [
-        {"slug": t["slug"], "name": t["name"], "description": t["description"]}
+        {
+            "slug": t["slug"],
+            "name": t["name"],
+            "description": t["description"],
+            "category": t.get("category", "General"),
+            "requires": t.get("requires", []),
+        }
         for t in TEMPLATES.values()
     ]
 

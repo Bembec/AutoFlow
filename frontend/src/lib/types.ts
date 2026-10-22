@@ -147,6 +147,27 @@ export interface TemplateInfo {
   slug: string;
   name: string;
   description: string;
+  category: string;
+  /** What must be set up for the template to work live */
+  requires: string[];
+}
+
+export interface InvoiceSummary {
+  number: string;
+  order: string;
+  customer_name: string;
+  customer_email: string;
+  total: string;
+  currency: string;
+  issued_at: string;
+  url: string;
+}
+
+export interface BusinessProfile {
+  business_name: string | null;
+  business_address: string | null;
+  tax_id: string | null;
+  invoice_prefix: string;
 }
 
 export interface Dashboard {

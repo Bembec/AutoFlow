@@ -13,6 +13,7 @@ const NAV = [
   { href: "/workflows", label: "Workflows" },
   { href: "/executions", label: "Run history" },
   { href: "/approvals", label: "Approvals" },
+  { href: "/invoices", label: "Invoices" },
   { href: "/connections", label: "Connected apps" },
   { href: "/billing", label: "Plan & usage" },
   { href: "/settings", label: "Settings" },

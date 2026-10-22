@@ -5,6 +5,8 @@ Ready-made workflows that can be installed into a workspace in one click.
 ENQUIRY_TRIAGE = {
     "slug": "customer-enquiry-triage",
     "name": "Customer enquiry triage",
+    "category": "General",
+    "requires": [],
     "description": (
         "Classify a customer enquiry, add a USD quote for sales enquiries, "
         "save the customer and send a reply after human approval."
@@ -75,4 +77,6 @@ ENQUIRY_TRIAGE = {
     },
 }
 
-TEMPLATES = {template["slug"]: template for template in (ENQUIRY_TRIAGE,)}
+from autoflow.engine.templates_ecommerce import ECOMMERCE_TEMPLATES  # noqa: E402
+
+TEMPLATES = {template["slug"]: template for template in (*ECOMMERCE_TEMPLATES, ENQUIRY_TRIAGE)}

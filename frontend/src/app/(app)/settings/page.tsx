@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button, Card, ErrorNote, Field, Loading, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import type { Member, Policies, Role } from "@/lib/types";
+import type { BusinessProfile, Member, Policies, Role } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
 export default function SettingsPage() {
@@ -20,6 +20,7 @@ export default function SettingsPage() {
           <PoliciesCard />
         </div>
         <div className="space-y-6">
+          <BusinessCard />
           <MembersCard />
           <NewWorkspaceCard />
         </div>
@@ -195,6 +196,60 @@ function MembersCard() {
         </form>
       )}
       <ErrorNote message={action.error} />
+    </Card>
+  );
+}
+
+function BusinessCard() {
+  const { base } = useSession();
+  const { data, error, loading, setData } = useApi<BusinessProfile>(`${base}/business`);
+
+  if (loading && !data) return <Loading />;
+  if (!data) return <ErrorNote message={error} />;
+
+  // Remount the form whenever saved values change
+  return <BusinessForm key={JSON.stringify(data)} data={data} onSaved={setData} />;
+}
+
+function BusinessForm({ data, onSaved }: { data: BusinessProfile; onSaved: (profile: BusinessProfile) => void }) {
+  const { base, can } = useSession();
+  const action = useAction();
+  const [form, setForm] = useState<BusinessProfile>(data);
+  const editable = can("admin");
+  const set = (key: keyof BusinessProfile) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [key]: event.target.value });
+
+  return (
+    <Card>
+      <h2 className="font-semibold">Business details</h2>
+      <p className="mt-1 text-sm text-slate-500">Printed on the invoices your workflows create.</p>
+      <form
+        className="mt-3 space-y-3"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const saved = await action.run(() =>
+            api<BusinessProfile>(`${base}/business`, { method: "PATCH", body: form }),
+          );
+          if (saved) onSaved(saved);
+        }}
+      >
+        <Field label="Business name">
+          <input className={inputClass} value={form.business_name ?? ""} onChange={set("business_name")} disabled={!editable} />
+        </Field>
+        <Field label="Address">
+          <textarea className={inputClass} value={form.business_address ?? ""} onChange={set("business_address")} disabled={!editable} />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Tax / VAT number">
+            <input className={inputClass} value={form.tax_id ?? ""} onChange={set("tax_id")} disabled={!editable} />
+          </Field>
+          <Field label="Invoice number prefix" hint="e.g. INV- gives INV-00001">
+            <input className={inputClass} value={form.invoice_prefix} onChange={set("invoice_prefix")} disabled={!editable} />
+          </Field>
+        </div>
+        <ErrorNote message={action.error} />
+        {editable && <Button type="submit" disabled={action.busy}>Save details</Button>}
+      </form>
     </Card>
   );
 }

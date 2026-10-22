@@ -20,7 +20,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 | --- | --- |
 | AI workflow builder (chat + canvas) | ✔ Chat-style drafting with questions, canvas, and a visual step editor |
 | Dependable engine: retries, timeouts, no duplicate actions | ✔ |
-| Three working automations for the first niche | ◐ One built-in template. The niche and its 3 automations are an open decision |
+| Three working automations for the first niche | ✔ E-commerce (chosen): order → invoice, abandoned-cart follow-up, review replies (V19) |
 | 3–5 reliable integrations + webhooks | ✔ |
 | Secure accounts, team members, tenant isolation | ✔ |
 | Draft, test and publish modes | ✔ Plus versions and rollback |
@@ -41,8 +41,8 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 
 ## Next, in order
 
-1. **Decide the open questions** (they change what gets built): first niche and its 3 automations, launch country, brand name, build vs. buy integrations.
-2. **Three niche automations** as templates, e.g. for e-commerce: order → invoice, abandoned-cart follow-up, review replies. This needs a Shopify API connector beyond webhooks.
+1. **Decide the remaining open questions**: launch country, brand name, build vs. buy integrations, funding route. (Niche decided: e-commerce.)
+2. ~~Three niche automations~~: done in V19 (they use Shopify webhooks; a Shopify Admin API connector can come later, e.g. to post review replies or tag orders).
 3. ~~Visual step editing~~: done in V18 (form editor with drag-to-reorder, next to the canvas).
 4. ~~Background execution queue and `delay` steps~~: done in V17.
 5. **Email/document triggers**, such as a Gmail inbox watch or PDF upload with OCR, to feed `ai_extract`.

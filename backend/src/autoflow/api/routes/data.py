@@ -21,6 +21,7 @@ from autoflow.storage.models import (
     Approval,
     Connection,
     Customer,
+    Invoice,
     Membership,
     User,
     Workflow,
@@ -83,6 +84,7 @@ def export_workspace(membership: OwnerAccess, session: Session):
         "customers": [_row(c) for c in scoped(Customer)],
         "approvals": [_row(a) for a in scoped(Approval)],
         "connections": [_row(c, exclude=("encrypted_secrets",)) for c in scoped(Connection)],
+        "invoices": [_row(i) for i in scoped(Invoice)],
     }
 
     filename = f"autoflow-{membership.workspace.slug}-{datetime.now(timezone.utc):%Y%m%d}.json"

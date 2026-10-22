@@ -123,8 +123,21 @@ export default function NewWorkflowPage() {
               {templates?.map((template) => (
                 <li key={template.slug} className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium">{template.name}</p>
+                    <p className="text-sm font-medium">
+                      {template.name}
+                      <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-normal text-indigo-700">
+                        {template.category}
+                      </span>
+                    </p>
                     <p className="text-xs text-slate-500">{template.description}</p>
+                    {template.requires.length > 0 && (
+                      <details className="mt-1 text-xs text-slate-500">
+                        <summary className="cursor-pointer">Needs to work live</summary>
+                        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                          {template.requires.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </details>
+                    )}
                   </div>
                   <Button variant="secondary" disabled={saveAction.busy} onClick={() => installTemplate(template.slug)}>
                     Use

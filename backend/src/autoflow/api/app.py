@@ -19,6 +19,7 @@ from autoflow.api.middleware import http_middleware
 from autoflow.api.routes import (
     auth,
     billing,
+    commerce,
     dashboard,
     data,
     integrations,
@@ -96,6 +97,7 @@ def create_app():
     app.include_router(dashboard.router)
     app.include_router(billing.router)
     app.include_router(data.router)
+    app.include_router(commerce.router)
 
     return app
 

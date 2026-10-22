@@ -1,5 +1,17 @@
 # Changelog
 
+## V19: E-commerce pack (first niche)
+- Three ready-made automations, each emailing customers only after approval:
+  - **Order → invoice:** a Shopify "order paid" webhook creates a numbered invoice (one per order, even if Shopify sends the order twice), records the order, and emails the invoice link.
+  - **Abandoned-cart follow-up:** a checkout webhook waits an hour, checks whether the checkout became an order, then reminds the customer with the recovery link. It never emails when this is unknown (no order tracking), so buyers are never reminded.
+  - **Review reply assistant:** AI judges the review's mood and drafts a personal reply (no refunds or discounts promised); the owner approves it before it is sent.
+- New actions: `create_invoice` (Shopify or generic orders, exact decimal money), `record_order`, `checkout_status`.
+- Invoices: sequential numbers per workspace with a prefix, race-safe allocation, and a public printable page behind an unguessable link (escaped content, `noindex`, no caching). Invoices are listed in the app and included in the workspace export.
+- Business profile (name, address, tax ID, invoice prefix) under Settings.
+- Templates now carry a category and a "needs to work live" checklist.
+- Web app: Invoices page, Business details card, template categories and requirements. `/invoices/*` is forwarded to the API.
+- Migration 0008. Verified with backend tests (Shopify-signed webhooks end to end) and a Chrome walkthrough.
+
 ## V18: Visual step editor
 - Form-based workflow editing in the web app:
   - add steps from the action catalogue, drag to reorder, move up/down, delete;

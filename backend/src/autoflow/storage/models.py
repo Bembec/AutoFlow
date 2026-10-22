@@ -51,6 +51,12 @@ class Workspace(Base):
     max_ai_calls_per_day: Mapped[int] = mapped_column(default=200, server_default=text("200"))
     max_emails_per_day: Mapped[int] = mapped_column(default=100, server_default=text("100"))
 
+    # --- business profile, printed on invoices (V19) ---
+    business_name: Mapped[str | None] = mapped_column(String(200))
+    business_address: Mapped[str | None] = mapped_column(Text)
+    tax_id: Mapped[str | None] = mapped_column(String(100))
+    invoice_prefix: Mapped[str] = mapped_column(String(20), default="INV-", server_default="INV-")
+
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
     )
@@ -391,3 +397,51 @@ class ProcessedStripeEvent(Base):
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
     type: Mapped[str] = mapped_column(String(100))
     received_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+
+
+# --- E-commerce (V19) -------------------------------------------------------
+
+class Invoice(Base):
+    """A numbered invoice. One per workspace and external order."""
+
+    __tablename__ = "invoices"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "number", name="uq_invoices_workspace_id_number"),
+        UniqueConstraint("workspace_id", "external_ref", name="uq_invoices_workspace_id_external_ref"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    number: Mapped[int]
+    # The order this invoice is for (e.g. the Shopify order id)
+    external_ref: Mapped[str] = mapped_column(String(100))
+    customer_name: Mapped[str] = mapped_column(String(200), default="")
+    customer_email: Mapped[str] = mapped_column(String(320), default="")
+    currency: Mapped[str] = mapped_column(String(3))
+    lines: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    subtotal: Mapped[str] = mapped_column(String(30))
+    tax: Mapped[str] = mapped_column(String(30))
+    total: Mapped[str] = mapped_column(String(30))
+    # Unguessable id for the customer's view link
+    public_token: Mapped[str] = mapped_column(String(64), unique=True)
+    issued_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+
+
+class CheckoutRecord(Base):
+    """Checkouts seen by order workflows, so cart reminders never go to buyers."""
+
+    __tablename__ = "checkout_records"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "token", name="uq_checkout_records_workspace_id_token"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    token: Mapped[str] = mapped_column(String(200))
+    email: Mapped[str | None] = mapped_column(String(320))
+    completed_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
