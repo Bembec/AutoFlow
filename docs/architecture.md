@@ -65,7 +65,15 @@ in the database, a background worker (or Temporal) can take over
 
 ## AI builder (V11)
 
-
+```
+plain-language request ──▶ prompt (action catalogue + example + answers)
+                       ──▶ model router (Gemini → Claude, fallback on failure)
+                       ──▶ JSON ──▶ WorkflowDefinition validator
+                                     │ invalid: errors sent back (≤ 2 repairs)
+                                     │ valid
+                                     ▼
+                           draft workflow (never auto-published)
+```
 
 ## Next technical steps
 
