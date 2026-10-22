@@ -27,7 +27,7 @@ URLs point here.
 | `/register`, `/login` | Accounts (a new account gets its own workspace) |
 | `/dashboard` | Time saved, today's runs and limits, recent runs |
 | `/workflows/new` | Describe a workflow in plain words (AI builder), or start from a template |
-| `/workflows/[id]` | Canvas, step inspector, test/live runs, publish, pause, versions and rollback, webhook setup |
+| `/workflows/[id]` | Canvas, visual step editor (add, drag to reorder, forms, conditions, retries), test/live runs, publish, pause, versions and rollback, webhook setup |
 | `/executions`, `/executions/[id]` | Run history; step-by-step input and output; cancel and retry |
 | `/approvals` | Approve emails and steps, correct AI categories and results |
 | `/connections` | Connect Airtable, SMTP, HTTP APIs and Google (OAuth) |

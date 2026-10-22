@@ -1,5 +1,17 @@
 # Changelog
 
+## V18: Visual step editor
+- Form-based workflow editing in the web app:
+  - add steps from the action catalogue, drag to reorder, move up/down, delete;
+  - fields generated from each action's input spec, with an "insert data from…" picker (trigger fields and earlier step outputs);
+  - an "only run if" condition builder;
+  - retry, timeout, approval and AI-review settings;
+  - trigger type, cron schedule and sample data.
+- The server still validates on save and shows any errors. The JSON editor stays under "Advanced".
+- Selecting a step on the canvas opens it in the editor. Editor fields have proper labels (accessibility).
+- Instant-navigation validation is limited to public pages (`instant = true` on landing, sign-in, register); signed-in pages load data in the browser by design.
+- Verified with a scripted Chrome walkthrough: register, template, add a delay step visually, save, test run, dashboard, approvals and billing, with no browser errors.
+
 ## V17: Background execution queue and delays
 - Queue mode (`AUTOFLOW_EXECUTION_MODE=queue`): API, webhooks and schedules only queue runs, and workers execute them. Inline mode stays the default.
 - Atomic claims (no execution runs twice), heartbeats, and recovery of runs from a dead worker. An uncertain side effect still becomes `needs_attention`.

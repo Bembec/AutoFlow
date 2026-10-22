@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+// Public, static page: should always render instantly
+export const instant = true;
+
 const STEPS = [
   {
     title: "Describe it",

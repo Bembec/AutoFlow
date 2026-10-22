@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { StepEditor } from "@/components/StepEditor";
 import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -51,6 +52,14 @@ export default function WorkflowPage() {
   const stepAction = actions?.find((a) => a.name === step?.action);
   const stepRun = lastRun?.steps.find((s) => s.step_id === selectedStep);
 
+  async function saveDefinition(next: Definition) {
+    const updated = await action.run(() =>
+      api<Workflow>(`${base}/workflows/${id}`, { method: "PATCH", body: { definition: next } }),
+    );
+    if (updated) setData(updated);
+    return Boolean(updated);
+  }
+
   async function workflowAction(path: string, body?: unknown) {
     const updated = await action.run(() => api<Workflow>(`${base}/workflows/${id}/${path}`, { body: body ?? {} }));
     if (updated) setData(updated);
@@ -58,7 +67,7 @@ export default function WorkflowPage() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "run", label: "Run" },
-    { id: "edit", label: "Edit steps" },
+    { id: "edit", label: "Edit" },
     { id: "trigger", label: "Trigger" },
     { id: "versions", label: "Versions" },
     { id: "settings", label: "Settings" },
@@ -169,20 +178,31 @@ export default function WorkflowPage() {
             />
           )}
           {tab === "edit" && (
-            <EditPanel
-              key={`${current.number}-${workflow.updated_at}`}
-              definition={definition}
-              editable={editable}
-              actions={actions ?? []}
-              onSave={async (next) => {
-                const updated = await action.run(() =>
-                  api<Workflow>(`${base}/workflows/${id}`, { method: "PATCH", body: { definition: next } }),
-                );
-                if (updated) setData(updated);
-                return Boolean(updated);
-              }}
-              error={action.error}
-            />
+            <>
+              <StepEditor
+                key={`${current.number}-${workflow.updated_at}`}
+                definition={definition}
+                actions={actions ?? []}
+                editable={editable}
+                selectedStep={selectedStep}
+                onSelectStep={setSelectedStep}
+                onSave={saveDefinition}
+                error={action.error}
+              />
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm text-slate-600">Advanced: edit as JSON</summary>
+                <div className="mt-2">
+                  <EditPanel
+                    key={`json-${current.number}-${workflow.updated_at}`}
+                    definition={definition}
+                    editable={editable}
+                    actions={actions ?? []}
+                    onSave={saveDefinition}
+                    error={action.error}
+                  />
+                </div>
+              </details>
+            </>
           )}
           {tab === "trigger" && <TriggerPanel workflow={workflow} definition={definition} editable={editable} />}
           {tab === "versions" && (

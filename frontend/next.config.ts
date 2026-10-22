@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Signed-in pages load per-user data in the browser by design, so only
+    // pages that declare `instant` (the public pages) are validated for
+    // instant navigation.
+    instantInsights: { validationLevel: "manual-warning" },
+  },
   turbopack: {
     rules: {
       "*.css": {
