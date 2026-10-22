@@ -124,7 +124,7 @@ def record_workflow_run(
     )
 
     with sqlite3.connect(database_path) as connection:
-        connection.execute(
+        cursor = connection.execute(
             """
             INSERT INTO workflow_runs (
                 run_timestamp,
@@ -143,30 +143,50 @@ def record_workflow_run(
         )
 
     print("Workflow run recorded in the database.")
+    return cursor.lastrowid
 
 
-def get_all_customers():
-    """Return every stored customer as a list of dictionaries."""
+def get_all_customers(category=None):
+    """Return stored customers as dictionaries, optionally by category."""
+
+    query = """
+        SELECT
+            id,
+            name,
+            email,
+            category,
+            classification_source,
+            updated_at
+        FROM customers
+    """
+    parameters = ()
+
+    if category is not None:
+        query += " WHERE category = ?"
+        parameters = (category,)
+
+    query += " ORDER BY id"
 
     with sqlite3.connect(database_path) as connection:
         # Allow database rows to behave like dictionaries
         connection.row_factory = sqlite3.Row
-
-        rows = connection.execute(
-            """
-            SELECT
-                id,
-                name,
-                email,
-                category,
-                classification_source,
-                updated_at
-            FROM customers
-            ORDER BY id
-            """
-        ).fetchall()
+        rows = connection.execute(query, parameters).fetchall()
 
     return [dict(row) for row in rows]
+
+
+def get_customer(customer_row_id):
+    """Return one stored customer with every field, or None."""
+
+    with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+
+        row = connection.execute(
+            "SELECT * FROM customers WHERE id = ?",
+            (customer_row_id,),
+        ).fetchone()
+
+    return dict(row) if row is not None else None
 
 
 def get_workflow_runs(limit=10):

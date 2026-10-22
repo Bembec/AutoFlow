@@ -18,8 +18,10 @@ load_dotenv(BACKEND_DIR / ".env")
 
 DATA_DIR = Path(os.getenv("AUTOFLOW_DATA_DIR", BACKEND_DIR / "data"))
 
-# Input data checked into the repository
-INPUT_CSV_PATH = DATA_DIR / "sample" / "customers.csv"
+# Input enquiries (defaults to the fake sample data in the repository)
+INPUT_CSV_PATH = Path(os.getenv(
+    "AUTOFLOW_INPUT_CSV", BACKEND_DIR / "data" / "sample" / "customers.csv"
+))
 
 # Generated files (ignored by git)
 OUTPUT_DIR = DATA_DIR / "output"

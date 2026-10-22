@@ -7,6 +7,9 @@ enquiries, stores the results in SQLite and CSV, sends one approved test
 email, synchronizes Airtable and records the activity.
 
 Run with:  python -m autoflow
+
+When run without a terminal (interactive=False, e.g. from the API), AI
+suggestions are stored as "AI Pending Review" and no email is sent.
 """
 
 import csv
@@ -83,7 +86,7 @@ def review_ai_suggestion(customer, ai_result):
     )
 
 
-def process_customers(exchange_rate, rate_date):
+def process_customers(exchange_rate, rate_date, interactive=True):
     """Read, classify and enrich every customer in the input CSV."""
 
     processed_customers = []
@@ -96,10 +99,15 @@ def process_customers(exchange_rate, rate_date):
             # Ask AI for a category when AI classification is enabled
             ai_result = classify_with_ai(original_message)
 
-            if ai_result is not None:
+            if ai_result is not None and interactive:
                 category, classification_source, classification_reason = (
                     review_ai_suggestion(customer, ai_result)
                 )
+            elif ai_result is not None:
+                # Nobody is available to review: keep it visibly unreviewed
+                category = ai_result["category"]
+                classification_source = "AI Pending Review"
+                classification_reason = ai_result["reason"]
             else:
                 # Use the original keyword rules as a safe fallback
                 category = classify_with_rules(original_message.lower())
@@ -244,12 +252,18 @@ def write_activity_log(processed_customers, email_audit_entries):
     print("Activity log saved.")
 
 
-def run():
-    """Execute the complete AutoFlow workflow once."""
+def run(interactive=True):
+    """Execute the complete AutoFlow workflow once.
+
+    Returns a summary of the run. With interactive=False no terminal input
+    is requested and the human-approval email step is skipped.
+    """
 
     exchange_rate, rate_date = fetch_eur_to_usd()
 
-    processed_customers = process_customers(exchange_rate, rate_date)
+    processed_customers = process_customers(
+        exchange_rate, rate_date, interactive
+    )
 
     # Create the database and save all processed customer records
     initialize_database()
@@ -258,7 +272,12 @@ def run():
     save_processed_csv(processed_customers)
 
     email_previews = write_email_previews(processed_customers)
-    email_audit_entries = review_and_send_email(email_previews)
+
+    if interactive:
+        email_audit_entries = review_and_send_email(email_previews)
+    else:
+        print("Email review skipped: no human reviewer available.")
+        email_audit_entries = []
 
     # Synchronize processed customers with the Airtable CRM
     sync_customers_to_airtable(processed_customers)
@@ -271,11 +290,25 @@ def run():
         for customer in processed_customers
     )
 
-    record_workflow_run(
+    run_id = record_workflow_run(
         customer_count=len(processed_customers),
         ai_enabled=str(ai_was_used).lower(),
         status="SUCCESS",
     )
+
+    return {
+        "run_id": run_id,
+        "customer_count": len(processed_customers),
+        "ai_enabled": ai_was_used,
+        "categories": {
+            category: sum(
+                customer["category"] == category
+                for customer in processed_customers
+            )
+            for category in ("Sales", "Support", "Other")
+        },
+        "emails": email_audit_entries,
+    }
 
 
 if __name__ == "__main__":

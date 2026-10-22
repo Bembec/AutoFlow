@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased: repository restructure
+## V7: REST API
+- FastAPI application (`autoflow.api`) with interactive docs at `/docs`.
+- Endpoints for health, customers (with category filter), customer detail, and listing and starting workflow runs.
+- The pipeline can run without a terminal (`run(interactive=False)`) and returns a run summary.
+- `AUTOFLOW_INPUT_CSV` setting; API host/port settings.
+
+## Repository restructure
 - Moved into a monorepo layout (`backend/`, `frontend/`, `docs/`) with an installable `autoflow` package.
 - Split `main.py` into a `run()` pipeline and separate modules for Airtable, exchange rates, the activity log and config.
 - Generated files now go to `backend/data/output/` and are git-ignored.
