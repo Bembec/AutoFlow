@@ -1,5 +1,20 @@
 # Changelog
 
+## V47: Eight more e-commerce templates
+- **New templates:**
+  - **Cancelled order → void invoice** (Shopify).
+  - **Daily order digest:** an evening AI summary from your shop's API.
+  - **Big refund alert** (early access): refunds over 100.
+  - **Check big first orders** (early access): a first order over 300 is tagged "check-before-shipping" and you get an email.
+  - **Reply to reviews in any language:** translated for you, with the reply drafted in the reviewer's language.
+  - **Thank loyal customers:** on the third order.
+  - **Abandoned checkouts → Airtable**.
+  - **Support emails → log sheet:** topic-classified.
+- **36 templates in total**, 32 of them for e-commerce. Each new one runs every step on its sample data, and its conditions are tested to skip ordinary cases.
+- Every customer email still waits for approval.
+- The help article "E-commerce templates" covers them, and the help assistant's copy is re-synced.
+- Checks: backend 324 passed. There are no app changes.
+
 ## V46: The website in five languages
 - **Every page of the public website** is now in English, Spanish, French, German and Turkish:
   - home, including the "type a task" demo;

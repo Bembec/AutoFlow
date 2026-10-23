@@ -143,5 +143,37 @@ When a WooCommerce order is cancelled or refunded, its invoice is voided and kee
 
 AI spots wholesale or bulk enquiries in your inbox and emails you a short summary, so big buyers never wait.
 
+## Cancelled order → void invoice
+
+When a Shopify order is cancelled, its invoice is voided, once, and keeps its number.
+
+## Daily order digest
+
+Every evening, a short AI summary of the day's orders from your shop's API: how many, revenue, anything that needs you tomorrow.
+
+## Big refund alert (early access)
+
+Refunds over 100 email you straight away. Change the amount in the condition.
+
+## Check big first orders (early access)
+
+A first-time customer ordering more than 300 gets the order tagged "check-before-shipping", and you get an email so a person looks before it ships.
+
+## Reply to reviews in any language
+
+Each review is translated into English for you, and the reply is drafted in the reviewer's own language. You approve before it's sent.
+
+## Thank loyal customers
+
+On a customer's third order, they get a personal thank-you, after your approval.
+
+## Abandoned checkouts → Airtable
+
+Every started checkout is listed in Airtable with email, cart value and recovery link.
+
+## Support emails → log sheet
+
+Every support email becomes a row in a Google Sheet with its topic, so you see what customers ask most.
+
 > **Early access** templates use comparisons or loops. They appear in your workspace once **smarter logic** is switched on (see "Conditions and loops").
 

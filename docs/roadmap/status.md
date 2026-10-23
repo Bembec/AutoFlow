@@ -53,7 +53,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 10. ~~Public website pages~~: done in V31 (home with "type a task" demo, templates, integrations, pricing, security). The site is translated into all five languages since V46. Legal pages and customer stories wait on brand, legal and launch decisions.
 11. ~~Time/cost-saved dashboard and process discovery~~: done in V32 (Insights page, explainable suggestions).
 12. ~~Smarter workflow logic~~: done in V36 behind the `smarter_logic` flag (comparisons, AND/OR groups, for-each loops). AI decision steps already work as AI classify + a condition.
-13. ☑ **Template library**: 25 tested templates since V41 (24 for e-commerce), meeting Phase 2's 25+. More will follow from design-partner requests. **AI assistants** for set roles come at the end of Phase 2 (roadmap v2).
+13. ☑ **Template library**: 36 tested templates since V47 (32 for e-commerce, plus 3 assistant roles and 1 general), beyond Phase 2's 25+. More will follow from design-partner requests. **AI assistants** for set roles come at the end of Phase 2 (roadmap v2).
 
 ## Phase 1 additions from the October 2026 review
 
