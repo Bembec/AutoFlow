@@ -31,6 +31,21 @@ Staging and production also differ in a few defaults:
 
 Staging and production have separate databases, secret keys, Stripe accounts (test vs live) and OAuth clients. Never point staging at production data.
 
+**Demo workspace.** `python -m autoflow.demo` creates "Demo Mug Shop" for staging, sales demos and screenshots. It has:
+- business details;
+- the three e-commerce templates, switched on;
+- eight weeks of past runs and invoices;
+- one email waiting for approval.
+
+Its mailbox points at an unreachable host, so nothing is ever sent. Running the command again changes nothing. Sign in as `demo@autoflow.example` / `demo-password-2026`, or pass `--email` and `--password`. Never run it against production.
+
+**Feature flags** (`backend/src/autoflow/features.py`) let you switch features without a deploy:
+- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, and `smarter_logic` (in development, off);
+- set them per environment with `AUTOFLOW_FEATURES="smarter_logic=on,ai_builder=off"`;
+- override them for one workspace with `PUT /staff/workspaces/{id}/features` (null removes an override);
+- the server enforces them, and the app hides what is off;
+- unfinished work ships behind a flag that is off by default.
+
 ## Deploy
 
 1. CI must be green: tests on SQLite and PostgreSQL, migration check, frontend type check/lint/build, and image builds.

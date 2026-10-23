@@ -10,6 +10,7 @@ from datetime import timedelta
 
 from sqlalchemy import select
 
+from autoflow import features
 from autoflow.storage.db import utc_now
 from autoflow.storage.models import (
     Connection,
@@ -69,7 +70,8 @@ def summary(session, workspace: Workspace):
         succeeded = status == "succeeded"
         if succeeded and workflow_id in minutes:
             # 0 = the oldest week, WEEKS - 1 = the current one
-            age = min(WEEKS - 1, int((now - created_at).total_seconds() // (7 * 24 * 3600)))
+            # Clamped: a run stamped slightly in the future (clock skew) counts as this week
+            age = max(0, min(WEEKS - 1, int((now - created_at).total_seconds() // (7 * 24 * 3600))))
             weekly[WEEKS - 1 - age] += minutes[workflow_id]
         if created_at >= since_month:
             month_runs[workflow_id] += 1
@@ -113,7 +115,10 @@ def summary(session, workspace: Workspace):
         },
         "weekly_minutes_saved": weekly,
         "per_workflow": per_workflow,
-        "suggestions": suggestions(session, workspace, workflows, month_runs, month_failed),
+        "suggestions": (
+            suggestions(session, workspace, workflows, month_runs, month_failed)
+            if features.enabled("insights_suggestions", workspace) else []
+        ),
     }
 
 

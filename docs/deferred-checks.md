@@ -35,7 +35,7 @@ cd frontend && npm run build         # production build
 | V34 | Run the 1,000-order duplicate test on PostgreSQL (staging): `DATABASE_URL=postgresql+psycopg://... AUTOFLOW_SOAK_RUNS=1000 pytest tests/test_duplicate_soak.py`; SQLite result is in docs/evidence/duplicate-soak.md | **cloud**, PostgreSQL | to do |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
-| V22 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (15 cases; uses AI credits) | **manual**, any machine with an AI key | 9 of 15 cases checked so far |
+| V22/V35 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (60 cases, about 60–180 AI calls; gate: first-time pass rate ≥ 80%) | **manual**, any machine with an AI key | 9 of the original 15 checked; the 45 new cases not yet run |
 | V20+ | Real Gmail IMAP/SMTP round-trip with an app password (send yourself a PDF invoice; check the run and the sheet row) | **manual**, needs your Gmail | to do |
 | V27 | Turn on two-factor login with a real authenticator app on your phone; sign out and back in with the code; try one recovery code | **manual**, phone | to do |
 | V26 | Native-speaker review of the Spanish, French, German and Turkish interface texts (`frontend/src/lib/i18n.tsx`) | **manual**, people | to do |

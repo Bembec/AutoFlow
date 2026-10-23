@@ -1,5 +1,30 @@
 # Changelog
 
+## V35: Engineering basics (Phase 1 additions)
+- **Definition of done** (`docs/engineering/definition-of-done.md`): implemented, tested, permission-checked, logged, reversible, documented, translated, accessible. It adds extra checks for AI, engine and integration changes, plus the roadmap status set. A GitHub pull-request template repeats the checklist.
+- **Feature flags** (`autoflow/features.py`):
+  - the order is code default, then `AUTOFLOW_FEATURES` per environment, then staff overrides per workspace (`PUT /staff/workspaces/{id}/features`, audited);
+  - members read their flags at `GET /workspaces/{id}/features`;
+  - the server enforces them (AI builder, Insights suggestions, connection checks), and the app hides what is off;
+  - `smarter_logic` is ready, off by default, for the next version.
+- **Seeded demo workspace:** `python -m autoflow.demo` creates "Demo Mug Shop" with eight weeks of history, invoices, savings on Insights and one approval waiting. It can't send anything, and it is created only once.
+- **AI builder test set** grows from 15 to 60 cases, all marked synthetic until pilots supply real requests:
+  - refunds and voiding;
+  - WooCommerce notes and status;
+  - tracking notes;
+  - schedules;
+  - must-not-email cases;
+  - more unsupported, vague and prompt-injection requests.
+
+  The runner is now a **release gate**: at least 80% of cases must be correct on the first attempt (`--min-first-time`), as the MVP gate requires. An offline test checks that every case names real actions and triggers.
+- Fix: Insights no longer fails when a run is stamped slightly in the future (clock skew).
+- Migration 0015 adds `workspaces.feature_flags`.
+- Checks:
+  - backend: 242 passed;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+- The full AI eval (60 cases) uses AI credits and is listed in deferred checks.
+
 ## V34: Proof of reliability (Phase 1 additions)
 - **Duplicate test** (`tests/test_duplicate_soak.py`) runs real shop orders through the order → invoice template in queue mode while forcing:
   - the same webhook twice;

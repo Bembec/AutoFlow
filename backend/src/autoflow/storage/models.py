@@ -83,6 +83,8 @@ class Workspace(Base):
     trusted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     # Set by staff (e.g. after an abuse report); owners can't resume while set
     staff_suspended_reason: Mapped[str | None] = mapped_column(Text)
+    # Per-workspace feature flag overrides set by staff (V35), see autoflow.features
+    feature_flags: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"

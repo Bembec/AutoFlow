@@ -113,7 +113,12 @@ def update_connection_secrets(
 @workspace_router.post("/connections/{connection_id}/check")
 def check_connection(connection_id: int, membership: MemberAccess, session: Session):
     """Test the stored credentials with a read-only call."""
+    from autoflow import features
+    from autoflow.engine.limits import get_workspace
     from autoflow.integrations import health
+
+    if not features.enabled("connection_checks", get_workspace(session, membership.workspace_id)):
+        raise HTTPException(status_code=403, detail="Connection checks are switched off for this workspace.")
 
     connection = _get_connection(session, membership, connection_id)
     result = health.check(session, connection)

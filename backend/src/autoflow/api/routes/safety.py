@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from autoflow import audit
-from autoflow.api.deps import Session
+from autoflow import audit, features
+from autoflow.api.deps import Session, ViewerAccess
 from autoflow.api.middleware import client_ip
 from autoflow.api.routes.billing import staff_user
 from autoflow.engine import service as engine
@@ -114,6 +114,25 @@ def suspend_workspace(workspace_id: int, request: Suspension, staff: Staff, sess
     audit.record(session, "safety.suspended", workspace_id=workspace_id, user_id=staff.id,
                  details={"reason": request.reason, "cancelled": cancelled})
     return {"workspace_id": workspace_id, "suspended": True, "executions_cancelled": cancelled}
+
+
+@router.get("/workspaces/{workspace_id}/features")
+def workspace_features(membership: ViewerAccess, session: Session):
+    """Which optional features are on for this workspace (the app hides the rest)."""
+    return features.all_flags(session.get(Workspace, membership.workspace_id))
+
+
+@router.put("/staff/workspaces/{workspace_id}/features")
+def set_workspace_features(workspace_id: int, changes: dict[str, bool | None], staff: Staff, session: Session):
+    """Override flags for one workspace; null removes an override."""
+    workspace = _workspace(session, workspace_id)
+    try:
+        features.set_overrides(workspace, changes)
+    except features.UnknownFlag as error:
+        raise HTTPException(status_code=422, detail=f"Unknown feature flag: {error}")
+    session.commit()
+    audit.record(session, "features.changed", workspace_id=workspace_id, user_id=staff.id, details=changes)
+    return features.all_flags(workspace)
 
 
 @router.post("/staff/workspaces/{workspace_id}/unsuspend")

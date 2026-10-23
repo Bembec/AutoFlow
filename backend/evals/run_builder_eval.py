@@ -10,8 +10,13 @@ and never switch off a mandatory approval.
     python evals/run_builder_eval.py --limit 3     # first 3 cases
     python evals/run_builder_eval.py --case cart-reminder
 
-Every prompt or model change should keep the pass rate at or above the
-previous run before release. Results are saved to data/output/evals/.
+Release gate: before any model or prompt change ships, the share of
+cases drafted correctly on the FIRST attempt must be at least
+--min-first-time (default 0.80, the MVP gate). The command exits non-zero
+otherwise. Results are saved to data/output/evals/.
+
+The cases are synthetic until design partners supply real requests
+("source" field); replace and extend them with real ones (target 200+).
 Each case costs one to three AI calls; use fake data only.
 """
 
@@ -60,6 +65,10 @@ def grade(case, draft):
         if action not in actions:
             problems.append(f"missing action {action}")
 
+    for action in case.get("must_exclude", []):
+        if action in actions:
+            problems.append(f"should not use {action}")
+
     for options in case.get("any_of", []):
         if not any(option in actions for option in options):
             problems.append(f"needs one of {options}")
@@ -74,6 +83,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--case")
+    parser.add_argument("--min-first-time", type=float, default=0.80,
+                        help="share of cases that must pass on the first AI attempt (release gate)")
     args = parser.parse_args()
 
     cases = json.loads(CASES_FILE.read_text(encoding="utf-8"))
@@ -102,14 +113,17 @@ def main():
         print(f"{'PASS' if passed else 'FAIL'}  {case['id']:<22} {'; '.join(problems)}")
 
     score = sum(r["passed"] for r in results)
-    print(f"\n{score}/{len(results)} passed")
+    # "Correct first time": passed without the builder having to retry
+    first_time = sum(r["passed"] and r.get("attempts", 1) <= 1 for r in results)
+    rate = first_time / len(results) if results else 0.0
+    print(f"\n{score}/{len(results)} passed; {first_time} first time ({rate:.0%}, gate {args.min_first_time:.0%})")
 
     out_dir = config.OUTPUT_DIR / "evals"
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     (out_dir / f"builder-{stamp}.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
 
-    return 0 if score == len(results) else 1
+    return 0 if rate >= args.min_first_time else 1
 
 
 if __name__ == "__main__":

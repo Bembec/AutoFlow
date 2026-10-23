@@ -102,6 +102,12 @@ def create_from_template(
 def ai_draft(request: schemas.AIDraftRequest, membership: MemberAccess, session: Session):
     """Describe a process in plain words; get a validated workflow draft."""
 
+    from autoflow import features
+    from autoflow.engine.limits import get_workspace
+
+    if not features.enabled("ai_builder", get_workspace(session, membership.workspace_id)):
+        raise HTTPException(status_code=403, detail="The AI builder is switched off for this workspace. Start from a template instead.")
+
     try:
         draft = builder.draft_workflow(
             request.request, [answer.model_dump() for answer in request.answers]

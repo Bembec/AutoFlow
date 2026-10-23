@@ -67,13 +67,13 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | Email from the customer's own mailbox | ☑ | Each workspace's own SMTP connection |
 | Acceptable-use policy enforced in product | ◐ | V33: staff suspension, phishing block; policy text still needs legal |
 | AI-provider data terms on trust page | ☐ | Needs provider choice and legal review |
-| Pinned models + 200-request test set as release gate | ◐ | Fixed model IDs, fallback provider, 15-case eval |
+| Pinned models + 200-request test set as release gate | ◐ | V35: 60 synthetic cases, first-time pass rate ≥ 80% gate in the runner; real customer requests (to 200+) come from pilots |
 | AI cost meter and hard cap | ☑ | V33: monthly AI budget per plan (estimated USD); tune with real bills |
 | Label AI-generated messages | ☐ | Scope to check with counsel |
 | Untrusted input handling | ☑ | Prompt-injection guard, limited tools, review queue |
-| Definition of done, item status with owners | ◐ | This file tracks status; owners to add |
-| Test strategy | ◐ | 220 tests; connector contract tests against sandboxes to do |
-| Staging, demo workspace, feature flags | ◐ | Local and production configs, CI and Docker; the rest to do |
+| Definition of done, item status with owners | ◐ | V35: docs/engineering/definition-of-done.md + PR template; owners once "who builds it" is decided |
+| Test strategy | ◐ | 242 tests incl. duplicate soak, tenant isolation, billing; connector contract tests against sandboxes to do |
+| Staging, demo workspace, feature flags | ◐ | V35: seeded demo workspace and feature flags done; a running staging environment needs the hosting decision |
 | Recovery targets | ◐ | Runbook exists; targets set once hosting is chosen |
 | Compensation (undo) | ☑ | V34: void invoice (app and workflow step), confirm-done for uncertain steps |
 | Test mode with sample data | ☑ | |

@@ -7,6 +7,7 @@ import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useFeatures } from "@/lib/features";
 import { useI18n } from "@/lib/i18n";
 import { clearPendingTask, peekPendingTask } from "@/lib/pendingTask";
 import type { AIDraft, TemplateInfo, Workflow } from "@/lib/types";
@@ -23,6 +24,7 @@ export default function NewWorkflowPage() {
   const { base, can } = useSession();
   const { t } = useI18n();
   const { data: templates } = useApi<TemplateInfo[]>("/templates");
+  const feature = useFeatures();
   const draftAction = useAction();
   const saveAction = useAction();
 
@@ -75,53 +77,55 @@ export default function NewWorkflowPage() {
 
       <div className="grid gap-6 xl:grid-cols-5">
         <div className="space-y-6 xl:col-span-2">
-          <Card>
-            <form onSubmit={askAI} className="space-y-3">
-              <label htmlFor="request" className="font-semibold">{t("new.ask")}</label>
-              <textarea
-                id="request"
-                className={`${inputClass} min-h-32`}
-                placeholder="When … then …"
-                value={request}
-                onChange={(event) => setRequest(event.target.value)}
-                minLength={10}
-                required
-              />
-              <div className="flex flex-wrap gap-2">
-                {EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => setRequest(example)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-left text-xs text-slate-600 hover:border-brand-300 hover:text-brand-700"
-                  >
-                    {example.slice(0, 48)}…
-                  </button>
-                ))}
-              </div>
-
-              {draft?.questions.length ? (
-                <div className="space-y-3 rounded-lg bg-amber-50 p-3">
-                  <p className="text-sm font-medium text-amber-900">{t("new.details")}</p>
-                  {draft.questions.map((question) => (
-                    <label key={question} className="block text-sm">
-                      <span className="text-amber-900">{question}</span>
-                      <input
-                        className={`${inputClass} mt-1`}
-                        value={answers[question] ?? ""}
-                        onChange={(event) => setAnswers({ ...answers, [question]: event.target.value })}
-                      />
-                    </label>
+          {feature("ai_builder") && (
+            <Card>
+              <form onSubmit={askAI} className="space-y-3">
+                <label htmlFor="request" className="font-semibold">{t("new.ask")}</label>
+                <textarea
+                  id="request"
+                  className={`${inputClass} min-h-32`}
+                  placeholder="When … then …"
+                  value={request}
+                  onChange={(event) => setRequest(event.target.value)}
+                  minLength={10}
+                  required
+                />
+                <div className="flex flex-wrap gap-2">
+                  {EXAMPLES.map((example) => (
+                    <button
+                      key={example}
+                      type="button"
+                      onClick={() => setRequest(example)}
+                      className="rounded-full border border-slate-200 px-3 py-1 text-left text-xs text-slate-600 hover:border-brand-300 hover:text-brand-700"
+                    >
+                      {example.slice(0, 48)}…
+                    </button>
                   ))}
                 </div>
-              ) : null}
 
-              <ErrorNote message={draftAction.error} />
-              <Button type="submit" disabled={draftAction.busy || request.trim().length < 10}>
-                {draftAction.busy ? t("new.drafting") : draft ? t("new.update") : t("new.draft")}
-              </Button>
-            </form>
-          </Card>
+                {draft?.questions.length ? (
+                  <div className="space-y-3 rounded-lg bg-amber-50 p-3">
+                    <p className="text-sm font-medium text-amber-900">{t("new.details")}</p>
+                    {draft.questions.map((question) => (
+                      <label key={question} className="block text-sm">
+                        <span className="text-amber-900">{question}</span>
+                        <input
+                          className={`${inputClass} mt-1`}
+                          value={answers[question] ?? ""}
+                          onChange={(event) => setAnswers({ ...answers, [question]: event.target.value })}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                ) : null}
+
+                <ErrorNote message={draftAction.error} />
+                <Button type="submit" disabled={draftAction.busy || request.trim().length < 10}>
+                  {draftAction.busy ? t("new.drafting") : draft ? t("new.update") : t("new.draft")}
+                </Button>
+              </form>
+            </Card>
+          )}
 
           <Card>
             <h2 className="font-semibold">{t("new.templates")}</h2>

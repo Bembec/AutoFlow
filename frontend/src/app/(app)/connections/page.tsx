@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button, Card, EmptyState, ErrorNote, Field, Loading, PageHeader, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useFeatures } from "@/lib/features";
 import { useI18n } from "@/lib/i18n";
 import type { Connection, IntegrationInfo } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
@@ -186,6 +187,7 @@ function ConnectionHealth({
 }) {
   const { base, can } = useSession();
   const { t } = useI18n();
+  const feature = useFeatures();
   const action = useAction();
   const [result, setResult] = useState<{ ok: boolean | null; message: string } | null>(null);
   const [secrets, setSecrets] = useState<Record<string, string> | null>(null);
@@ -217,7 +219,7 @@ function ConnectionHealth({
   return (
     <div className="mt-3 space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        {can("member") && (
+        {can("member") && feature("connection_checks") && (
           <Button variant="secondary" className="px-2.5 py-1 text-xs" disabled={action.busy} onClick={check}>
             {action.busy ? t("conn.checking") : t("conn.check")}
           </Button>
