@@ -1,5 +1,14 @@
 # Changelog
 
+## V25: WooCommerce support
+- **Webhooks:** new `woocommerce` signature scheme (`X-WC-Webhook-Signature`, base64 HMAC-SHA256). WooCommerce's setup ping is answered without starting a run, so WooCommerce keeps the webhook active, and its delivery id is used for de-duplication.
+- **Orders:** `create_invoice` now understands WooCommerce orders (billing details, line items, totals, `cart_hash` for order tracking).
+- **Template:** "WooCommerce order → invoice". Only paid orders are invoiced, and the email goes out only when the invoice is new, so order updates never re-send it.
+- **Same fix for Shopify:** the Shopify order template now also emails only for a new invoice, so a repeated delivery adds no second approval.
+- **REST connection:** `woocommerce` (https store URL, consumer key and secret) with `woocommerce_add_order_note` and `woocommerce_set_order_status`. Status changes always need approval, only safe statuses are allowed, and the store address is checked for SSRF on every call.
+- Web app: WooCommerce option in the webhook setup. Help guide `docs/help/connect-woocommerce.md`.
+- Checks run locally: backend 205 passed; frontend type check, lint and production build clean.
+
 ## V24: Mobile approvals (installable web app)
 - Web app manifest and icon: add AutoFlow to a phone's home screen and it opens on **Approvals**, like an app (shortcuts to Approvals and Run history). It's a progressive web app, so it needs no app store.
 - Approval notifications link straight to the approval (`/approvals?focus=<id>`), which is highlighted and scrolled into view.

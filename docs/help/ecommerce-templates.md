@@ -18,6 +18,10 @@ Every template emails customers **only after you approve** the message in **Appr
 - Each order gets exactly one invoice, even if Shopify sends it twice.
 - All invoices are listed under **Invoices**, and customers can print or save theirs as a PDF.
 
+## WooCommerce order → invoice
+
+The same as Order → invoice, but for WooCommerce shops. It invoices orders once they are paid ("processing"), and an order that is updated later never gets a second invoice or email. See [Connect WooCommerce](connect-woocommerce.md).
+
 ## Abandoned-cart follow-up
 
 **What it does:** when a checkout starts, it waits an hour. If the checkout did not turn into an order, it prepares a friendly reminder with the customer's cart link.

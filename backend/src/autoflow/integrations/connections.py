@@ -50,6 +50,10 @@ def _check(provider_name, secrets, config):
     if missing:
         raise ConnectionError_(f"Missing config: {', '.join(missing)}")
 
+    if provider_name == "woocommerce" and not str(config["store_url"]).startswith("https://"):
+        # API keys travel in the request; only ever over https
+        raise ConnectionError_("store_url must start with https://")
+
     if provider_name == "slack" and not str(secrets.get("webhook_url", "")).startswith(SLACK_WEBHOOK_PREFIX):
         raise ConnectionError_(f"webhook_url must start with {SLACK_WEBHOOK_PREFIX}")
 

@@ -48,6 +48,14 @@ PROVIDERS = {
             required_config=("shop_domain",),
         ),
         Provider(
+            name="woocommerce",
+            label="WooCommerce store (REST API keys)",
+            auth="api_key",
+            secret_fields=("consumer_key", "consumer_secret"),
+            config_fields=("store_url",),
+            required_config=("store_url",),
+        ),
+        Provider(
             name="slack",
             label="Slack (incoming webhook, for notifications)",
             auth="api_key",

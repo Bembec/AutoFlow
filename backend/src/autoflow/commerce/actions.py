@@ -49,7 +49,8 @@ def _simulate_invoice(ctx, inputs):
         "total": str(order.total),
         "currency": order.currency,
         "customer_email": order.customer_email,
-        "created": False,
+        # Test runs behave like the first time an order arrives
+        "created": True,
         "dry_run": True,
     }
 

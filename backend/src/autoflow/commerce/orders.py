@@ -1,8 +1,9 @@
 """
 Turn store order data into a normalised order.
 
-Understands Shopify order webhooks (orders/create, orders/paid) and a
-simple generic shape, so other stores can send orders too:
+Understands Shopify order webhooks (orders/create, orders/paid),
+WooCommerce order webhooks (order.created, order.updated) and a simple
+generic shape, so other stores can send orders too:
 
     {"order_id": "1001", "customer_name": "Ada", "customer_email": "ada@example.com",
      "currency": "EUR", "tax": "4.00",
@@ -41,6 +42,8 @@ def parse_order(data):
     if not isinstance(data, dict):
         raise OrderError("Order data must be an object.")
 
+    if "line_items" in data and isinstance(data.get("billing"), dict):
+        return _woocommerce(data)
     if "line_items" in data:
         return _shopify(data)
     if "items" in data:
@@ -83,6 +86,43 @@ def _shopify(data):
         tax=tax,
         total=total,
         checkout_token=data.get("checkout_token"),
+    )
+
+
+def _woocommerce(data):
+    billing = data["billing"]
+    name = " ".join(filter(None, [billing.get("first_name"), billing.get("last_name")]))
+
+    lines = []
+    for item in data["line_items"]:
+        quantity = int(item.get("quantity") or 1)
+        # "subtotal" is the line before discounts and tax; "price" is per unit
+        amount = money(item.get("subtotal") or item.get("total"), "line total")
+        unit = money(item.get("price")) or (amount / quantity).quantize(Decimal("0.01"))
+        lines.append({
+            "title": str(item.get("name") or "Item"),
+            "quantity": quantity,
+            "unit_price": str(unit),
+            "amount": str(amount),
+        })
+
+    subtotal = sum((Decimal(line["amount"]) for line in lines), Decimal("0"))
+    tax = money(data.get("total_tax"))
+    total = money(data.get("total")) or subtotal + tax
+
+    if not data.get("id"):
+        raise OrderError("WooCommerce order has no id.")
+
+    return Order(
+        external_ref=str(data["id"]),
+        customer_name=name,
+        customer_email=str(billing.get("email") or ""),
+        currency=str(data.get("currency") or "USD").upper()[:3],
+        lines=lines,
+        subtotal=subtotal,
+        tax=tax,
+        total=total,
+        checkout_token=data.get("cart_hash") or None,
     )
 
 

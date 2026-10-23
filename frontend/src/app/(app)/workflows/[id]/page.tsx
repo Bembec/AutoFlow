@@ -438,8 +438,8 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
   );
   const action = useAction();
   const [created, setCreated] = useState<{ url: string; secret: string } | null>(null);
-  const [scheme, setScheme] = useState<"autoflow" | "shopify">("autoflow");
-  const [shopifySecret, setShopifySecret] = useState("");
+  const [scheme, setScheme] = useState<"autoflow" | "shopify" | "woocommerce">("autoflow");
+  const [storeSecret, setStoreSecret] = useState("");
 
   if (definition.trigger.type === "email") {
     return (
@@ -504,33 +504,45 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
       {editable && (
         <div className="mt-3 space-y-3">
           <Field label="Who sends it?">
-            <select className={inputClass} value={scheme} onChange={(e) => setScheme(e.target.value as "autoflow" | "shopify")}>
+            <select
+              className={inputClass}
+              value={scheme}
+              onChange={(e) => setScheme(e.target.value as "autoflow" | "shopify" | "woocommerce")}
+            >
               <option value="autoflow">Any app (AutoFlow signature)</option>
               <option value="shopify">Shopify</option>
+              <option value="woocommerce">WooCommerce</option>
             </select>
           </Field>
-          {scheme === "shopify" && (
-            <Field label="Shopify signing secret" hint="Shopify admin → Settings → Notifications → Webhooks: “Your webhooks will be signed with …”">
+          {scheme !== "autoflow" && (
+            <Field
+              label={scheme === "shopify" ? "Shopify signing secret" : "WooCommerce webhook secret"}
+              hint={
+                scheme === "shopify"
+                  ? "Shopify admin → Settings → Notifications → Webhooks: “Your webhooks will be signed with …”"
+                  : "WooCommerce → Settings → Advanced → Webhooks: the Secret you set (at least 16 characters)"
+              }
+            >
               <input
                 className={`${inputClass} font-mono`}
                 type="password"
                 autoComplete="off"
-                value={shopifySecret}
-                onChange={(e) => setShopifySecret(e.target.value)}
+                value={storeSecret}
+                onChange={(e) => setStoreSecret(e.target.value)}
               />
             </Field>
           )}
           <Button
             variant={webhook.data ? "secondary" : "primary"}
-            disabled={action.busy || (scheme === "shopify" && shopifySecret.length < 16)}
+            disabled={action.busy || (scheme !== "autoflow" && storeSecret.length < 16)}
             onClick={async () => {
-              const body = scheme === "shopify" ? { signature_scheme: "shopify", secret: shopifySecret } : {};
+              const body = scheme === "autoflow" ? {} : { signature_scheme: scheme, secret: storeSecret };
               const result = await action.run(() =>
                 api<{ url: string; secret: string }>(`${base}/workflows/${workflow.id}/webhook`, { body }),
               );
               if (result) {
-                setCreated(scheme === "shopify" ? { url: result.url, secret: "(your Shopify secret)" } : result);
-                setShopifySecret("");
+                setCreated(scheme === "autoflow" ? result : { url: result.url, secret: "(the secret from your store)" });
+                setStoreSecret("");
               }
             }}
           >

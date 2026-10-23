@@ -30,7 +30,7 @@ class OAuthStart(BaseModel):
 
 
 class WebhookEnable(BaseModel):
-    signature_scheme: Literal["autoflow", "shopify"] = "autoflow"
+    signature_scheme: Literal["autoflow", "shopify", "woocommerce"] = "autoflow"
     secret: str | None = Field(
         None, min_length=16, description="Shopify: your app's webhook secret. Otherwise generated."
     )
@@ -190,6 +190,9 @@ async def receive_webhook(public_id: str, request: Request, response: Response, 
 
     try:
         execution, created = webhooks.receive(session, public_id, body, dict(request.headers))
+    except webhooks.WebhookPing:
+        response.status_code = 200
+        return {"ping": True}
     except webhooks.WebhookRejected as rejected:
         raise HTTPException(status_code=rejected.status_code, detail=str(rejected))
 

@@ -28,10 +28,11 @@ cd frontend && npm run build         # production build
 
 | Version | Check | Where | Status |
 | --- | --- | --- | --- |
-| V24 | Full backend suite and frontend build | CI (automatic) | check the Actions run for V24 |
+| V24–V25 | Full backend suite and frontend build | ran locally (205 passed, build clean) and in CI | done |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
 | V22 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (15 cases; uses AI credits) | **manual**, any machine with an AI key | 9 of 15 cases checked so far |
 | V20+ | Real Gmail IMAP/SMTP round-trip with an app password (send yourself a PDF invoice; check the run and the sheet row) | **manual**, needs your Gmail | to do |
+| V25 | Real WooCommerce store: add the order webhook (ping accepted), place a test order → invoice + approval; REST note/status | **manual**, needs a WooCommerce site | to do |
 | V19+ | Real Shopify test store: order paid and checkout webhooks → invoice and reminder flows | **manual**, needs a Shopify dev store | to do |
 | V16 | `docker compose up --build` full-stack smoke test | **manual**, Docker machine | to do |

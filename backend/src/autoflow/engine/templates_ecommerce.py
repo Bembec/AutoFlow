@@ -75,7 +75,8 @@ ORDER_TO_INVOICE = {
                 "id": "send",
                 "name": "Email the invoice (needs approval)",
                 "action": "smtp_send_email",
-                "when": {"left": "{{steps.invoice.output.customer_email}}", "op": "exists"},
+                # Only for a new invoice: a repeated order webhook sends no second email
+                "when": {"left": "{{steps.invoice.output.created}}", "op": "eq", "right": True},
                 "retry": {"max_attempts": 2, "backoff_seconds": 5},
                 "inputs": {
                     "connection": "mailbox",
@@ -263,4 +264,78 @@ SUPPLIER_INVOICE_TO_SHEET = {
     },
 }
 
-ECOMMERCE_TEMPLATES = (ORDER_TO_INVOICE, ABANDONED_CART, REVIEW_REPLY, SUPPLIER_INVOICE_TO_SHEET)
+# Example of a WooCommerce order webhook (fake data)
+SAMPLE_WOOCOMMERCE_ORDER = {
+    "id": 727,
+    "number": "727",
+    "status": "processing",
+    "currency": "EUR",
+    "total": "47.60",
+    "total_tax": "7.60",
+    "cart_hash": "b1f4c9e2",
+    "billing": {"first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com"},
+    "line_items": [
+        {"name": "Ceramic mug", "quantity": 2, "subtotal": "24.00", "total": "24.00", "price": 12},
+        {"name": "Coffee beans 250 g", "quantity": 1, "subtotal": "16.00", "total": "16.00", "price": 16},
+    ],
+}
+
+WOOCOMMERCE_ORDER_TO_INVOICE = {
+    "slug": "woocommerce-order-to-invoice",
+    "name": "WooCommerce order → invoice",
+    "category": "E-commerce",
+    "requires": [
+        "A WooCommerce webhook (topic \"Order updated\" or \"Order created\") with the signature type WooCommerce",
+        "An email connection named \"mailbox\"",
+        "Your business details in Settings (printed on invoices)",
+    ],
+    "description": (
+        "When a WooCommerce order is processing, create a numbered invoice and email the customer "
+        "a link to it (after your approval). Each order gets one invoice, however often it updates."
+    ),
+    "definition": {
+        "trigger": {"type": "webhook", "sample_payload": SAMPLE_WOOCOMMERCE_ORDER},
+        "steps": [
+            {
+                "id": "invoice",
+                "name": "Create the invoice",
+                "action": "create_invoice",
+                # Only paid orders: WooCommerce marks them "processing" (or "completed")
+                "when": {"left": "{{trigger.status}}", "op": "neq", "right": "pending"},
+                "inputs": {"order": "{{trigger}}"},
+            },
+            {
+                "id": "track",
+                "name": "Record the order",
+                "action": "record_order",
+                "inputs": {"checkout_token": "{{trigger.cart_hash}}", "email": "{{trigger.billing.email}}"},
+            },
+            {
+                "id": "send",
+                "name": "Email the invoice (needs approval)",
+                "action": "smtp_send_email",
+                "when": {"left": "{{steps.invoice.output.created}}", "op": "eq", "right": True},
+                "inputs": {
+                    "connection": "mailbox",
+                    "to": "{{steps.invoice.output.customer_email}}",
+                    "subject": "Your invoice {{steps.invoice.output.invoice_number}} for order {{trigger.number}}",
+                    "body": (
+                        "Hi {{trigger.billing.first_name}},\n\n"
+                        "Thank you for your order {{trigger.number}}. Your invoice "
+                        "{{steps.invoice.output.invoice_number}} for {{steps.invoice.output.total}} "
+                        "{{steps.invoice.output.currency}} is here:\n{{steps.invoice.output.url}}\n\n"
+                        "Kind regards"
+                    ),
+                },
+            },
+        ],
+    },
+}
+
+ECOMMERCE_TEMPLATES = (
+    ORDER_TO_INVOICE,
+    WOOCOMMERCE_ORDER_TO_INVOICE,
+    ABANDONED_CART,
+    REVIEW_REPLY,
+    SUPPLIER_INVOICE_TO_SHEET,
+)

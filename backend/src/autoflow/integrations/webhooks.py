@@ -17,6 +17,7 @@ or X-Request-Id and never start a second execution.
 import base64
 import hashlib
 import hmac
+import re
 import json
 import secrets as random_secrets
 import time
@@ -31,9 +32,17 @@ from autoflow.storage.db import utc_now
 from autoflow.storage.models import WebhookEndpoint
 
 
-SCHEMES = ("autoflow", "shopify")
+SCHEMES = ("autoflow", "shopify", "woocommerce")
+# Headers carrying each scheme's base64 HMAC-SHA256 of the raw body
+BASE64_SIGNATURE_HEADERS = {"shopify": "x-shopify-hmac-sha256", "woocommerce": "x-wc-webhook-signature"}
+# WooCommerce checks a new webhook with a form-encoded ping
+WOOCOMMERCE_PING = re.compile(rb"webhook_id=\d+")
 MAX_BODY_BYTES = 256 * 1024
 MAX_CLOCK_SKEW_SECONDS = 300
+
+
+class WebhookPing(Exception):
+    """A connectivity check from the sending app, not an event."""
 
 
 class WebhookRejected(Exception):
@@ -101,9 +110,9 @@ def sign(secret, body, timestamp=None):
 def _verify(endpoint, body, headers):
     secret = vault.decrypt_json(endpoint.encrypted_secret)["secret"].encode()
 
-    if endpoint.signature_scheme == "shopify":
+    if endpoint.signature_scheme in BASE64_SIGNATURE_HEADERS:
         expected = base64.b64encode(hmac.new(secret, body, hashlib.sha256).digest()).decode()
-        provided = headers.get("x-shopify-hmac-sha256", "")
+        provided = headers.get(BASE64_SIGNATURE_HEADERS[endpoint.signature_scheme], "")
         if not hmac.compare_digest(expected, provided):
             raise WebhookRejected(401, "Invalid signature.")
         return
@@ -130,6 +139,10 @@ def receive(session, public_id, body, headers):
     if len(body) > MAX_BODY_BYTES:
         raise WebhookRejected(413, "Payload too large.")
 
+    if endpoint.signature_scheme == "woocommerce" and WOOCOMMERCE_PING.fullmatch(body.strip()):
+        # Answer the setup ping so WooCommerce keeps the webhook active; no run starts
+        raise WebhookPing()
+
     headers = {key.lower(): value for key, value in headers.items()}
     _verify(endpoint, body, headers)
 
@@ -153,6 +166,7 @@ def receive(session, public_id, body, headers):
     delivery_id = (
         headers.get("idempotency-key")
         or headers.get("x-shopify-webhook-id")
+        or headers.get("x-wc-webhook-delivery-id")
         or headers.get("x-request-id")
     )
 

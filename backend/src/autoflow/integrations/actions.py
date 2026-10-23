@@ -354,3 +354,91 @@ register(Action(
     connection_provider="shopify",
     simulate=lambda ctx, inputs: {"note": inputs["note"], "dry_run": True},
 ))
+
+
+# --- WooCommerce REST API ---------------------------------------------------
+
+WOOCOMMERCE_STATUSES = ("pending", "processing", "on-hold", "completed", "cancelled")
+
+
+def _woocommerce_order_url(ctx, order_id, suffix=""):
+    store = str(ctx.credentials["config"]["store_url"]).rstrip("/")
+    order_id = str(order_id).strip()
+
+    if not order_id.isdigit():
+        raise ActionError("order_id must be the numeric WooCommerce order id.", retryable=False)
+    if not store.startswith("https://"):
+        raise ActionError("The WooCommerce connection must use https.", retryable=False)
+
+    url = f"{store}/wp-json/wc/v3/orders/{order_id}{suffix}"
+    try:
+        check_public_url(url)
+    except UnsafeURL as error:
+        raise ActionError(str(error), retryable=False) from error
+
+    secrets = ctx.credentials["secrets"]
+    return url, (secrets["consumer_key"], secrets["consumer_secret"])
+
+
+def _woocommerce_note(ctx, inputs):
+    url, auth = _woocommerce_order_url(ctx, inputs["order_id"], "/notes")
+    response = requests.post(
+        url,
+        auth=auth,
+        json={"note": str(inputs["note"]), "customer_note": bool(inputs.get("customer_note"))},
+        timeout=20,
+        allow_redirects=False,
+    )
+    if not response.ok:
+        raise _http_error(response, "WooCommerce")
+    return {"note_id": response.json().get("id")}
+
+
+register(Action(
+    name="woocommerce_add_order_note",
+    description="Add a note to a WooCommerce order (private, or visible to the customer).",
+    handler=_woocommerce_note,
+    inputs={
+        "connection": InputSpec("string", description="Name of a woocommerce connection"),
+        "order_id": InputSpec("any", description="Numeric order id, e.g. {{trigger.id}}"),
+        "note": InputSpec("string"),
+        "customer_note": InputSpec("boolean", required=False, description="true = the customer sees it"),
+    },
+    outputs={"note_id": "number"},
+    side_effect=True,
+    idempotent=False,
+    uses_network=True,
+    connection_provider="woocommerce",
+    simulate=lambda ctx, inputs: {"note_id": None, "dry_run": True},
+))
+
+
+def _woocommerce_status(ctx, inputs):
+    status = str(inputs["status"]).strip().lower()
+    if status not in WOOCOMMERCE_STATUSES:
+        raise ActionError(f"status must be one of: {', '.join(WOOCOMMERCE_STATUSES)}", retryable=False)
+
+    url, auth = _woocommerce_order_url(ctx, inputs["order_id"])
+    response = requests.put(url, auth=auth, json={"status": status}, timeout=20, allow_redirects=False)
+    if not response.ok:
+        raise _http_error(response, "WooCommerce")
+    return {"status": response.json().get("status", status)}
+
+
+register(Action(
+    name="woocommerce_set_order_status",
+    description="Change a WooCommerce order's status (the store may email the customer, so it needs approval).",
+    handler=_woocommerce_status,
+    inputs={
+        "connection": InputSpec("string", description="Name of a woocommerce connection"),
+        "order_id": InputSpec("any", description="Numeric order id, e.g. {{trigger.id}}"),
+        "status": InputSpec("string", description="pending, processing, on-hold, completed or cancelled"),
+    },
+    outputs={"status": "text"},
+    side_effect=True,
+    idempotent=True,
+    requires_approval=True,
+    uses_network=True,
+    connection_provider="woocommerce",
+    simulate=lambda ctx, inputs: {"status": inputs["status"], "dry_run": True},
+))
