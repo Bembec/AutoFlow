@@ -5,7 +5,7 @@ import "@xyflow/react/dist/style.css";
 import { Background, Controls, Handle, Position, ReactFlow, type Edge, type Node, type NodeProps } from "@xyflow/react";
 import { useMemo } from "react";
 
-import type { Definition, Step } from "@/lib/types";
+import type { Condition, ConditionGroup, Definition, Step } from "@/lib/types";
 
 type StepNodeData = {
   kind: "trigger" | "step";
@@ -63,10 +63,24 @@ function StepCard({ data }: NodeProps<StepNode>) {
 
 const nodeTypes = { step: StepCard };
 
+const OP_WORDS: Record<string, string> = {
+  eq: "is", neq: "is not", contains: "contains", not_contains: "doesn't contain",
+  exists: "has a value", not_exists: "is empty", gt: ">", gte: "≥", lt: "<", lte: "≤",
+};
+
+function describeOne(condition: Condition | ConditionGroup): string {
+  if ("all" in condition && condition.all) return condition.all.map(describeOne).join(" and ");
+  if ("any" in condition && condition.any) return `(${condition.any.map(describeOne).join(" or ")})`;
+  const plain = condition as Condition;
+  const left = String(plain.left).replace(/\{\{\s*(?:steps\.(\w+)\.output|trigger)\.([\w.]+)\s*\}\}/, (_, step, path) => (step ? `${step}.${path}` : path));
+  return `${left} ${OP_WORDS[plain.op] ?? plain.op} ${plain.right ?? ""}`.trim();
+}
+
 function describeCondition(step: Step) {
-  if (!step.when) return null;
-  const left = String(step.when.left).replace(/\{\{\s*steps\.(\w+)\.output\.(\w+)\s*\}\}/, "$1.$2");
-  return `if ${left} ${step.when.op} ${step.when.right ?? ""}`.trim();
+  const parts = [];
+  if (step.for_each) parts.push(`for each in ${step.for_each.replace(/[{}\s]/g, "").replace(/^trigger\./, "")}`);
+  if (step.when) parts.push(`if ${describeOne(step.when)}`);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 export function WorkflowCanvas({

@@ -18,8 +18,14 @@ export interface Me {
 
 export interface Condition {
   left: unknown;
-  op: "eq" | "neq" | "contains" | "exists" | "not_exists";
+  op: "eq" | "neq" | "contains" | "exists" | "not_exists" | "gt" | "gte" | "lt" | "lte" | "not_contains";
   right?: unknown;
+}
+
+/** All (AND) or any (OR) of several conditions; may be nested. */
+export interface ConditionGroup {
+  all?: (Condition | ConditionGroup)[];
+  any?: (Condition | ConditionGroup)[];
 }
 
 export interface Step {
@@ -27,7 +33,9 @@ export interface Step {
   name?: string;
   action: string;
   inputs: Record<string, unknown>;
-  when?: Condition;
+  when?: Condition | ConditionGroup;
+  /** Run once per item of this list, e.g. "{{trigger.line_items}}" */
+  for_each?: string;
   retry?: { max_attempts: number; backoff_seconds: number };
   timeout_seconds?: number;
   requires_approval?: boolean;

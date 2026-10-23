@@ -24,7 +24,7 @@ from autoflow import audit, config, notifications
 from autoflow.billing import service as billing
 from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
-from autoflow.engine.definition import WorkflowDefinition
+from autoflow.engine.definition import MAX_FOR_EACH_ITEMS, WorkflowDefinition
 from autoflow.engine.templating import evaluate_condition, render
 from autoflow.security import outbound
 from autoflow.storage.db import utc_now
@@ -186,6 +186,23 @@ def execute(session, execution):
             context["steps"][step.id] = {"output": record.output}
             continue
 
+        loop_inputs = None
+        if step.for_each is not None:
+            items = render(step.for_each, context)
+            items = [] if items is None else items
+            if not isinstance(items, list) or len(items) > MAX_FOR_EACH_ITEMS:
+                record.status = "failed"
+                record.error = (
+                    f"for_each needs a list of at most {MAX_FOR_EACH_ITEMS} items "
+                    f"(got {len(items) if isinstance(items, list) else type(items).__name__})."
+                )
+                record.finished_at = utc_now()
+                _finish(session, execution, "failed", f"Step {step.id} failed: {record.error}")
+                return execution
+            loop_inputs = [render(step.inputs, {**context, "item": item, "index": index}) for index, item in enumerate(items)]
+            inputs = {"items": loop_inputs}
+            record.input = inputs
+
         # Outgoing email is checked for phishing and spam before anyone approves it
         warnings = []
         if action.name in limits.EMAIL_ACTIONS:
@@ -221,7 +238,10 @@ def execute(session, execution):
             _finish(session, execution, "failed", f"Step {step.id} stopped: {limit}")
             return execution
 
-        if not _run_step(session, execution, step, record, action, inputs):
+        if loop_inputs is not None:
+            if not _run_loop(session, execution, step, record, action, loop_inputs):
+                return execution
+        elif not _run_step(session, execution, step, record, action, inputs):
             return execution
         if warnings:
             record.output = {**(record.output or {}), "safety_warnings": warnings}
@@ -425,6 +445,77 @@ def _run_step(session, execution, step, record, action, inputs):
         sleep(min(MAX_BACKOFF_SECONDS, step.retry.backoff_seconds * 2 ** (record.attempts - 1)))
 
 
+def _run_loop(session, execution, step, record, action, item_inputs):
+    """Run a for_each step: the action once per item, with retries per item.
+
+    Progress is saved after every item, so a retry or a resumed run
+    continues where it stopped and never repeats a finished item.
+    """
+
+    progress = record.output if isinstance(record.output, dict) and record.output.get("in_progress") else None
+    done = list(progress["items"]) if progress else []
+    total = len(item_inputs)
+
+    for index in range(len(done), total):
+        ctx = ActionContext(
+            workspace_id=execution.workspace_id,
+            execution_id=execution.id,
+            step_id=step.id,
+            idempotency_key=f"execution-{execution.id}-step-{step.id}-item-{index}",
+            mode=execution.mode,
+            session=session,
+        )
+        attempts = 0
+        while True:
+            attempts += 1
+            record.attempts += 1
+            record.status = "running"
+            record.error = None
+            record.started_at = record.started_at or utc_now()
+            execution.heartbeat_at = utc_now()
+            session.commit()
+
+            try:
+                output = _invoke(action, ctx, item_inputs[index], step.timeout_seconds)
+            except TimeoutError:
+                if action.side_effect and not action.idempotent and execution.mode == "live":
+                    record.status = "failed"
+                    record.error = f"Item {index + 1} of {total} timed out; its outcome is unknown."
+                    _finish(session, execution, "needs_attention",
+                            f"Step {step.id} item {index + 1} timed out and may have completed. Check before retrying.")
+                    return False
+                error, retryable = f"Timed out after {step.timeout_seconds}s.", True
+            except ActionError as action_error:
+                error, retryable = str(action_error), action_error.retryable
+            except Exception as unexpected:  # noqa: BLE001 - any action bug fails the step
+                error, retryable = f"Unexpected error: {unexpected}", False
+            else:
+                done.append(output if isinstance(output, dict) else {"result": output})
+                record.output = {"items": done, "count": len(done), "in_progress": True}
+                session.commit()
+                break
+
+            if not retryable or attempts >= step.retry.max_attempts:
+                record.status = "failed"
+                record.error = f"Item {index + 1} of {total}: {error}"
+                record.finished_at = utc_now()
+                _finish(session, execution, "failed", f"Step {step.id} failed on item {index + 1}: {error}")
+                return False
+
+            record.error = error
+            session.commit()
+            sleep(min(MAX_BACKOFF_SECONDS, step.retry.backoff_seconds * 2 ** (attempts - 1)))
+
+    record.status = "succeeded"
+    record.output = {"items": done, "count": len(done)}
+    record.finished_at = utc_now()
+    if done and billing.is_billable(action, execution.mode):
+        # One billable task per item that called an app
+        billing.record_billable(session, execution.workspace_id, record, action.name, quantity=len(done))
+    session.commit()
+    return True
+
+
 # --- operator actions -------------------------------------------------------
 
 def cancel(session, execution):
@@ -490,10 +581,19 @@ def confirm_completed(session, execution):
         )
 
     for record in execution.steps:
-        if record.status == "failed":
+        if record.status != "failed":
+            continue
+        record.error = None
+        if isinstance(record.output, dict) and record.output.get("in_progress"):
+            # A loop: the uncertain item happened; the loop goes on with the next one
+            items = record.output["items"] + [{"confirmed_by_person": True}]
+            record.output = {"items": items, "count": len(items), "in_progress": True}
+            record.status = "approved" if session.query(Approval).filter_by(
+                execution_id=execution.id, step_id=record.step_id, status="approved"
+            ).first() else "pending"
+        else:
             record.status = "succeeded"
             record.output = {"confirmed_by_person": True}
-            record.error = None
             record.finished_at = utc_now()
 
     execution.status = "queued"

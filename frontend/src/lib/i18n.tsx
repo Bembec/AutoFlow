@@ -322,6 +322,7 @@ const en = {
   "conn.reconnect": "Reconnect",
   "conn.lastChecked": "Last checked {time}",
   "conn.newSecrets": "Enter the new password or key. The old one is replaced.",
+  "ex.loopItems": "Repeated for {n} items",
 };
 
 export type MessageKey = keyof typeof en;
@@ -591,6 +592,7 @@ const es: Dictionary = {
   "conn.reconnect": "Reconectar",
   "conn.lastChecked": "Última comprobación {time}",
   "conn.newSecrets": "Introduce la nueva contraseña o clave. La anterior se reemplaza.",
+  "ex.loopItems": "Repetido para {n} elementos",
 };
 
 const fr: Dictionary = {
@@ -857,6 +859,7 @@ const fr: Dictionary = {
   "conn.reconnect": "Reconnecter",
   "conn.lastChecked": "Dernière vérification {time}",
   "conn.newSecrets": "Saisissez le nouveau mot de passe ou la nouvelle clé. L'ancien est remplacé.",
+  "ex.loopItems": "Répété pour {n} éléments",
 };
 
 const de: Dictionary = {
@@ -1123,6 +1126,7 @@ const de: Dictionary = {
   "conn.reconnect": "Neu verbinden",
   "conn.lastChecked": "Zuletzt geprüft {time}",
   "conn.newSecrets": "Geben Sie das neue Passwort oder den neuen Schlüssel ein. Der alte wird ersetzt.",
+  "ex.loopItems": "Für {n} Einträge wiederholt",
 };
 
 const tr: Dictionary = {
@@ -1389,6 +1393,7 @@ const tr: Dictionary = {
   "conn.reconnect": "Yeniden bağlan",
   "conn.lastChecked": "Son kontrol {time}",
   "conn.newSecrets": "Yeni şifreyi veya anahtarı girin. Eskisi değiştirilir.",
+  "ex.loopItems": "{n} öğe için tekrarlandı",
 };
 
 export const LANGUAGES = {

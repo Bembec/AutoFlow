@@ -1,5 +1,23 @@
 # Changelog
 
+## V36: Smarter logic (behind the `smarter_logic` flag)
+- **Comparisons:** "is more than", "is at least", "is less than" and "is at most" understand numbers written as text (`"47.60"`, `"1,200.50"`). A value that isn't a number makes the comparison false, never an error. "Doesn't contain" is added too.
+- **AND / OR:** `"when": {"all": [...]}` or `{"any": [...]}`, nestable, with up to 10 conditions per group. The step editor offers a list of conditions with "all of these" or "any of these".
+- **Loops:** `"for_each": "{{trigger.line_items}}"` runs a step once per item, with `{{item…}}` and `{{index}}` in its inputs, and the output `{"items": [...], "count": n}`.
+  - Progress is saved after every item, so a retry continues where it stopped and never repeats a finished item.
+  - An uncertain item can be confirmed, and the loop continues with the next one.
+  - Each item retries on its own and has its own idempotency key.
+  - Lists are capped at 100 items, and a longer list fails clearly.
+  - Email, AI and delay steps can't loop, since they have their own limits and approvals.
+  - Billing counts one task per item: `billable_events.quantity`, migration 0016.
+- **Feature flag:** saving a workflow that uses these features (including from the AI builder) is refused unless `smarter_logic` is on for the workspace. The editor shows the new controls only then. Workflows that are already saved keep running.
+- The canvas describes loops and conditions in words (for example "for each in line_items · if total > 200"). The run timeline shows "Repeated for N items".
+- A new help article: "Conditions and loops".
+- Checks:
+  - backend: 250 passed, including 8 new tests for comparisons, groups, validation, the flag, loops, resume and confirm;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+
 ## V35: Engineering basics (Phase 1 additions)
 - **Definition of done** (`docs/engineering/definition-of-done.md`): implemented, tested, permission-checked, logged, reversible, documented, translated, accessible. It adds extra checks for AI, engine and integration changes, plus the roadmap status set. A GitHub pull-request template repeats the checklist.
 - **Feature flags** (`autoflow/features.py`):

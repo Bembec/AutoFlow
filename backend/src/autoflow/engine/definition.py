@@ -15,6 +15,15 @@ Example:
       ]
     }
 
+Smarter logic (V36, behind the `smarter_logic` feature flag):
+
+- comparisons: gt, gte, lt, lte (numbers) and not_contains;
+- AND / OR groups: "when": {"all": [cond, ...]} or {"any": [cond, ...]},
+  nestable;
+- loops: "for_each": "{{trigger.line_items}}" runs the step once per item,
+  with {{item}} and {{index}} in its inputs. The step's output is
+  {"items": [each output], "count": n}.
+
 Definitions are validated before they are saved, so the engine only ever
 runs workflows whose actions, inputs and references are known to be valid.
 """
@@ -25,13 +34,38 @@ from croniter import croniter
 from pydantic import BaseModel, Field, model_validator
 
 from autoflow.engine.actions import get_action
-from autoflow.engine.templating import find_references
+from autoflow.engine.templating import REFERENCE, find_references
+
+BASIC_OPS = ("eq", "neq", "contains", "exists", "not_exists")
+SMART_OPS = ("gt", "gte", "lt", "lte", "not_contains")
+# A loop never runs more than this many items (bigger lists fail clearly)
+MAX_FOR_EACH_ITEMS = 100
+# Actions that can't be repeated in a loop: they have per-call limits,
+# costs or approvals that a loop would bypass
+NO_LOOP_ACTIONS = {
+    "send_email", "smtp_send_email", "compose_email",
+    "ai_classify", "ai_draft_reply", "ai_extract", "ai_summarize", "ai_translate", "classify_enquiry",
+    "delay",
+}
 
 
 class Condition(BaseModel):
     left: Any
-    op: Literal["eq", "neq", "contains", "exists", "not_exists"]
+    op: Literal["eq", "neq", "contains", "exists", "not_exists", "gt", "gte", "lt", "lte", "not_contains"]
     right: Any = None
+
+
+class ConditionGroup(BaseModel):
+    """All (AND) or any (OR) of several conditions; groups can be nested."""
+
+    all: list["Condition | ConditionGroup"] | None = Field(None, min_length=1, max_length=10)
+    any: list["Condition | ConditionGroup"] | None = Field(None, min_length=1, max_length=10)
+
+    @model_validator(mode="after")
+    def one_kind(self):
+        if (self.all is None) == (self.any is None):
+            raise ValueError("A condition group needs either 'all' or 'any'")
+        return self
 
 
 class RetryPolicy(BaseModel):
@@ -44,7 +78,9 @@ class Step(BaseModel):
     name: str | None = None
     action: str
     inputs: dict[str, Any] = Field(default_factory=dict)
-    when: Condition | None = None
+    when: Condition | ConditionGroup | None = None
+    # Run the step once per item of a list, e.g. "{{trigger.line_items}}"
+    for_each: str | None = None
     retry: RetryPolicy = Field(default_factory=RetryPolicy)
     timeout_seconds: int = Field(30, ge=1, le=300)
     # None = the action's default. Approval can be added, never removed
@@ -114,10 +150,22 @@ class WorkflowDefinition(BaseModel):
                 )
 
             references = list(find_references(step.inputs))
-            if step.when is not None:
-                references += list(find_references(step.when.model_dump()))
+            # The condition is checked once, before any loop starts: no {{item}} there
+            when_references = list(find_references(step.when.model_dump())) if step.when is not None else []
+
+            if step.for_each is not None:
+                loop = REFERENCE.fullmatch(step.for_each.strip())
+                if not loop:
+                    raise ValueError(f"Step {step.id}: for_each must be one reference, like {{{{trigger.items}}}}")
+                if step.action in NO_LOOP_ACTIONS or action.requires_approval:
+                    raise ValueError(
+                        f"Step {step.id}: {step.action} can't run in a loop (it has its own limits or approvals)"
+                    )
+                _check_reference(step.id, loop.group(1), seen)
 
             for reference in references:
+                _check_reference(step.id, reference, seen, in_loop=step.for_each is not None)
+            for reference in when_references:
                 _check_reference(step.id, reference, seen)
 
             seen.add(step.id)
@@ -134,10 +182,24 @@ class WorkflowDefinition(BaseModel):
         return self
 
 
-def _check_reference(step_id, reference, earlier_steps):
+def uses_smarter_logic(definition):
+    """True when a definition needs the `smarter_logic` feature."""
+
+    def smart(condition):
+        if isinstance(condition, ConditionGroup):
+            return True
+        return condition is not None and condition.op in SMART_OPS
+
+    return any(step.for_each is not None or smart(step.when) for step in definition.steps)
+
+
+def _check_reference(step_id, reference, earlier_steps, in_loop=False):
     parts = reference.split(".")
 
     if parts[0] == "trigger":
+        return
+
+    if in_loop and parts[0] in ("item", "index"):
         return
 
     if (

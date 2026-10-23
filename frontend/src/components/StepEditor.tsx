@@ -3,15 +3,28 @@
 import { useMemo, useState } from "react";
 
 import { Button, Card, ErrorNote, Field, inputClass } from "@/components/ui";
-import type { ActionInfo, Condition, Definition, Step } from "@/lib/types";
+import { useFeatures } from "@/lib/features";
+import type { ActionInfo, Condition, ConditionGroup, Definition, Step } from "@/lib/types";
 
-const OPERATORS: { value: Condition["op"]; label: string }[] = [
+const OPERATORS: { value: Condition["op"]; label: string; smart?: boolean }[] = [
   { value: "eq", label: "is" },
   { value: "neq", label: "is not" },
   { value: "contains", label: "contains" },
+  { value: "not_contains", label: "doesn't contain", smart: true },
   { value: "exists", label: "has a value" },
   { value: "not_exists", label: "is empty" },
+  { value: "gt", label: "is more than", smart: true },
+  { value: "gte", label: "is at least", smart: true },
+  { value: "lt", label: "is less than", smart: true },
+  { value: "lte", label: "is at most", smart: true },
 ];
+
+// Same list as the backend (engine/definition.py NO_LOOP_ACTIONS)
+const NO_LOOP_ACTIONS = new Set([
+  "send_email", "smtp_send_email", "compose_email", "ai_classify", "ai_draft_reply", "ai_extract",
+  "ai_summarize", "ai_translate", "classify_enquiry", "delay",
+]);
+const MAX_CONDITIONS = 10;
 
 const AI_ACTIONS = new Set(["ai_extract", "ai_classify", "ai_summarize", "ai_draft_reply", "ai_translate"]);
 
@@ -274,6 +287,7 @@ export function StepEditor({
                   action={action}
                   editable={editable}
                   references={referencesFor(definition, index, actions)}
+                  samplePayload={definition.trigger.sample_payload ?? {}}
                   onChange={(patch) => updateStep(index, patch)}
                 />
               )}
@@ -326,15 +340,23 @@ function StepForm({
   step,
   action,
   editable,
-  references,
+  references: earlier,
+  samplePayload,
   onChange,
 }: {
   step: Step;
   action: ActionInfo;
   editable: boolean;
   references: { label: string; value: string }[];
+  samplePayload: Record<string, unknown>;
   onChange: (patch: Partial<Step>) => void;
 }) {
+  const feature = useFeatures();
+  const smart = feature("smarter_logic", false);
+  const canLoop = !NO_LOOP_ACTIONS.has(step.action) && !action.requires_approval;
+  // Inside a loop, inputs can also use the current item and its position
+  const references = step.for_each ? [...loopReferences(step.for_each, samplePayload), ...earlier] : earlier;
+
   const setInput = (name: string, value: unknown) => {
     const inputs = { ...step.inputs };
     if (value === undefined) delete inputs[name];
@@ -410,42 +432,67 @@ function StepForm({
         );
       })}
 
+      {(smart || step.for_each) && canLoop && (
+        <details open={Boolean(step.for_each)} className="rounded-lg bg-slate-50 p-3">
+          <summary className="cursor-pointer text-sm font-medium">Repeat for each item…</summary>
+          <Field label="Run this step once for every item in" hint="For example the order's line items. Up to 100 items; finished items are never repeated.">
+            <select
+              className={inputClass}
+              disabled={!editable}
+              value={step.for_each ?? ""}
+              onChange={(e) => onChange({ for_each: e.target.value || undefined })}
+            >
+              <option value="">Run once (no loop)</option>
+              {earlier.map((ref) => <option key={ref.value} value={ref.value}>{ref.label}</option>)}
+            </select>
+          </Field>
+        </details>
+      )}
+
+      {smart ? (
+        <ConditionEditor step={step} editable={editable} references={earlier} onChange={onChange} />
+      ) : (
       <details open={Boolean(step.when)} className="rounded-lg bg-slate-50 p-3">
         <summary className="cursor-pointer text-sm font-medium">Only run if…</summary>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <select
             className={`${inputClass} w-auto`}
             disabled={!editable}
-            value={typeof step.when?.left === "string" ? step.when.left : ""}
+            value={step.when && "left" in step.when && typeof step.when.left === "string" ? step.when.left : ""}
             onChange={(e) =>
-              onChange({ when: e.target.value ? { op: "eq", right: "", ...step.when, left: e.target.value } : undefined })
+              onChange({
+                when: e.target.value
+                  ? { ...(step.when && "op" in step.when ? step.when : { op: "eq" as const, right: "" }), left: e.target.value }
+                  : undefined,
+              })
             }
           >
             <option value="">Always run</option>
             {references.map((ref) => <option key={ref.value} value={ref.value}>{ref.label}</option>)}
           </select>
-          {step.when && (
+          {step.when && "op" in step.when && (
             <>
               <select
                 className={`${inputClass} w-auto`}
                 disabled={!editable}
                 value={step.when.op}
-                onChange={(e) => onChange({ when: { ...step.when!, op: e.target.value as Condition["op"] } })}
+                onChange={(e) => onChange({ when: { ...(step.when as Condition), op: e.target.value as Condition["op"] } })}
               >
-                {OPERATORS.map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
+                {OPERATORS.filter((op) => !op.smart).map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
               </select>
               {!["exists", "not_exists"].includes(step.when.op) && (
                 <input
                   className={`${inputClass} w-40`}
                   disabled={!editable}
                   value={String(step.when.right ?? "")}
-                  onChange={(e) => onChange({ when: { ...step.when!, right: e.target.value } })}
+                  onChange={(e) => onChange({ when: { ...(step.when as Condition), right: e.target.value } })}
                 />
               )}
             </>
           )}
         </div>
       </details>
+      )}
 
       <details className="rounded-lg bg-slate-50 p-3">
         <summary className="cursor-pointer text-sm font-medium">Reliability & safety</summary>
@@ -502,5 +549,138 @@ function StepForm({
         )}
       </details>
     </div>
+  );
+}
+
+/** {{item…}} and {{index}} choices for a loop over a trigger list. */
+function loopReferences(forEach: string, sample: Record<string, unknown>) {
+  const refs = [
+    { label: "Current item", value: "{{item}}" },
+    { label: "Item number (from 0)", value: "{{index}}" },
+  ];
+  const path = forEach.match(/\{\{\s*trigger\.([\w.]+)\s*\}\}/)?.[1];
+  let list: unknown = sample;
+  for (const part of path ? path.split(".") : []) {
+    list = list && typeof list === "object" ? (list as Record<string, unknown>)[part] : undefined;
+  }
+  const first = Array.isArray(list) ? list[0] : undefined;
+  if (first && typeof first === "object") {
+    Object.keys(first).forEach((key) => refs.push({ label: `Item → ${key}`, value: `{{item.${key}}}` }));
+  }
+  return refs;
+}
+
+type Mode = "all" | "any";
+
+/** Plain conditions of the step's `when`, or null when it nests groups (edited as JSON). */
+function flatten(when: Step["when"]): { mode: Mode; conditions: Condition[] } | null {
+  if (!when) return { mode: "all", conditions: [] };
+  if ("op" in when) return { mode: "all", conditions: [when as Condition] };
+  const group = when as ConditionGroup;
+  const mode: Mode = group.any ? "any" : "all";
+  const parts = group.any ?? group.all ?? [];
+  return parts.every((part) => "op" in part) ? { mode, conditions: parts as Condition[] } : null;
+}
+
+function ConditionEditor({
+  step,
+  editable,
+  references,
+  onChange,
+}: {
+  step: Step;
+  editable: boolean;
+  references: { label: string; value: string }[];
+  onChange: (patch: Partial<Step>) => void;
+}) {
+  const flat = flatten(step.when);
+
+  if (flat === null) {
+    return (
+      <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+        This step has nested AND/OR groups. Edit them in the workflow definition.
+      </p>
+    );
+  }
+
+  const save = (mode: Mode, conditions: Condition[]) => {
+    if (conditions.length === 0) onChange({ when: undefined });
+    else if (conditions.length === 1) onChange({ when: conditions[0] });
+    else onChange({ when: mode === "all" ? { all: conditions } : { any: conditions } });
+  };
+  const update = (index: number, patch: Partial<Condition>) =>
+    save(flat.mode, flat.conditions.map((condition, i) => (i === index ? { ...condition, ...patch } : condition)));
+
+  return (
+    <details open={flat.conditions.length > 0} className="rounded-lg bg-slate-50 p-3">
+      <summary className="cursor-pointer text-sm font-medium">Only run if…</summary>
+      <div className="mt-2 space-y-2 text-sm">
+        {flat.conditions.length > 1 && (
+          <label className="flex items-center gap-2">
+            Run when
+            <select
+              className={`${inputClass} w-auto`}
+              disabled={!editable}
+              value={flat.mode}
+              onChange={(e) => save(e.target.value as Mode, flat.conditions)}
+            >
+              <option value="all">all of these are true</option>
+              <option value="any">any of these is true</option>
+            </select>
+          </label>
+        )}
+        {flat.conditions.map((condition, index) => (
+          <div key={index} className="flex flex-wrap items-center gap-2">
+            <select
+              className={`${inputClass} w-auto`}
+              aria-label="Value to check"
+              disabled={!editable}
+              value={typeof condition.left === "string" ? condition.left : ""}
+              onChange={(e) => update(index, { left: e.target.value })}
+            >
+              {references.map((ref) => <option key={ref.value} value={ref.value}>{ref.label}</option>)}
+            </select>
+            <select
+              className={`${inputClass} w-auto`}
+              aria-label="Comparison"
+              disabled={!editable}
+              value={condition.op}
+              onChange={(e) => update(index, { op: e.target.value as Condition["op"] })}
+            >
+              {OPERATORS.map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
+            </select>
+            {!["exists", "not_exists"].includes(condition.op) && (
+              <input
+                className={`${inputClass} w-36`}
+                aria-label="Compare with"
+                disabled={!editable}
+                value={String(condition.right ?? "")}
+                onChange={(e) => update(index, { right: e.target.value })}
+              />
+            )}
+            {editable && (
+              <button
+                type="button"
+                className="px-1 text-slate-400 hover:text-red-600"
+                aria-label="Remove condition"
+                onClick={() => save(flat.mode, flat.conditions.filter((_, i) => i !== index))}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+        {editable && references.length > 0 && flat.conditions.length < MAX_CONDITIONS && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="px-0 text-xs"
+            onClick={() => save(flat.mode, [...flat.conditions, { left: references[0].value, op: "eq", right: "" }])}
+          >
+            {flat.conditions.length === 0 ? "+ Add a condition" : "+ Add another condition"}
+          </Button>
+        )}
+      </div>
+    </details>
   );
 }

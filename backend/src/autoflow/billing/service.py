@@ -71,7 +71,7 @@ def billing_period(subscription, now=None):
 
 def billable_tasks(session, workspace_id, start, end):
     return session.scalar(
-        select(func.count(BillableEvent.id)).where(
+        select(func.coalesce(func.sum(BillableEvent.quantity), 0)).where(
             BillableEvent.workspace_id == workspace_id,
             BillableEvent.created_at >= start,
             BillableEvent.created_at < end,
@@ -111,7 +111,7 @@ def check_can_run_billable(session, workspace_id):
         )
 
 
-def record_billable(session, workspace_id, step_execution, action_name):
+def record_billable(session, workspace_id, step_execution, action_name, quantity=1):
     """Add the billable event for a step (flushed with the step's success)."""
 
     already = session.scalar(
@@ -122,6 +122,7 @@ def record_billable(session, workspace_id, step_execution, action_name):
             workspace_id=workspace_id,
             step_execution_id=step_execution.id,
             action=action_name,
+            quantity=quantity,
         ))
 
 

@@ -179,6 +179,11 @@ function StepCard({ step, description }: { step: StepExecution; description?: st
                 <p className="text-xs text-slate-400">{t("ex.step", { n: step.position + 1 })}</p>
                 <h3 className="font-semibold">{humanize(step.step_id)}</h3>
                 <p className="text-sm text-slate-500">{description ?? humanize(step.action)}</p>
+                {Array.isArray((step.input as { items?: unknown[] } | null)?.items) && (
+                  <p className="text-xs text-slate-500">
+                    {t("ex.loopItems", { n: ((step.input as { items: unknown[] }).items).length })}
+                  </p>
+                )}
               </div>
               <div className="text-right text-xs text-slate-500">
                 <StatusBadge status={step.status} />

@@ -431,6 +431,8 @@ class BillableEvent(Base):
         ForeignKey("step_executions.id", ondelete="CASCADE"), unique=True
     )
     action: Mapped[str] = mapped_column(String(100))
+    # Tasks this event stands for: 1, or one per item for a for_each step (V36)
+    quantity: Mapped[int] = mapped_column(default=1, server_default=text("1"))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
     # When the event was sent to the payment provider's usage meter
     reported_at: Mapped[datetime | None] = mapped_column(UTCDateTime)

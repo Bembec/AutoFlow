@@ -52,7 +52,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 9. ~~Guided onboarding~~: done in V30 (Get started page with platform-based template picks, live checklist on the dashboard).
 10. ~~Public website pages~~: done in V31 (home with "type a task" demo, templates, integrations, pricing, security). Legal pages, site translation and customer stories wait on brand, legal and launch decisions.
 11. ~~Time/cost-saved dashboard and process discovery~~: done in V32 (Insights page, explainable suggestions).
-12. **Smarter workflow logic** (V33): comparisons, AND/OR conditions, for-each loops, AI decision steps.
+12. ~~Smarter workflow logic~~: done in V36 behind the `smarter_logic` flag (comparisons, AND/OR groups, for-each loops). AI decision steps already work as AI classify + a condition.
 13. **Bigger template library** (V34) and **AI assistants** for set roles (V35).
 
 ## Phase 1 additions from the October 2026 review

@@ -68,8 +68,25 @@ def render(value, context):
     return value
 
 
+def _number(value):
+    """A number from 47.6, "47.60" or "1,200.50"; None if it isn't one."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value).replace(",", "").strip())
+    except ValueError:
+        return None
+
+
 def evaluate_condition(condition, context):
-    """Return True when a step's `when` condition holds."""
+    """Return True when a step's `when` condition (or AND/OR group) holds."""
+
+    if getattr(condition, "all", None) is not None:
+        return all(evaluate_condition(part, context) for part in condition.all)
+    if getattr(condition, "any", None) is not None:
+        return any(evaluate_condition(part, context) for part in condition.any)
 
     left = render(condition.left, context)
     right = render(condition.right, context)
@@ -85,5 +102,13 @@ def evaluate_condition(condition, context):
             return left not in (None, "")
         case "not_exists":
             return left in (None, "")
+        case "not_contains":
+            return right is None or str(right).lower() not in str(left or "").lower()
+        case "gt" | "gte" | "lt" | "lte":
+            a, b = _number(left), _number(right)
+            # Not numbers: the comparison is simply false, never an error
+            if a is None or b is None:
+                return False
+            return {"gt": a > b, "gte": a >= b, "lt": a < b, "lte": a <= b}[condition.op]
 
     raise ValueError(f"Unknown operator: {condition.op}")
