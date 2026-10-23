@@ -20,7 +20,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from autoflow import audit, config, notifications
+from autoflow import audit, config, notifications, quality
 from autoflow.billing import service as billing
 from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
@@ -429,6 +429,9 @@ def _run_step(session, execution, step, record, action, inputs):
             if billing.is_billable(action, execution.mode, record.output):
                 # Same commit as the success, so it is counted exactly once
                 billing.record_billable(session, execution.workspace_id, record, action.name)
+            # Production evaluation: some live AI results are kept for a person to judge
+            quality.maybe_sample(session, session.get(Workspace, execution.workspace_id), execution,
+                                 step.id, action.name, inputs, record.output)
             session.commit()
             return True
 

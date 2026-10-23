@@ -80,6 +80,7 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | Run timeline with cost | ☑ | V29 timeline + V33 AI calls and estimated cost per run |
 | Connection health and one-click reconnect | ◐ | V34: read-only checks, alerts on breakage, one-click reconnect; rate-limit tracking to do |
 | WCAG 2.2 AA and plain-language errors | ◐ | V29 pass; formal audit to do |
+| Phase 3: workflow evaluations in production (sampling + review queue) | ☑ | V45: deterministic sampling of live AI results (0-20%, default 5%), Good/Not right review with notes, 30-day and per-step quality rates, weekly trend |
 | Phase 3: expose workflows as an MCP server | ☑ | V44 behind `mcp_server`: workspace API keys, opt-in per workflow, run/list/get tools, approvals and limits apply, idempotency key, rate limit; real-client check in deferred checks |
 | Phase 2 (end): AI agents for set roles | ☑ | V42: `ai_agent` + approval-gated `agent_execute`; V43: Assistants page with 3 ready-made roles (support inbox, order watcher, refund helper), behind `ai_assistants`. Real-AI quality check in deferred checks |
 | Phase 2: AI help assistant limited to documentation | ☑ | V40: answers only from the help articles, shows sources, falls back to excerpts without AI, free for customers (rate limited) |

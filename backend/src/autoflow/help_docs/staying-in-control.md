@@ -40,6 +40,12 @@ Every email a workflow sends is checked before it can be approved:
 
 Emails also carry a header so recipients can report abuse to us.
 
+## AI quality checks
+
+A small random share of AI results from live runs (5% by default) is kept under **AI quality**, which you reach from **Insights**. Each one shows what went in and what the AI produced. Mark it **Good** or **Not right**, with an optional note. The page shows the share judged good over the last 30 days and for each kind of AI step, so you notice early if quality slips.
+
+Sampling never slows down or stops a run. Results that already went to a person for review are not sampled again. Admins can set the share from 0 (off) to 20%.
+
 ## AI budget
 
 Each plan includes a monthly AI budget, estimated from the number of AI calls. **Plan & usage** shows how much is used. When it runs out, AI steps pause until the next period; everything else keeps running. Each run's page also shows how many AI calls it made and roughly what they cost.

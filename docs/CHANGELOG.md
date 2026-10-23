@@ -1,5 +1,30 @@
 # Changelog
 
+## V45: AI quality checks (production evaluations)
+- **Sampling of live AI results:** after a live AI step succeeds (any `ai_*` step or `ai_agent`), a share of results is kept for a person to judge.
+  - The default is 5%, adjustable from 0 to 20% by an admin.
+  - The choice is deterministic per run and step, so the same step is never sampled twice.
+  - It never slows down or blocks a run.
+  - Results that already went to human review are skipped.
+  - Stored inputs and outputs are trimmed to 4,000 characters.
+- **AI quality page** (`/quality`, linked from Insights):
+  - the share judged good over 30 days, plus how many are waiting and how many are checked;
+  - Waiting and Checked tabs, each sample showing what went in and what the AI produced;
+  - **Good** / **Not right** with an optional note;
+  - quality per kind of AI step;
+  - the sampling-rate setting.
+- **API:**
+  - `GET /workspaces/{id}/quality` (summary, including the weekly good rate);
+  - `GET /quality/samples?status=waiting|reviewed`;
+  - `POST /quality/samples/{id}` (members);
+  - `PUT /quality/settings` (admins, audited).
+- Migration 0018 adds `quality_samples` and `workspaces.quality_sample_percent`.
+- 16 new interface texts in all five languages. The help article "Staying in control" is updated.
+- Checks:
+  - backend: 314 passed;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+
 ## V44: AutoFlow as an MCP server (behind the `mcp_server` flag)
 - **Outside AI assistants** (any MCP client, such as Claude) can run the workflows you opt in and check their runs, at `/mcp` (JSON-RPC over Streamable HTTP; supports initialize, ping, `tools/list` and `tools/call`).
 - **Workspace API keys** under Settings → Access for AI assistants:

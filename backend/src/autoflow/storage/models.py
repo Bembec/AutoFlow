@@ -83,6 +83,8 @@ class Workspace(Base):
     trusted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     # Set by staff (e.g. after an abuse report); owners can't resume while set
     staff_suspended_reason: Mapped[str | None] = mapped_column(Text)
+    # Share of live AI results sampled for quality review, 0-20 (V45)
+    quality_sample_percent: Mapped[int] = mapped_column(default=5, server_default=text("5"))
     # Per-workspace feature flag overrides set by staff (V35), see autoflow.features
     feature_flags: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
@@ -589,4 +591,27 @@ class ApiKey(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
     last_used_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     revoked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class QualitySample(Base):
+    """A live AI result picked at random for a person to check (production evaluation)."""
+
+    __tablename__ = "quality_samples"
+    __table_args__ = (UniqueConstraint("execution_id", "step_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id", ondelete="CASCADE"), index=True)
+    execution_id: Mapped[int] = mapped_column(ForeignKey("workflow_executions.id", ondelete="CASCADE"))
+    workflow_id: Mapped[int] = mapped_column(ForeignKey("workflows.id", ondelete="CASCADE"))
+    step_id: Mapped[str] = mapped_column(String(50))
+    action: Mapped[str] = mapped_column(String(100))
+    input: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    output: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    confidence: Mapped[float | None] = mapped_column(Float)
+    # None until reviewed; then "good" or "bad"
+    verdict: Mapped[str | None] = mapped_column(String(10))
+    note: Mapped[str | None] = mapped_column(Text)
+    reviewed_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
 

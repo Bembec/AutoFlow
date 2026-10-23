@@ -133,6 +133,13 @@ export default function InsightsPage() {
             <SuggestionList suggestions={data.suggestions} />
           </section>
           <TimeValueCard insights={data} onSaved={setData} />
+          <Card>
+            <h2 className="font-semibold">{t("q.title")}</h2>
+            <p className="mt-1 text-sm text-slate-500">{t("q.subtitle")}</p>
+            <Link href="/quality" className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+              {t("q.open")} →
+            </Link>
+          </Card>
         </div>
       </div>
     </>
