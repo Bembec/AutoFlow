@@ -83,12 +83,14 @@ export function WorkflowCanvas({
   height?: number;
 }) {
   const { nodes, edges } = useMemo(() => {
-    const triggerLabel =
-      definition.trigger.type === "webhook"
-        ? "When another app sends data"
-        : definition.trigger.type === "schedule"
-          ? `On a schedule (${definition.trigger.schedule})`
-          : "When you start it";
+    const triggerLabels: Record<Definition["trigger"]["type"], string> = {
+      manual: "When you start it",
+      webhook: "When another app sends data",
+      schedule: `On a schedule (${definition.trigger.schedule})`,
+      email: `When an email arrives (${definition.trigger.connection ?? "mailbox"})`,
+      document: "When you upload a document",
+    };
+    const triggerLabel = triggerLabels[definition.trigger.type];
 
     const nodes: StepNode[] = [
       {

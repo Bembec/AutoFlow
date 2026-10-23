@@ -14,6 +14,7 @@ housekeeping. Run as many workers as needed.
   whose worker died, and removes long-expired login tokens.
 """
 
+import imaplib
 import logging
 import os
 import signal
@@ -28,6 +29,7 @@ from autoflow import config
 from autoflow.engine import queue
 from autoflow.engine import service as engine
 from autoflow.engine.definition import WorkflowDefinition
+from autoflow.integrations import email_inbox
 from autoflow.storage.db import session_scope, utc_now
 from autoflow.storage.models import AccessToken, Workflow, Workspace
 
@@ -49,11 +51,8 @@ def due_times(schedule, since, until):
     return times
 
 
-def run_schedules(session, now=None):
-    """Start every scheduled run that is due. Returns how many started."""
-
-    now = now or datetime.now(timezone.utc)
-    started = 0
+def live_triggers(session, trigger_type):
+    """(workflow, trigger) for active, published workflows with this trigger type."""
 
     workflows = session.scalars(
         select(Workflow)
@@ -65,9 +64,33 @@ def run_schedules(session, now=None):
         published = engine.version_in_state(workflow, "published")
         if published is None:
             continue
-
         trigger = WorkflowDefinition.model_validate(published.definition).trigger
-        if trigger.type != "schedule" or not trigger.schedule:
+        if trigger.type == trigger_type:
+            yield workflow, trigger
+
+
+def run_email_triggers(session):
+    """Check every watched mailbox for new messages. Returns how many runs started."""
+
+    started = 0
+    for workflow, trigger in list(live_triggers(session, "email")):
+        try:
+            started += email_inbox.poll_workflow(session, workflow, trigger)
+        except (engine.WorkflowError, imaplib.IMAP4.error, OSError) as error:
+            # The message stays unread and is tried again next time
+            logger.warning("Email trigger of workflow %s failed: %s", workflow.id, error)
+            session.rollback()
+    return started
+
+
+def run_schedules(session, now=None):
+    """Start every scheduled run that is due. Returns how many started."""
+
+    now = now or datetime.now(timezone.utc)
+    started = 0
+
+    for workflow, trigger in list(live_triggers(session, "schedule")):
+        if not trigger.schedule:
             continue
 
         for moment in due_times(trigger.schedule, now - LOOKBACK, now):
@@ -122,12 +145,12 @@ def main():
                 next_tick = time.monotonic() + TICK_SECONDS
                 with session_scope() as session:
                     recovered = queue.recover_stale(session)
-                    started = run_schedules(session)
+                    started = run_schedules(session) + run_email_triggers(session)
                     housekeeping(session)
                 if recovered:
                     logger.warning("Re-queued %s execution(s) from a stopped worker", recovered)
                 if started:
-                    logger.info("Started %s scheduled run(s)", started)
+                    logger.info("Started %s scheduled/email run(s)", started)
 
             with session_scope() as session:
                 ran = queue.run_due(session, worker_id)

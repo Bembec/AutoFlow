@@ -172,8 +172,30 @@ export function StepEditor({
               <option value="manual">I start it (or via the API)</option>
               <option value="webhook">Another app sends data (webhook)</option>
               <option value="schedule">On a schedule</option>
+              <option value="email">An email arrives</option>
+              <option value="document">I upload a document (PDF, scan, photo)</option>
             </select>
           </Field>
+          {trigger.type === "email" && (
+            <>
+              <Field label="Mailbox connection" hint="An incoming email (IMAP) connection from Connected apps">
+                <input
+                  className={inputClass}
+                  value={trigger.connection ?? ""}
+                  disabled={!editable}
+                  onChange={(e) => change({ ...definition, trigger: { ...trigger, connection: e.target.value } })}
+                />
+              </Field>
+              <Field label="Folder">
+                <input
+                  className={inputClass}
+                  value={trigger.folder ?? "INBOX"}
+                  disabled={!editable}
+                  onChange={(e) => change({ ...definition, trigger: { ...trigger, folder: e.target.value } })}
+                />
+              </Field>
+            </>
+          )}
           {trigger.type === "schedule" && (
             <Field label="Schedule (cron, UTC)" hint="e.g. 0 9 * * 1-5 = weekdays at 09:00">
               <input

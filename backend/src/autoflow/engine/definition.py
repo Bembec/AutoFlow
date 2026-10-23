@@ -66,8 +66,11 @@ class Step(BaseModel):
 
 
 class Trigger(BaseModel):
-    type: Literal["manual", "webhook", "schedule"] = "manual"
+    type: Literal["manual", "webhook", "schedule", "email", "document"] = "manual"
     schedule: str | None = Field(None, description="Cron expression for schedule triggers")
+    # Email triggers: an imap connection and the folder to watch
+    connection: str | None = Field(None, description="Email triggers: name of an imap connection")
+    folder: str = Field("INBOX", description="Email triggers: mailbox folder to watch")
     sample_payload: dict[str, Any] = Field(
         default_factory=dict, description="Example trigger data used for test runs"
     )
@@ -118,6 +121,9 @@ class WorkflowDefinition(BaseModel):
                 _check_reference(step.id, reference, seen)
 
             seen.add(step.id)
+
+        if self.trigger.type == "email" and not self.trigger.connection:
+            raise ValueError("Email triggers need an imap connection name")
 
         if self.trigger.type == "schedule":
             if not self.trigger.schedule:

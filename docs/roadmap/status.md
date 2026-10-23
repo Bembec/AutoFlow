@@ -45,6 +45,6 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 2. ~~Three niche automations~~: done in V19 (they use Shopify webhooks; a Shopify Admin API connector can come later, e.g. to post review replies or tag orders).
 3. ~~Visual step editing~~: done in V18 (form editor with drag-to-reorder, next to the canvas).
 4. ~~Background execution queue and `delay` steps~~: done in V17.
-5. **Email/document triggers**, such as a Gmail inbox watch or PDF upload with OCR, to feed `ai_extract`.
+5. ~~Email/document triggers~~: done in V20 (IMAP inbox watch, document uploads, AI OCR).
 6. **Choose and set up a cloud host** (AWS/GCP), managed PostgreSQL, uptime monitoring, error tracking and a status page.
 7. **Website and legal**: terms, privacy policy, DPA, sub-processor list (see the full roadmap).

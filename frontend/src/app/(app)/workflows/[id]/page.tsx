@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { StepEditor } from "@/components/StepEditor";
 import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, formatTime, inputClass } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, getToken } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import type { ActionInfo, Definition, Execution, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
@@ -258,6 +258,27 @@ function RunPanel({
   const [result, setResult] = useState<Execution | null>(null);
   const hasLive = workflow.versions.some((v) => v.state === "published");
 
+  async function upload(file: File, mode: "test" | "live") {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("mode", mode);
+
+    const execution = await run.run(async () => {
+      const response = await fetch(`/api${base}/workflows/${workflow.id}/documents`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+        body: form,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Upload failed.");
+      return data as Execution;
+    });
+    if (execution) {
+      setResult(execution);
+      onRun(execution);
+    }
+  }
+
   async function start(mode: "test" | "live") {
     const parsed = parseJson(payload);
     if (parsed.error) return run.setError(parsed.error);
@@ -293,6 +314,21 @@ function RunPanel({
         <Button onClick={() => start("test")} disabled={!canRun || run.busy}>
           {run.busy ? "Running…" : "Test run"}
         </Button>
+        <label
+          className={`inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 ${!canRun || run.busy ? "pointer-events-none opacity-50" : ""}`}
+        >
+          {definition.trigger.type === "document" && hasLive ? "Run with a file…" : "Test with a file…"}
+          <input
+            type="file"
+            className="sr-only"
+            accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.csv"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) upload(file, definition.trigger.type === "document" && hasLive ? "live" : "test");
+            }}
+          />
+        </label>
         <Button variant="secondary" onClick={() => start("live")} disabled={!canRun || run.busy || !hasLive || workflow.status !== "active"}>
           Run live
         </Button>
@@ -402,6 +438,31 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
   );
   const action = useAction();
   const [created, setCreated] = useState<{ url: string; secret: string } | null>(null);
+
+  if (definition.trigger.type === "email") {
+    return (
+      <Card>
+        <h2 className="font-semibold">Email trigger</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          The background worker checks the mailbox connection <strong>{definition.trigger.connection}</strong> (folder{" "}
+          {definition.trigger.folder ?? "INBOX"}) every 30 seconds. Each new email starts one run; PDF, image and text
+          attachments are read automatically. The email is marked as read once its run has started.
+        </p>
+      </Card>
+    );
+  }
+
+  if (definition.trigger.type === "document") {
+    return (
+      <Card>
+        <h2 className="font-semibold">Document trigger</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Upload a PDF, scan, photo or text file in the Run tab (&quot;Test with a file…&quot;). Text PDFs are read directly;
+          scans and photos are read by AI. Once published, uploads run the live version.
+        </p>
+      </Card>
+    );
+  }
 
   if (definition.trigger.type !== "webhook") {
     return (

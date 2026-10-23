@@ -197,4 +197,70 @@ REVIEW_REPLY = {
     },
 }
 
-ECOMMERCE_TEMPLATES = (ORDER_TO_INVOICE, ABANDONED_CART, REVIEW_REPLY)
+SAMPLE_SUPPLIER_EMAIL = {
+    "from": "Beans Wholesale <billing@beans.example>",
+    "subject": "Invoice SUP-4471",
+    "text": "Hello, please find our invoice attached. Kind regards, Beans Wholesale",
+    "attachments": [{"filename": "SUP-4471.pdf", "content_type": "application/pdf"}],
+    "attachments_text": (
+        "--- SUP-4471.pdf ---\nBeans Wholesale Ltd\nInvoice SUP-4471\nDate: 14 Oct 2026\n"
+        "Due: 13 Nov 2026\nColombian beans 10 kg  120.00\nVAT 20%  24.00\nTotal due EUR 144.00"
+    ),
+}
+
+SUPPLIER_INVOICE_TO_SHEET = {
+    "slug": "supplier-invoice-to-sheet",
+    "name": "Supplier invoice → spreadsheet",
+    "category": "E-commerce",
+    "requires": [
+        "An incoming email connection named \"invoices-inbox\" (or switch the trigger to document upload)",
+        "A Google connection named \"sheets\" and your spreadsheet id in the last step",
+        "An AI provider configured on the server",
+    ],
+    "description": (
+        "When a supplier emails an invoice (PDF, scan or text), AI reads the invoice number, "
+        "dates and amounts and adds a row to your bookkeeping sheet. Unsure results wait for your check."
+    ),
+    "definition": {
+        "trigger": {"type": "email", "connection": "invoices-inbox", "sample_payload": SAMPLE_SUPPLIER_EMAIL},
+        "steps": [
+            {
+                "id": "extract",
+                "name": "Read the invoice",
+                "action": "ai_extract",
+                "retry": {"max_attempts": 2, "backoff_seconds": 2},
+                "inputs": {
+                    "text": "{{trigger.text}}\n\n{{trigger.attachments_text}}",
+                    "fields": [
+                        {"name": "supplier", "description": "company that sent the invoice"},
+                        {"name": "invoice_number"},
+                        {"name": "invoice_date", "description": "as YYYY-MM-DD"},
+                        {"name": "due_date", "description": "as YYYY-MM-DD"},
+                        {"name": "total", "description": "amount due, number only"},
+                        {"name": "currency", "description": "3-letter code"},
+                    ],
+                },
+            },
+            {
+                "id": "row",
+                "name": "Add to the bookkeeping sheet",
+                "action": "google_sheets_append_row",
+                "inputs": {
+                    "connection": "sheets",
+                    "spreadsheet_id": "PASTE-YOUR-SPREADSHEET-ID",
+                    "sheet_name": "Supplier invoices",
+                    "values": [
+                        "{{steps.extract.output.data.invoice_date}}",
+                        "{{steps.extract.output.data.supplier}}",
+                        "{{steps.extract.output.data.invoice_number}}",
+                        "{{steps.extract.output.data.total}}",
+                        "{{steps.extract.output.data.currency}}",
+                        "{{steps.extract.output.data.due_date}}",
+                    ],
+                },
+            },
+        ],
+    },
+}
+
+ECOMMERCE_TEMPLATES = (ORDER_TO_INVOICE, ABANDONED_CART, REVIEW_REPLY, SUPPLIER_INVOICE_TO_SHEET)

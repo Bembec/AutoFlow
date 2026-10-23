@@ -2,8 +2,10 @@
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Header, HTTPException, Query, Response
+from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Response, UploadFile
+from starlette.concurrency import run_in_threadpool
 
+from autoflow import documents
 from autoflow.ai import builder, providers
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
@@ -213,6 +215,46 @@ def start_execution(
         # Same Idempotency-Key as an earlier request: nothing new was started
         response.status_code = 200
 
+    return execution
+
+
+@workspace_router.post(
+    "/workflows/{workflow_id}/documents",
+    response_model=schemas.ExecutionOut,
+    status_code=201,
+)
+async def run_with_document(
+    workflow_id: int,
+    membership: MemberAccess,
+    session: Session,
+    file: Annotated[UploadFile, File(description="PDF, image or text file (max 10 MB)")],
+    mode: Annotated[Literal["test", "live"], Form()] = "live",
+):
+    """Start a run with an uploaded document; its text becomes the trigger data."""
+
+    data = await file.read(documents.MAX_BYTES + 1)
+
+    workflow = _errors(lambda: engine.get_workflow(session, membership.workspace_id, workflow_id))
+    if mode == "live":
+        published = engine.version_in_state(workflow, "published")
+        trigger_type = published.definition.get("trigger", {}).get("type") if published else None
+        if trigger_type != "document":
+            raise HTTPException(status_code=409, detail="Live document runs need a published workflow with a document trigger.")
+
+    try:
+        # Reading the file can involve an AI call (OCR), so run it off the event loop
+        payload = await run_in_threadpool(documents.extract_text, data, file.filename or "document")
+    except documents.DocumentError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+
+    execution, _ = _errors(lambda: engine.start_execution(
+        session,
+        membership.workspace_id,
+        workflow_id,
+        mode=mode,
+        payload=payload,
+        user_id=membership.user_id,
+    ))
     return execution
 
 

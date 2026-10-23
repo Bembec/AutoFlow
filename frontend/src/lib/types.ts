@@ -36,8 +36,11 @@ export interface Step {
 
 export interface Definition {
   trigger: {
-    type: "manual" | "webhook" | "schedule";
+    type: "manual" | "webhook" | "schedule" | "email" | "document";
     schedule?: string;
+    /** Email triggers: imap connection name and folder */
+    connection?: string;
+    folder?: string;
     sample_payload?: Record<string, unknown>;
   };
   steps: Step[];

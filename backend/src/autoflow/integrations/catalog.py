@@ -40,6 +40,14 @@ PROVIDERS = {
             required_config=("host", "username", "from_address"),
         ),
         Provider(
+            name="imap",
+            label="Incoming email (IMAP, e.g. Gmail app password)",
+            auth="password",
+            secret_fields=("password",),
+            config_fields=("host", "port", "username"),
+            required_config=("host", "username"),
+        ),
+        Provider(
             name="http",
             label="Any REST API (API key header)",
             auth="api_key",

@@ -1,5 +1,17 @@
 # Changelog
 
+## V20: Email and document triggers
+- **Email trigger:** the worker watches an IMAP mailbox (new `imap` connection type, e.g. Gmail with an app password) and starts one run per new email. Messages are read without being marked, and marked read only after their run exists. The Message-ID is the idempotency key, so no email is processed twice. Trigger data includes the sender, subject, text (HTML-only emails converted), attachments and `attachments_text`.
+- **Document trigger and uploads:** `POST /workspaces/{id}/workflows/{wf}/documents` (multipart) starts a run from a PDF, image or text file. Any workflow accepts uploads in test mode; live uploads need a published document-trigger workflow.
+- **Document reading** (`autoflow.documents`):
+  - the file type is detected from content, not the name;
+  - text PDFs are read with pypdf;
+  - scanned PDFs and photos are transcribed by AI (Gemini or Claude vision through the router), covering "OCR plus LLM extraction";
+  - 10 MB size limit, and text capped at 100k characters.
+- New template: **Supplier invoice → spreadsheet** (email trigger → `ai_extract` → Google Sheets row, with low-confidence results reviewed).
+- Web app: email and document triggers in the editor, "Test/Run with a file…" upload, trigger explanations, and canvas trigger labels.
+- Verified: 14 new tests (PDFs, scans, images, uploads, email parsing, inbox poller with a fake IMAP server), and a Chrome test uploading a file through the UI.
+
 ## V19: E-commerce pack (first niche)
 - Three ready-made automations, each emailing customers only after approval:
   - **Order → invoice:** a Shopify "order paid" webhook creates a numbered invoice (one per order, even if Shopify sends the order twice), records the order, and emails the invoice link.
