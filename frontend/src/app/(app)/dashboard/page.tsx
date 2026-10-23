@@ -3,6 +3,7 @@
 import { History } from "lucide-react";
 import Link from "next/link";
 
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { Card, EmptyState, ErrorNote, LinkButton, Loading, PageHeader, StatusBadge, formatMinutes, formatTime } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
@@ -57,6 +58,7 @@ export default function DashboardPage() {
         description={t("dash.subtitle")}
         actions={<LinkButton href="/workflows/new">{t("dash.newWorkflow")}</LinkButton>}
       />
+      <OnboardingChecklist workflowId={data.per_workflow[0]?.id} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label={t("dash.timeSaved")} value={formatMinutes(data.minutes_saved_30d)} hint={t("dash.timeSavedHint")} />

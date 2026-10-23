@@ -46,8 +46,12 @@ export function LinkButton({
   );
 }
 
-export function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
-  return <section className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</section>;
+export function Card({ className = "", id, children }: { className?: string; id?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className={`scroll-mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
+      {children}
+    </section>
+  );
 }
 
 export function PageHeader({

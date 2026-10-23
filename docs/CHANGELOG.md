@@ -1,5 +1,26 @@
 # Changelog
 
+## V30: Guided onboarding
+- **Get started page** (`/get-started`). New accounts land here.
+  - Pick your platform: Shopify, WooCommerce or somewhere else.
+  - It recommends the best first automation and two useful follow-ups.
+  - One click installs a template and opens its Run tab, ready for a test with sample data.
+- **Getting-started checklist** on the dashboard and the Get started page. Its six steps are:
+  1. business details;
+  2. email connection;
+  3. a template;
+  4. a passing test run;
+  5. a published workflow;
+  6. the store connected (first webhook call or live run).
+
+  It shows a progress bar and highlights the next step with a direct link, including `#business` in Settings and the `?tab=` links on the workflow page. You can hide it, and it remembers that per workspace.
+- **Backend:** `GET /workspaces/{id}/onboarding` works out each step from current data, so removing the email connection or pausing the workflow un-ticks it again. It is isolated per workspace.
+- The workflow page opens the tab named in `?tab=` (run, edit, versions, trigger or settings).
+- 37 new interface texts in all five languages (243 in total). The help article "Getting started" is updated.
+- Checks:
+  - backend: 216 passed, including 2 new onboarding tests;
+  - frontend: type check, lint and production build all clean.
+
 ## V29: Design system and in-app polish
 - **Swappable brand.** All accent colours come from one `brand-*` palette in `frontend/src/app/globals.css`. Name, wordmark, tagline and theme colour live in `frontend/src/lib/brand.ts`. A shared `Logo` component is used in the app, sign-in and home pages. A rebrand means editing those two files and the two `icon.svg` files.
 - **Icons** (lucide-react) in the navigation, empty states, errors, menu and sign-out.

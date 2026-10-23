@@ -4,6 +4,8 @@
 
 Sign up with your email. You get your own **workspace**: everything you build and connect stays private to it. You can invite teammates later in **Settings → Team**.
 
+After signing up you land on **Get started**. Choose where you sell (Shopify, WooCommerce or somewhere else) and AutoFlow suggests the best first automation. One click sets it up and takes you straight to a test run. A **checklist** on the dashboard ticks off each step below as you finish it. You can hide it at any time.
+
 ## 2. Add your business details
 
 Go to **Settings → Business details** and fill in your business name, address and tax/VAT number. These are printed on the invoices AutoFlow creates.

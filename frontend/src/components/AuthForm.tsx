@@ -43,7 +43,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       return true;
     });
 
-    if (done) router.push(mode === "register" ? "/workflows/new" : "/dashboard");
+    if (done) router.push(mode === "register" ? "/get-started" : "/dashboard");
   }
 
   return (

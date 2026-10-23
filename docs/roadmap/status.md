@@ -49,5 +49,5 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 6. **Choose and set up a cloud host** (AWS/GCP), managed PostgreSQL, uptime monitoring, error tracking and a status page.
 7. **Website and legal**: terms, privacy policy, DPA, sub-processor list (see the full roadmap).
 8. ~~Design system and in-app polish~~: done in V29 (swappable brand theme, icons, plain-language run view and errors, loading skeletons, accessibility pass).
-9. **Guided onboarding** (V30): first live workflow in under 5 minutes.
+9. ~~Guided onboarding~~: done in V30 (Get started page with platform-based template picks, live checklist on the dashboard).
 10. **Public website pages** (V31): home with a "type a task" demo, features, templates, integrations, pricing, security.

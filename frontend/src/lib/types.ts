@@ -258,3 +258,12 @@ export interface AIDraft {
   attempts: number;
   workflow: Workflow | null;
 }
+
+export type OnboardingStep = "business" | "email" | "template" | "test" | "publish" | "live";
+
+export interface Onboarding {
+  steps: { id: OnboardingStep; done: boolean }[];
+  completed: number;
+  total: number;
+  complete: boolean;
+}

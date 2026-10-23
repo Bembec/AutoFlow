@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { StepEditor } from "@/components/StepEditor";
@@ -13,7 +13,8 @@ import { T, useI18n } from "@/lib/i18n";
 import type { ActionInfo, Definition, Execution, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
-type Tab = "run" | "edit" | "versions" | "trigger" | "settings";
+const TABS = ["run", "edit", "versions", "trigger", "settings"] as const;
+type Tab = (typeof TABS)[number];
 
 function parseJson(text: string): { value?: unknown; error?: string } {
   try {
@@ -31,7 +32,9 @@ export default function WorkflowPage() {
   const { data: workflow, error, loading, reload, setData } = useApi<Workflow>(`${base}/workflows/${id}`);
   const { data: actions } = useApi<ActionInfo[]>("/actions");
   const action = useAction();
-  const [tab, setTab] = useState<Tab>("run");
+  const searchParams = useSearchParams();
+  const requested = searchParams.get("tab");
+  const [tab, setTab] = useState<Tab>(TABS.includes(requested as Tab) ? (requested as Tab) : "run");
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<Execution | null>(null);
 

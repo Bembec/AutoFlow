@@ -486,7 +486,7 @@ function BusinessForm({ data, onSaved }: { data: BusinessProfile; onSaved: (prof
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [key]: event.target.value });
 
   return (
-    <Card>
+    <Card id="business">
       <h2 className="font-semibold"><T k="set.business" /></h2>
       <p className="mt-1 text-sm text-slate-500">Printed on the invoices your workflows create.</p>
       <form

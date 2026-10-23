@@ -29,6 +29,7 @@ cd frontend && npm run build         # production build
 | Version | Check | Where | Status |
 | --- | --- | --- | --- |
 | V24–V25 | Full backend suite and frontend build | ran locally (205 passed, build clean) and in CI | done |
+| V30 | Time a fresh sign-up through the checklist to a published workflow (target: under 5 minutes) on desktop and phone | **manual**, browser | to do |
 | V29 | Visual check of the new look on desktop and phone: icons, skeleton loading, run detail with "Technical details", keyboard Tab through the menu (focus ring + "Skip to content") | **manual**, browser | to do |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
