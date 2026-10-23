@@ -40,7 +40,7 @@ Staging and production have separate databases, secret keys, Stripe accounts (te
 Its mailbox points at an unreachable host, so nothing is ever sent. Running the command again changes nothing. Sign in as `demo@autoflow.example` / `demo-password-2026`, or pass `--email` and `--password`. Never run it against production.
 
 **Feature flags** (`backend/src/autoflow/features.py`) let you switch features without a deploy:
-- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, `help_assistant`, and two that are in development and off by default: `smarter_logic` and `mcp_tools`;
+- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, `help_assistant`, and three that are in development and off by default: `smarter_logic`, `mcp_tools` and `ai_assistants`;
 - set them per environment with `AUTOFLOW_FEATURES="smarter_logic=on,ai_builder=off"`;
 - override them for one workspace with `PUT /staff/workspaces/{id}/features` (null removes an override);
 - the server enforces them, and the app hides what is off;

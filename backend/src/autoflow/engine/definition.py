@@ -45,7 +45,7 @@ MAX_FOR_EACH_ITEMS = 100
 NO_LOOP_ACTIONS = {
     "send_email", "smtp_send_email", "compose_email",
     "ai_classify", "ai_draft_reply", "ai_extract", "ai_summarize", "ai_translate", "classify_enquiry",
-    "delay",
+    "delay", "ai_agent",
 }
 
 
@@ -192,6 +192,8 @@ def required_features(definition):
         needed.add("smarter_logic")
     if any(step.action in MCP_ACTIONS for step in definition.steps):
         needed.add("mcp_tools")
+    if any(step.action in ("ai_agent", "agent_execute") for step in definition.steps):
+        needed.add("ai_assistants")
     return needed
 
 

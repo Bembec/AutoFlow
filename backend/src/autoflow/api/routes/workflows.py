@@ -79,6 +79,7 @@ def _require_features(session, membership, definition):
     messages = {
         "smarter_logic": "Comparisons, AND/OR conditions and loops are not switched on for this workspace yet.",
         "mcp_tools": "MCP tools are not switched on for this workspace yet.",
+        "ai_assistants": "AI assistants are not switched on for this workspace yet.",
     }
     if missing:
         raise HTTPException(status_code=403, detail=" ".join(messages[name] for name in missing))

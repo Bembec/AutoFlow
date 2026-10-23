@@ -1,5 +1,23 @@
 # Changelog
 
+## V42: AI assistants, part 1 (behind the `ai_assistants` flag)
+- **`ai_agent` step:** an assistant for one job, described in plain words.
+  - It reads its input and may call **read-only tools** you choose: checkout status, exchange rates, `http_get`, `mcp_read`.
+  - It finishes with an answer, a label and **proposed actions**.
+  - It takes at most 5 rounds, and each round counts as an AI call against the daily limit and monthly AI budget.
+  - The input and every tool result are fenced as untrusted and scanned for prompt injection.
+  - Suspected manipulation and confidence below 0.6 go to review.
+- **`agent_execute` step:** carries out the proposals **only after approval**, and it always requires approval.
+  - It accepts only actions that are safe to repeat: tags, notes, upserts, void invoice, record order, save customer, log.
+  - It never sends email or uses AI.
+  - Connections come from the workflow's fixed `defaults`, so the model can't pick another account.
+  - Proposals outside the allowed list are dropped and shown as rejected.
+- Saving a workflow with assistant steps needs `ai_assistants` switched on. The editor hides the steps otherwise.
+- A new help article: "AI assistants".
+- Checks:
+  - backend: 297 passed, including 7 assistant tests (tool-list invariants, look-up-propose-approve end to end, fixed connections, injection review, bounded rounds, AI limit, feature flag);
+  - frontend: type check, lint and build all clean.
+
 ## V41: Template library reaches 25
 - **Eleven new e-commerce templates:**
   - **Welcome first-time customers:** only for a customer's first order.

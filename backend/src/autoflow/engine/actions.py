@@ -343,4 +343,5 @@ def delay_seconds(inputs):
 # Connector actions register themselves into the same registry
 from autoflow.integrations import actions as _connector_actions  # noqa: E402,F401
 from autoflow.ai import steps as _ai_steps  # noqa: E402,F401
+from autoflow.ai import agent as _ai_agent  # noqa: E402,F401
 from autoflow.commerce import actions as _commerce_actions  # noqa: E402,F401
