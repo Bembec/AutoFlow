@@ -5,15 +5,17 @@ import { useState } from "react";
 import { Button, Card, ErrorNote, Field, Loading, PageHeader, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { T, useI18n } from "@/lib/i18n";
 import type { BusinessProfile, Connection, Member, NotificationSettings, Policies, Role } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
 export default function SettingsPage() {
   const { workspace } = useSession();
+  const { t } = useI18n();
 
   return (
     <>
-      <PageHeader title="Settings" description={`Workspace “${workspace.name}” · your role: ${workspace.role}`} />
+      <PageHeader title={t("set.title")} description={`Workspace “${workspace.name}” · your role: ${workspace.role}`} />
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-6">
           <EmergencyStop />
@@ -41,7 +43,7 @@ function EmergencyStop() {
 
   return (
     <Card className={data.automation_paused ? "border-red-300" : ""}>
-      <h2 className="font-semibold">Emergency stop</h2>
+      <h2 className="font-semibold"><T k="set.emergency" /></h2>
       <p className="mt-1 text-sm text-slate-500">
         Stops every workflow in this workspace at once, cancels runs in progress and blocks webhooks until you resume.
       </p>
@@ -56,7 +58,7 @@ function EmergencyStop() {
               window.location.reload();
             }}
           >
-            Resume all automations
+            <T k="set.resumeAll" />
           </Button>
         ) : (
           <Button
@@ -71,7 +73,7 @@ function EmergencyStop() {
               window.location.reload();
             }}
           >
-            Stop all automations
+            <T k="set.stopAll" />
           </Button>
         )
       ) : (
@@ -103,7 +105,7 @@ function PoliciesForm({ data, onSaved }: { data: Policies; onSaved: (policies: P
 
   return (
     <Card>
-      <h2 className="font-semibold">Safety limits</h2>
+      <h2 className="font-semibold"><T k="set.limits" /></h2>
       <p className="mt-1 text-sm text-slate-500">Daily caps protect you from a runaway workflow spending money or emailing too many people.</p>
       <form
         className="mt-4 space-y-3"
@@ -162,7 +164,7 @@ function MembersCard() {
 
   return (
     <Card>
-      <h2 className="font-semibold">Team</h2>
+      <h2 className="font-semibold"><T k="set.team" /></h2>
       <ul className="mt-3 divide-y divide-slate-100 text-sm">
         {data?.map((member) => (
           <li key={member.user_id} className="flex justify-between py-2">
@@ -216,7 +218,7 @@ function TwoFactorCard() {
 
   return (
     <Card>
-      <h2 className="font-semibold">Two-factor login</h2>
+      <h2 className="font-semibold"><T k="set.twoFactor" /></h2>
       <p className="mt-1 text-sm text-slate-500">
         {data.enabled
           ? `On. Sign-in also asks for a code from your authenticator app. ${data.recovery_codes_left} recovery codes left.`
@@ -323,7 +325,7 @@ function AuditCard() {
 
   return (
     <Card>
-      <h2 className="font-semibold">Activity log</h2>
+      <h2 className="font-semibold"><T k="set.activity" /></h2>
       <p className="mt-1 text-sm text-slate-500">Who changed what in this workspace.</p>
       {data.length === 0 ? (
         <p className="mt-3 text-sm text-slate-500">Nothing recorded yet.</p>
@@ -375,7 +377,7 @@ function NotificationsForm({
 
   return (
     <Card>
-      <h2 className="font-semibold">Notifications</h2>
+      <h2 className="font-semibold"><T k="set.notifications" /></h2>
       <p className="mt-1 text-sm text-slate-500">
         Hear about it when something needs you, instead of checking the app. Sent by the background worker.
       </p>
@@ -485,7 +487,7 @@ function BusinessForm({ data, onSaved }: { data: BusinessProfile; onSaved: (prof
 
   return (
     <Card>
-      <h2 className="font-semibold">Business details</h2>
+      <h2 className="font-semibold"><T k="set.business" /></h2>
       <p className="mt-1 text-sm text-slate-500">Printed on the invoices your workflows create.</p>
       <form
         className="mt-3 space-y-3"
@@ -525,7 +527,7 @@ function NewWorkspaceCard() {
 
   return (
     <Card>
-      <h2 className="font-semibold">New workspace</h2>
+      <h2 className="font-semibold"><T k="set.newWorkspace" /></h2>
       <p className="mt-1 text-sm text-slate-500">Each workspace keeps its own workflows, data and connected apps separate.</p>
       <form
         className="mt-3 flex gap-2"

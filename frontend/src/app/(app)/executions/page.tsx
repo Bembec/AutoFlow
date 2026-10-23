@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { EmptyState, ErrorNote, Loading, PageHeader, StatusBadge, formatTime } from "@/components/ui";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { Execution, Workflow } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
@@ -12,6 +13,7 @@ const FILTERS = ["all", "waiting_approval", "failed", "needs_attention", "succee
 
 export default function ExecutionsPage() {
   const { base } = useSession();
+  const { t } = useI18n();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
   const query = filter === "all" ? "" : `&status=${filter}`;
   const { data, error, loading } = useApi<Execution[]>(`${base}/executions?limit=100${query}`);
@@ -20,7 +22,7 @@ export default function ExecutionsPage() {
 
   return (
     <>
-      <PageHeader title="Run history" description="Every run, step by step. Failed runs can be retried from the step that failed." />
+      <PageHeader title={t("runs.title")} description={t("runs.subtitle")} />
       <div className="mb-4 flex flex-wrap gap-2">
         {FILTERS.map((item) => (
           <button
@@ -36,17 +38,17 @@ export default function ExecutionsPage() {
       {loading && !data ? (
         <Loading />
       ) : data && data.length === 0 ? (
-        <EmptyState title="No runs here" />
+        <EmptyState title={t("runs.empty")} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Run</th>
-                <th className="px-4 py-3 font-medium">Workflow</th>
-                <th className="hidden px-4 py-3 font-medium sm:table-cell">Mode</th>
-                <th className="hidden px-4 py-3 font-medium md:table-cell">Started</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">{t("col.run")}</th>
+                <th className="px-4 py-3 font-medium">{t("col.workflow")}</th>
+                <th className="hidden px-4 py-3 font-medium sm:table-cell">{t("col.mode")}</th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell">{t("col.started")}</th>
+                <th className="px-4 py-3 font-medium">{t("col.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

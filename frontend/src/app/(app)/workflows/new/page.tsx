@@ -7,6 +7,7 @@ import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { AIDraft, TemplateInfo, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
@@ -19,6 +20,7 @@ const EXAMPLES = [
 export default function NewWorkflowPage() {
   const router = useRouter();
   const { base, can } = useSession();
+  const { t } = useI18n();
   const { data: templates } = useApi<TemplateInfo[]>("/templates");
   const draftAction = useAction();
   const saveAction = useAction();
@@ -63,15 +65,15 @@ export default function NewWorkflowPage() {
   return (
     <>
       <PageHeader
-        title="New workflow"
-        description="Describe what should happen in plain words. AutoFlow drafts the steps; you review, test and publish."
+        title={t("new.title")}
+        description={t("new.subtitle")}
       />
 
       <div className="grid gap-6 xl:grid-cols-5">
         <div className="space-y-6 xl:col-span-2">
           <Card>
             <form onSubmit={askAI} className="space-y-3">
-              <label htmlFor="request" className="font-semibold">What should AutoFlow do?</label>
+              <label htmlFor="request" className="font-semibold">{t("new.ask")}</label>
               <textarea
                 id="request"
                 className={`${inputClass} min-h-32`}
@@ -96,7 +98,7 @@ export default function NewWorkflowPage() {
 
               {draft?.questions.length ? (
                 <div className="space-y-3 rounded-lg bg-amber-50 p-3">
-                  <p className="text-sm font-medium text-amber-900">A few details first:</p>
+                  <p className="text-sm font-medium text-amber-900">{t("new.details")}</p>
                   {draft.questions.map((question) => (
                     <label key={question} className="block text-sm">
                       <span className="text-amber-900">{question}</span>
@@ -112,13 +114,13 @@ export default function NewWorkflowPage() {
 
               <ErrorNote message={draftAction.error} />
               <Button type="submit" disabled={draftAction.busy || request.trim().length < 10}>
-                {draftAction.busy ? "Drafting…" : draft ? "Update draft" : "Draft my workflow"}
+                {draftAction.busy ? t("new.drafting") : draft ? t("new.update") : t("new.draft")}
               </Button>
             </form>
           </Card>
 
           <Card>
-            <h2 className="font-semibold">Or start from a template</h2>
+            <h2 className="font-semibold">{t("new.templates")}</h2>
             <ul className="mt-3 space-y-3">
               {templates?.map((template) => (
                 <li key={template.slug} className="flex items-start justify-between gap-3">
@@ -132,7 +134,7 @@ export default function NewWorkflowPage() {
                     <p className="text-xs text-slate-500">{template.description}</p>
                     {template.requires.length > 0 && (
                       <details className="mt-1 text-xs text-slate-500">
-                        <summary className="cursor-pointer">Needs to work live</summary>
+                        <summary className="cursor-pointer">{t("new.needs")}</summary>
                         <ul className="mt-1 list-disc space-y-0.5 pl-4">
                           {template.requires.map((item) => <li key={item}>{item}</li>)}
                         </ul>
@@ -140,7 +142,7 @@ export default function NewWorkflowPage() {
                     )}
                   </div>
                   <Button variant="secondary" disabled={saveAction.busy} onClick={() => installTemplate(template.slug)}>
-                    Use
+                    {t("new.use")}
                   </Button>
                 </li>
               ))}
@@ -157,7 +159,7 @@ export default function NewWorkflowPage() {
                   <p className="text-sm text-slate-500">{draft.description}</p>
                 </div>
                 <Button onClick={saveDraft} disabled={saveAction.busy}>
-                  {saveAction.busy ? "Saving…" : "Save as draft"}
+                  {saveAction.busy ? t("new.saving") : t("new.save")}
                 </Button>
               </div>
               <div className="mt-4">
@@ -165,7 +167,7 @@ export default function NewWorkflowPage() {
               </div>
               {draft.assumptions.length > 0 && (
                 <div className="mt-4 text-sm">
-                  <p className="font-medium">Assumptions</p>
+                  <p className="font-medium">{t("new.assumptions")}</p>
                   <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-600">
                     {draft.assumptions.map((item) => <li key={item}>{item}</li>)}
                   </ul>
@@ -173,14 +175,14 @@ export default function NewWorkflowPage() {
               )}
               {draft.unsupported.length > 0 && (
                 <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">
-                  Not available yet: {draft.unsupported.join(", ")}
+                  {t("new.unsupported")} {draft.unsupported.join(", ")}
                 </p>
               )}
               <ErrorNote message={saveAction.error} />
             </Card>
           ) : (
             <div className="flex h-full min-h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-              Your workflow will appear here as a diagram you can check before saving.
+              {t("new.placeholder")}
             </div>
           )}
         </div>

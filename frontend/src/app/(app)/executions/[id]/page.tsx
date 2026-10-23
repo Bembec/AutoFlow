@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Button, Card, ErrorNote, JsonBlock, Loading, StatusBadge, formatTime } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { Execution } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
@@ -14,6 +15,7 @@ const OPEN = new Set(["queued", "running", "waiting_approval"]);
 export default function ExecutionPage() {
   const { id } = useParams<{ id: string }>();
   const { base, can } = useSession();
+  const { t } = useI18n();
   const { data: execution, error, loading, setData } = useApi<Execution>(`${base}/executions/${id}`);
   const action = useAction();
 
@@ -29,7 +31,7 @@ export default function ExecutionPage() {
 
   return (
     <>
-      <Link href="/executions" className="text-sm text-slate-500 hover:text-slate-800">← Run history</Link>
+      <Link href="/executions" className="text-sm text-slate-500 hover:text-slate-800">{t("ex.back")}</Link>
       <div className="mt-1 mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Run #{execution.id}</h1>
@@ -43,11 +45,11 @@ export default function ExecutionPage() {
           <StatusBadge status={execution.status} />
           {can("member") && OPEN.has(execution.status) && (
             <Button variant="danger" disabled={action.busy} onClick={() => operate("cancel", undefined, "Cancel this run?")}>
-              Cancel run
+              {t("ex.cancel")}
             </Button>
           )}
           {can("member") && execution.status === "failed" && (
-            <Button disabled={action.busy} onClick={() => operate("retry")}>Retry from failed step</Button>
+            <Button disabled={action.busy} onClick={() => operate("retry")}>{t("ex.retry")}</Button>
           )}
           {can("member") && execution.status === "needs_attention" && (
             <Button
@@ -60,7 +62,7 @@ export default function ExecutionPage() {
                 )
               }
             >
-              I checked — retry
+              {t("ex.checkedRetry")}
             </Button>
           )}
         </div>
@@ -80,7 +82,7 @@ export default function ExecutionPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
-          <h2 className="font-semibold">Trigger data</h2>
+          <h2 className="font-semibold">{t("ex.trigger")}</h2>
           <div className="mt-3"><JsonBlock value={execution.trigger_payload} /></div>
         </Card>
 
@@ -103,13 +105,13 @@ export default function ExecutionPage() {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {step.input && (
                     <div>
-                      <p className="mb-1 text-xs font-medium uppercase text-slate-500">Input</p>
+                      <p className="mb-1 text-xs font-medium uppercase text-slate-500">{t("ex.input")}</p>
                       <JsonBlock value={step.input} />
                     </div>
                   )}
                   {step.output && (
                     <div>
-                      <p className="mb-1 text-xs font-medium uppercase text-slate-500">Output</p>
+                      <p className="mb-1 text-xs font-medium uppercase text-slate-500">{t("ex.output")}</p>
                       <JsonBlock value={step.output} />
                     </div>
                   )}

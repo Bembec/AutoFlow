@@ -1,5 +1,11 @@
 # Changelog
 
+## V28: Translations finished
+- Every page of the web app now uses the translation system: workflows, the new-workflow builder, workflow detail (tabs, publish, pause, run panel), run history and run detail, connected apps, invoices, plan and usage, and all Settings cards.
+- 159 interface texts, complete in English, Spanish, French, German and Turkish.
+- A small `<T k="…"/>` helper for translated text in JSX. Form labels and hints accept any content.
+- Checks: frontend type check, lint and production build clean; no backend changes.
+
 ## V27: Two-factor login and audit log
 - **Two-factor login** with any authenticator app (TOTP, RFC 6238, implemented with the standard library and checked against the RFC test vector):
   - setup with a key or `otpauth://` link, confirmed with a code;

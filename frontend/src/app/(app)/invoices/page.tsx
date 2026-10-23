@@ -4,24 +4,26 @@ import Link from "next/link";
 
 import { EmptyState, ErrorNote, Loading, PageHeader, formatTime } from "@/components/ui";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { InvoiceSummary } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
 export default function InvoicesPage() {
   const { base } = useSession();
+  const { t } = useI18n();
   const { data, error, loading } = useApi<InvoiceSummary[]>(`${base}/invoices`);
 
   return (
     <>
       <PageHeader
-        title="Invoices"
-        description="Created by your order workflows: one per order, numbered in sequence. Business details come from Settings."
+        title={t("inv.title")}
+        description={t("inv.subtitle")}
       />
       <ErrorNote message={error} />
       {loading && !data ? (
         <Loading />
       ) : data && data.length === 0 ? (
-        <EmptyState title="No invoices yet">
+        <EmptyState title={t("inv.empty")}>
           Install the <Link href="/workflows/new" className="text-indigo-600 hover:underline">Order → invoice</Link> template
           and connect your store&apos;s &quot;order paid&quot; webhook.
         </EmptyState>
@@ -30,11 +32,11 @@ export default function InvoicesPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Invoice</th>
-                <th className="px-4 py-3 font-medium">Customer</th>
-                <th className="hidden px-4 py-3 font-medium sm:table-cell">Order</th>
-                <th className="hidden px-4 py-3 font-medium md:table-cell">Issued</th>
-                <th className="px-4 py-3 text-right font-medium">Total</th>
+                <th className="px-4 py-3 font-medium">{t("col.invoice")}</th>
+                <th className="px-4 py-3 font-medium">{t("col.customer")}</th>
+                <th className="hidden px-4 py-3 font-medium sm:table-cell">{t("col.order")}</th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell">{t("col.issued")}</th>
+                <th className="px-4 py-3 text-right font-medium">{t("col.total")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

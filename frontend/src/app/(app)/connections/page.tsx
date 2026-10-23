@@ -5,11 +5,13 @@ import { useState } from "react";
 import { Button, Card, EmptyState, ErrorNote, Field, Loading, PageHeader, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { Connection, IntegrationInfo } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
 export default function ConnectionsPage() {
   const { base, can } = useSession();
+  const { t } = useI18n();
   const { data: connections, error, loading, reload } = useApi<Connection[]>(`${base}/connections`);
   const { data: integrations } = useApi<IntegrationInfo[]>("/integrations");
   const [adding, setAdding] = useState<IntegrationInfo | null>(null);
@@ -18,14 +20,14 @@ export default function ConnectionsPage() {
   return (
     <>
       <PageHeader
-        title="Connected apps"
-        description="Your own accounts that workflows can use. Passwords and tokens are encrypted and never shown again."
+        title={t("conn.title")}
+        description={t("conn.subtitle")}
       />
       <ErrorNote message={error ?? action.error} />
 
       {can("admin") && (
         <Card className="mb-6">
-          <h2 className="font-semibold">Connect an app</h2>
+          <h2 className="font-semibold">{t("conn.connect")}</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {integrations?.map((integration) => (
               <Button
@@ -62,7 +64,7 @@ export default function ConnectionsPage() {
       {loading && !connections ? (
         <Loading />
       ) : connections && connections.length === 0 ? (
-        <EmptyState title="No apps connected yet">Connect Airtable, your mailbox, Google Sheets or any API.</EmptyState>
+        <EmptyState title={t("conn.empty")}>Connect Airtable, your mailbox, Google Sheets or any API.</EmptyState>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {connections?.map((connection) => (
@@ -96,7 +98,7 @@ export default function ConnectionsPage() {
                     reload();
                   }}
                 >
-                  Disconnect
+                  {t("conn.disconnect")}
                 </Button>
               )}
             </Card>
@@ -109,6 +111,7 @@ export default function ConnectionsPage() {
 
 function AddConnectionForm({ integration, onDone }: { integration: IntegrationInfo; onDone: () => void }) {
   const { base } = useSession();
+  const { t } = useI18n();
   const action = useAction();
   const [name, setName] = useState(integration.name);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -157,8 +160,8 @@ function AddConnectionForm({ integration, onDone }: { integration: IntegrationIn
       <div className="md:col-span-2">
         <ErrorNote message={action.error} />
         <div className="mt-2 flex gap-2">
-          <Button type="submit" disabled={action.busy}>Save connection</Button>
-          <Button type="button" variant="ghost" onClick={onDone}>Cancel</Button>
+          <Button type="submit" disabled={action.busy}>{t("conn.save")}</Button>
+          <Button type="button" variant="ghost" onClick={onDone}>{t("common.cancel")}</Button>
         </div>
       </div>
     </form>

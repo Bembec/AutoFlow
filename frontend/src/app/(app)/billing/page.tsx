@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button, Card, ErrorNote, Loading, PageHeader, StatusBadge, formatTime } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import { useAction, useApi } from "@/lib/useApi";
 
 interface Plan {
@@ -34,6 +35,7 @@ const unlimited = (value: number | null) => (value === null ? "Unlimited" : valu
 
 export default function BillingPage() {
   const { base, workspace } = useSession();
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const { data, error, loading, reload } = useApi<Billing>(`${base}/billing`);
   const { data: plans } = useApi<Plan[]>("/plans");
@@ -55,8 +57,8 @@ export default function BillingPage() {
   return (
     <>
       <PageHeader
-        title="Plan & usage"
-        description="You pay for tasks that work: a step that succeeds and calls an app or AI. Failed steps, retries and test runs are free."
+        title={t("bill.title")}
+        description={t("bill.subtitle")}
       />
 
       {searchParams.get("checkout") === "success" && (
@@ -73,7 +75,7 @@ export default function BillingPage() {
         <Card className="xl:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="text-sm text-slate-500">Current plan</p>
+              <p className="text-sm text-slate-500">{t("bill.current")}</p>
               <p className="text-2xl font-semibold">{data.plan.label}</p>
               <p className="text-sm text-slate-500">
                 {formatTime(data.period.start)} – {formatTime(data.period.end)}
@@ -85,7 +87,7 @@ export default function BillingPage() {
 
           <div className="mt-6">
             <div className="flex justify-between text-sm">
-              <span>Tasks this period</span>
+              <span>{t("bill.tasks")}</span>
               <span className="tabular-nums text-slate-600">
                 {data.usage.billable_tasks.toLocaleString()} / {unlimited(included)}
               </span>
@@ -114,7 +116,7 @@ export default function BillingPage() {
 
           {owner && data.provider === "stripe" && (
             <Button variant="secondary" className="mt-6" disabled={action.busy} onClick={() => redirect("portal")}>
-              Manage payment & invoices
+              {t("bill.manage")}
             </Button>
           )}
           {owner && data.plan.name !== "free" && (
@@ -144,7 +146,7 @@ export default function BillingPage() {
         </Card>
       </div>
 
-      <h2 className="mt-8 mb-3 font-semibold">Plans</h2>
+      <h2 className="mt-8 mb-3 font-semibold">{t("bill.plans")}</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {plans?.map((plan) => {
           const current = plan.name === data.plan.name;
@@ -162,10 +164,10 @@ export default function BillingPage() {
                 <li>{unlimited(plan.max_seats)} seat{plan.max_seats === 1 ? "" : "s"}</li>
               </ul>
               {current ? (
-                <p className="mt-4 text-sm font-medium text-indigo-700">Your plan</p>
+                <p className="mt-4 text-sm font-medium text-indigo-700">{t("bill.yourPlan")}</p>
               ) : owner && data.online_payments && plan.price_usd_month ? (
                 <Button className="mt-4 w-full" disabled={action.busy} onClick={() => redirect("checkout", { plan: plan.name })}>
-                  Choose {plan.label}
+                  {t("bill.choose", { plan: plan.label })}
                 </Button>
               ) : null}
             </Card>

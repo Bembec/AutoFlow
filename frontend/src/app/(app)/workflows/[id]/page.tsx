@@ -9,6 +9,7 @@ import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api, getToken } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { T, useI18n } from "@/lib/i18n";
 import type { ActionInfo, Definition, Execution, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
@@ -26,6 +27,7 @@ export default function WorkflowPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { base, can } = useSession();
+  const { t } = useI18n();
   const { data: workflow, error, loading, reload, setData } = useApi<Workflow>(`${base}/workflows/${id}`);
   const { data: actions } = useApi<ActionInfo[]>("/actions");
   const action = useAction();
@@ -66,39 +68,39 @@ export default function WorkflowPage() {
   }
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "run", label: "Run" },
-    { id: "edit", label: "Edit" },
-    { id: "trigger", label: "Trigger" },
-    { id: "versions", label: "Versions" },
-    { id: "settings", label: "Settings" },
+    { id: "run", label: t("tab.run") },
+    { id: "edit", label: t("tab.edit") },
+    { id: "trigger", label: t("tab.trigger") },
+    { id: "versions", label: t("tab.versions") },
+    { id: "settings", label: t("tab.settings") },
   ];
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <Link href="/workflows" className="text-sm text-slate-500 hover:text-slate-800">← Workflows</Link>
+          <Link href="/workflows" className="text-sm text-slate-500 hover:text-slate-800">{t("wfd.back")}</Link>
           <h1 className="mt-1 text-2xl font-semibold">{workflow.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
             <StatusBadge status={workflow.status} />
-            {published && <span>Live: v{published.number}</span>}
-            {draft && <span>Draft: v{draft.number} (not live yet)</span>}
+            {published && <span>{t("wfd.live", { n: published.number })}</span>}
+            {draft && <span>{t("wfd.draft", { n: draft.number })}</span>}
           </div>
         </div>
         {editable && (
           <div className="flex flex-wrap gap-2">
             {draft && (
               <Button onClick={() => workflowAction("publish")} disabled={action.busy}>
-                Publish v{draft.number}
+                {t("wfd.publish", { n: draft.number })}
               </Button>
             )}
             {workflow.status === "active" ? (
               <Button variant="secondary" onClick={() => workflowAction("pause")} disabled={action.busy}>
-                Pause
+                {t("wfd.pause")}
               </Button>
             ) : workflow.status === "paused" ? (
               <Button variant="secondary" onClick={() => workflowAction("resume")} disabled={action.busy}>
-                Resume
+                {t("wfd.resume")}
               </Button>
             ) : null}
             <Button
@@ -110,7 +112,7 @@ export default function WorkflowPage() {
                 router.push("/workflows");
               }}
             >
-              Archive
+              {t("wfd.archive")}
             </Button>
           </div>
         )}
@@ -298,11 +300,11 @@ function RunPanel({
 
   return (
     <Card>
-      <h2 className="font-semibold">Try it</h2>
+      <h2 className="font-semibold"><T k="run.try" /></h2>
       <p className="mt-1 text-sm text-slate-500">
         A <strong>test run</strong> uses the draft and only simulates emails and saves. Nothing real happens.
       </p>
-      <Field label="Trigger data (JSON)">
+      <Field label={<T k="run.payload" />}>
         <textarea
           className={`${inputClass} min-h-40 font-mono text-xs`}
           value={payload}
@@ -312,12 +314,12 @@ function RunPanel({
       <ErrorNote message={run.error} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button onClick={() => start("test")} disabled={!canRun || run.busy}>
-          {run.busy ? "Running…" : "Test run"}
+          {run.busy ? <T k="run.running" /> : <T k="run.testRun" />}
         </Button>
         <label
           className={`inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 ${!canRun || run.busy ? "pointer-events-none opacity-50" : ""}`}
         >
-          {definition.trigger.type === "document" && hasLive ? "Run with a file…" : "Test with a file…"}
+          {definition.trigger.type === "document" && hasLive ? <T k="run.liveFile" /> : <T k="run.testFile" />}
           <input
             type="file"
             className="sr-only"
@@ -330,7 +332,7 @@ function RunPanel({
           />
         </label>
         <Button variant="secondary" onClick={() => start("live")} disabled={!canRun || run.busy || !hasLive || workflow.status !== "active"}>
-          Run live
+          <T k="run.live" />
         </Button>
       </div>
       {result && (
