@@ -1,6 +1,7 @@
 // Header and footer of the public website. Server components: no JavaScript
 // needed (the mobile menu is a <details> element).
 
+import { SiteAccountLinks, StartOrOpen } from "@/components/site/SiteAccountLinks";
 import { SiteLanguagePicker } from "@/components/site/SiteLanguagePicker";
 import { S } from "@/lib/site-i18n";
 import { Menu } from "lucide-react";
@@ -36,24 +37,20 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2 text-sm">
-          <Link href="/login" className="hidden rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 sm:block">
-            Sign in
-          </Link>
           <SiteLanguagePicker />
-          <Link href="/register" className="rounded-lg bg-brand-600 px-3 py-2 font-medium text-white hover:bg-brand-500">
-            Start free
-          </Link>
+          <SiteAccountLinks />
           <details className="relative md:hidden">
             <summary className="flex cursor-pointer list-none items-center rounded-lg border border-slate-300 p-2 [&::-webkit-details-marker]:hidden">
               <Menu aria-hidden className="size-4" />
               <span className="sr-only"><S t={"Menu"} /></span>
             </summary>
             <nav aria-label="Main" className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-              {[...LINKS, { href: "/login", label: "Sign in" }].map((link) => (
+              {LINKS.map((link) => (
                 <Link key={link.href} href={link.href} className="block rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">
                   <S t={link.label} />
                 </Link>
               ))}
+              <SiteAccountLinks variant="menu" />
             </nav>
           </details>
         </div>
@@ -84,8 +81,8 @@ export function SiteFooter() {
           <p className="font-medium text-slate-900"><S t={"Account"} /></p>
           <ul className="mt-3 space-y-2 text-slate-600">
             <li><Link href="/register" className="hover:text-slate-900"><S t={"Create an account"} /></Link></li>
-            <li><Link href="/login" className="hover:text-slate-900">Sign in</Link></li>
-            <li><Link href="/report-abuse" className="hover:text-slate-900">Report abuse</Link></li>
+            <li><Link href="/login" className="hover:text-slate-900"><S t="Sign in" /></Link></li>
+            <li><Link href="/report-abuse" className="hover:text-slate-900"><S t="Report abuse" /></Link></li>
           </ul>
         </div>
       </div>
@@ -114,9 +111,7 @@ export function SiteCta({ title = "Your first automation is five minutes away." 
         <p className="mx-auto mt-3 max-w-xl text-brand-100">
           <S t={"Free to start. Test with sample data first: nothing reaches your customers until you switch it on."} />
         </p>
-        <Link href="/register" className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-brand-900 hover:bg-brand-50">
-          Start free
-        </Link>
+        <StartOrOpen className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-brand-900 hover:bg-brand-50" />
       </div>
     </section>
   );

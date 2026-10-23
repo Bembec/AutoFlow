@@ -11,6 +11,7 @@ import { S } from "@/lib/site-i18n";
 import Link from "next/link";
 
 import { SiteCta, ctaClass, secondaryCtaClass } from "@/components/site/SiteChrome";
+import { StartOrOpen } from "@/components/site/SiteAccountLinks";
 import { TaskDemo } from "@/components/site/TaskDemo";
 
 // Public, static page: should always render instantly
@@ -89,7 +90,7 @@ export default function Home() {
               <S t={"AutoFlow builds the workflow, connects your store and apps, and runs it for you. A person stays in the loop for anything that matters."} />
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/register" className={ctaClass}><S t={"Start free"} /></Link>
+              <StartOrOpen className={ctaClass} />
               <Link href="/templates" className={secondaryCtaClass}><S t={"See templates"} /></Link>
             </div>
             <p className="mt-4 text-sm text-slate-500"><S t={"Free plan available. No card needed to try it."} /></p>
@@ -100,7 +101,7 @@ export default function Home() {
 
       <section aria-label="Works with" className="border-y border-slate-100 bg-slate-50">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-6 text-sm font-medium text-slate-500 sm:px-6">
-          <span className="text-slate-400">Works with</span>
+          <span className="text-slate-400"><S t="Works with" /></span>
           {WORKS_WITH.map((name) => <span key={name}><S t={name} /></span>)}
         </div>
       </section>

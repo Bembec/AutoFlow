@@ -1,5 +1,11 @@
 # Changelog
 
+## V48.2: Website and app linked both ways
+- **Signed-in visitors** see **Open the app** instead of "Sign in / Start free" in the website header, the mobile menu, the home page button and the closing banner. The sign-in page offers "You're already signed in. Open the app".
+- The header's sign-in and start-free links, plus "Works with" and the footer's "Report abuse", are now translated too (a full re-scan found no untranslated site text left).
+- An end-to-end check of the live site passed: sign up, sign in, Get started (36 templates), install, test run, onboarding checklist, dashboard, Insights, Assistants, AI quality, billing and the help assistant.
+- Checks: frontend type check, lint and build clean. No backend changes.
+
 ## V48.1: Fix: SQLite migrations no longer delete data
 - **Bug, found while starting the preview:** on SQLite, migrations that alter a table rebuild it by copying it and dropping the old one. With foreign keys enforced, that DROP cascade-deleted every row linked to the table. Each migration since V32 that changed `workspaces` wiped all memberships, workflows, runs, invoices and connections.
   - PostgreSQL (production) changes tables in place and was never affected.

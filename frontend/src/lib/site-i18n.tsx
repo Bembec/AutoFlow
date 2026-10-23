@@ -22,6 +22,7 @@ const SITE: Record<string, Row> = {
   "Security": ["Seguridad", "Sécurité", "Sicherheit", "Güvenlik"],
   "Sign in": ["Iniciar sesión", "Se connecter", "Anmelden", "Giriş yap"],
   "Start free": ["Empieza gratis", "Commencer gratuitement", "Kostenlos starten", "Ücretsiz başla"],
+  "Open the app": ["Abrir la app", "Ouvrir l'application", "App öffnen", "Uygulamayı aç"],
   "Menu": ["Menú", "Menu", "Menü", "Menü"],
   "Product": ["Producto", "Produit", "Produkt", "Ürün"],
   "Account": ["Cuenta", "Compte", "Konto", "Hesap"],

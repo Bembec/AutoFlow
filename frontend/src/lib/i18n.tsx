@@ -401,6 +401,8 @@ const en = {
   "q.came_out": "What the AI produced",
   "q.byStep": "By kind of AI step",
   "q.open": "Check AI quality",
+  "auth.alreadyIn": "You're already signed in.",
+  "auth.openApp": "Open the app",
 };
 
 export type MessageKey = keyof typeof en;
@@ -744,6 +746,8 @@ const es: Dictionary = {
   "q.came_out": "Lo que produjo la IA",
   "q.byStep": "Por tipo de paso de IA",
   "q.open": "Revisar la calidad de la IA",
+  "auth.alreadyIn": "Ya has iniciado sesión.",
+  "auth.openApp": "Abrir la app",
 };
 
 const fr: Dictionary = {
@@ -1084,6 +1088,8 @@ const fr: Dictionary = {
   "q.came_out": "Ce que l'IA a produit",
   "q.byStep": "Par type d'étape IA",
   "q.open": "Vérifier la qualité de l'IA",
+  "auth.alreadyIn": "Vous êtes déjà connecté.",
+  "auth.openApp": "Ouvrir l'application",
 };
 
 const de: Dictionary = {
@@ -1424,6 +1430,8 @@ const de: Dictionary = {
   "q.came_out": "Was die KI erzeugte",
   "q.byStep": "Nach Art des KI-Schritts",
   "q.open": "KI-Qualität prüfen",
+  "auth.alreadyIn": "Sie sind bereits angemeldet.",
+  "auth.openApp": "App öffnen",
 };
 
 const tr: Dictionary = {
@@ -1764,6 +1772,8 @@ const tr: Dictionary = {
   "q.came_out": "Yapay zekânın ürettiği",
   "q.byStep": "Yapay zekâ adımı türüne göre",
   "q.open": "Yapay zekâ kalitesini kontrol et",
+  "auth.alreadyIn": "Zaten giriş yaptınız.",
+  "auth.openApp": "Uygulamayı aç",
 };
 
 export const LANGUAGES = {
