@@ -14,6 +14,7 @@ import { useAction, useApi } from "@/lib/useApi";
 export default function ConnectionsPage() {
   const { base, can } = useSession();
   const { t } = useI18n();
+  const feature = useFeatures();
   const { data: connections, error, loading, reload } = useApi<Connection[]>(`${base}/connections`);
   const { data: integrations } = useApi<IntegrationInfo[]>("/integrations");
   const [adding, setAdding] = useState<IntegrationInfo | null>(null);
@@ -31,7 +32,7 @@ export default function ConnectionsPage() {
         <Card className="mb-6">
           <h2 className="font-semibold">{t("conn.connect")}</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {integrations?.map((integration) => (
+            {integrations?.filter((integration) => integration.name !== "mcp" || feature("mcp_tools", false)).map((integration) => (
               <Button
                 key={integration.name}
                 variant="secondary"
@@ -79,6 +80,7 @@ export default function ConnectionsPage() {
                 <StatusBadge status={connection.status} />
               </div>
               {connection.last_error && <p className="mt-2 text-sm text-orange-700">{connection.last_error}</p>}
+              {connection.provider === "mcp" && <McpTools connection={connection} />}
               <ConnectionHealth
                 connection={connection}
                 integration={integrations?.find((item) => item.name === connection.provider)}
@@ -160,8 +162,19 @@ function AddConnectionForm({ integration, onDone }: { integration: IntegrationIn
         </Field>
       ))}
       {integration.secret_fields.map((field) => (
-        <Field key={field} label={field.replaceAll("_", " ")} hint="Encrypted; never shown again.">
-          <input className={inputClass} type="password" autoComplete="off" value={values[field] ?? ""} onChange={set(field)} required />
+        <Field
+          key={field}
+          label={field.replaceAll("_", " ")}
+          hint={integration.optional_secrets?.includes(field) ? "Optional. Encrypted; never shown again." : "Encrypted; never shown again."}
+        >
+          <input
+            className={inputClass}
+            type="password"
+            autoComplete="off"
+            value={values[field] ?? ""}
+            onChange={set(field)}
+            required={!integration.optional_secrets?.includes(field)}
+          />
         </Field>
       ))}
       <div className="md:col-span-2">
@@ -281,3 +294,44 @@ function ConnectionHealth({
     </div>
   );
 }
+
+interface McpTool {
+  name: string;
+  description: string;
+  read_only: boolean;
+  allowed: boolean;
+}
+
+/** The tools an MCP server offers, and which ones workflows may use. */
+function McpTools({ connection }: { connection: Connection }) {
+  const { base } = useSession();
+  const [open, setOpen] = useState(false);
+  const { data, error, loading } = useApi<McpTool[]>(open ? `${base}/connections/${connection.id}/mcp-tools` : null);
+
+  return (
+    <div className="mt-3">
+      <Button variant="ghost" className="px-0 text-xs" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {open ? "Hide tools" : "Show tools"}
+      </Button>
+      {open && (
+        <div className="mt-1 rounded-lg bg-slate-50 p-3 text-xs">
+          <ErrorNote message={error} />
+          {loading && !data && <p className="text-slate-500">Asking the server…</p>}
+          <ul className="space-y-1.5">
+            {data?.map((tool) => (
+              <li key={tool.name} className={tool.allowed ? "" : "opacity-50"}>
+                <code className="font-semibold">{tool.name}</code>{" "}
+                <span className={tool.read_only ? "text-emerald-700" : "text-amber-700"}>
+                  {tool.read_only ? "read-only" : "can change things (needs approval)"}
+                </span>
+                {!tool.allowed && <span className="text-slate-500"> · not allowed</span>}
+                {tool.description && <p className="text-slate-600">{tool.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+

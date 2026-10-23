@@ -17,6 +17,8 @@ class Provider:
     secret_fields: tuple[str, ...] = ()
     config_fields: tuple[str, ...] = ()
     required_config: tuple[str, ...] = ()
+    # Secret fields that may be left empty (e.g. an MCP server without a token)
+    optional_secrets: tuple[str, ...] = ()
     oauth: dict = field(default_factory=dict)
 
 
@@ -78,6 +80,15 @@ PROVIDERS = {
             required_config=("header_name",),
         ),
         Provider(
+            name="mcp",
+            label="MCP server (tools from other AI services)",
+            auth="api_key",
+            secret_fields=("token",),
+            optional_secrets=("token",),
+            config_fields=("server_url", "allowed_tools"),
+            required_config=("server_url", "allowed_tools"),
+        ),
+        Provider(
             name="google",
             label="Google (Sheets)",
             auth="oauth2",
@@ -117,6 +128,7 @@ def describe():
             "secret_fields": list(p.secret_fields),
             "config_fields": list(p.config_fields),
             "required_config": list(p.required_config),
+            "optional_secrets": list(p.optional_secrets),
             "available": p.auth != "oauth2" or oauth_client(p) is not None,
         }
         for p in PROVIDERS.values()

@@ -67,18 +67,21 @@ def list_workflows(
 
 
 def _require_features(session, membership, definition):
-    """Workflows using smarter logic need the feature switched on for the workspace."""
+    """Workflows using optional features need them switched on for the workspace."""
     from autoflow import features
-    from autoflow.engine.definition import uses_smarter_logic
+    from autoflow.engine.definition import required_features
     from autoflow.engine.limits import get_workspace
 
-    if definition is not None and uses_smarter_logic(definition) and not features.enabled(
-        "smarter_logic", get_workspace(session, membership.workspace_id)
-    ):
-        raise HTTPException(
-            status_code=403,
-            detail="Comparisons, AND/OR conditions and loops are not switched on for this workspace yet.",
-        )
+    if definition is None:
+        return
+    workspace = get_workspace(session, membership.workspace_id)
+    missing = sorted(name for name in required_features(definition) if not features.enabled(name, workspace))
+    messages = {
+        "smarter_logic": "Comparisons, AND/OR conditions and loops are not switched on for this workspace yet.",
+        "mcp_tools": "MCP tools are not switched on for this workspace yet.",
+    }
+    if missing:
+        raise HTTPException(status_code=403, detail=" ".join(messages[name] for name in missing))
 
 
 @workspace_router.post("/workflows", response_model=schemas.WorkflowOut, status_code=201)

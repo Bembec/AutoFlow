@@ -75,7 +75,21 @@ def _woocommerce(config, secrets):
     _http_ok(response, "WooCommerce")
 
 
+def _mcp(config, secrets):
+    from autoflow.integrations import mcp
+
+    try:
+        tools = mcp.list_tools(config, secrets)
+    except mcp.MCPError as error:
+        if error.retryable:
+            raise OSError(str(error)) from error  # network trouble, not bad credentials
+        raise CheckFailed(str(error)) from error
+    if not any(tool["allowed"] for tool in tools):
+        raise CheckFailed("None of the allowed tools exist on this MCP server. Check the allowed_tools list.")
+
+
 CHECKS = {
+    "mcp": _mcp,
     "smtp": _smtp,
     "imap": _imap,
     "airtable": _airtable,

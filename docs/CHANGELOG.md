@@ -1,5 +1,28 @@
 # Changelog
 
+## V39: MCP tools (behind the `mcp_tools` flag)
+- **MCP server connections:**
+  - a server URL (https and public addresses only);
+  - an **allowed tools** list set by an admin (`*` for everything);
+  - an optional token, which is encrypted.
+- **A small built-in MCP client** (`integrations/mcp.py`): JSON-RPC 2.0 over Streamable HTTP.
+  - It handles initialize, then the initialized notification, then `tools/list` (with pages) and `tools/call`.
+  - It reads both JSON and server-sent-event replies, keeps the session id, and negotiates the protocol version.
+  - Errors are explained in plain words, and busy or unreachable servers are retried.
+- **Two workflow steps:**
+  - **`mcp_read`** runs only tools the server marks read-only (`readOnlyHint`), so it is safe to run during test runs too;
+  - **`mcp_call_tool`** is for tools that change things: it **always** needs approval, and test runs only pretend.
+
+  Results come back as `text` plus optional structured `data`, capped at 50,000 characters and treated as untrusted data.
+- **On Connected apps:** **Show tools** lists every tool with read-only or changes-things labels and which ones are allowed. **Check connection** makes sure the allowed tools exist.
+- **Feature flag:** both the connection and workflows that use MCP steps are refused unless `mcp_tools` is on. The editor hides MCP steps otherwise. The flag check now covers any feature a workflow needs (`required_features`).
+- Connection secrets can now be optional (`optional_secrets` in the catalog).
+- A new help article: "Use tools from MCP servers".
+- Checks:
+  - backend: 273 passed, including 7 MCP tests against a fake server in both reply formats;
+  - frontend: type check, lint and build all clean.
+- A check against a real MCP server is listed in deferred checks.
+
 ## V38: Compare workflow versions
 - **What changes when you publish:** a panel under the workflow name, shown whenever a draft is waiting, lists every difference from the live version in plain words:
   - new, removed and changed steps;

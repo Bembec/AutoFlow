@@ -158,15 +158,19 @@ export function StepEditor({
     if (ok) setDirty(false);
   }
 
+  const feature = useFeatures();
+  const mcpOn = feature("mcp_tools", false);
   const grouped = useMemo(() => {
     const groups: Record<string, ActionInfo[]> = { "AI": [], "Apps": [], "Logic & data": [] };
     for (const action of actions) {
+      // MCP steps are offered only where MCP tools are switched on
+      if (action.connection_provider === "mcp" && !mcpOn) continue;
       if (action.name.startsWith("ai_") || action.name === "classify_enquiry") groups.AI.push(action);
       else if (action.connection_provider || action.side_effect) groups.Apps.push(action);
       else groups["Logic & data"].push(action);
     }
     return groups;
-  }, [actions]);
+  }, [actions, mcpOn]);
 
   const trigger = definition.trigger;
 

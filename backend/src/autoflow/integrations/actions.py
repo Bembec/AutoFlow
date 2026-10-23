@@ -446,3 +446,49 @@ register(Action(
     connection_provider="woocommerce",
     simulate=lambda ctx, inputs: {"status": inputs["status"], "dry_run": True},
 ))
+
+
+# --- MCP servers (V39) -------------------------------------------------------
+
+MCP_INPUTS = {
+    "connection": InputSpec("string", description="Name of an MCP server connection"),
+    "tool": InputSpec("string", description="Tool name, as listed on the connection"),
+    "arguments": InputSpec("any", required=False, description='The tool\'s inputs, e.g. {"query": "{{trigger.text}}"}'),
+}
+MCP_OUTPUTS = {"text": "the tool's text answer", "data": "structured result, if the tool gives one", "tool": "text"}
+
+
+def _mcp(ctx, inputs, read_only):
+    from autoflow.integrations import mcp
+
+    try:
+        return mcp.call(ctx.credentials["config"], ctx.credentials["secrets"], inputs["tool"],
+                        inputs.get("arguments"), read_only=read_only)
+    except mcp.MCPError as error:
+        raise ActionError(str(error), retryable=error.retryable) from error
+
+
+register(Action(
+    name="mcp_read",
+    description="Look something up with a read-only tool from an MCP server (search, fetch, get).",
+    handler=lambda ctx, inputs: _mcp(ctx, inputs, read_only=True),
+    inputs=MCP_INPUTS,
+    outputs=MCP_OUTPUTS,
+    uses_network=True,
+    connection_provider="mcp",
+))
+
+register(Action(
+    name="mcp_call_tool",
+    description="Use a tool from an MCP server that may change something. Always waits for approval.",
+    handler=lambda ctx, inputs: _mcp(ctx, inputs, read_only=False),
+    inputs=MCP_INPUTS,
+    outputs=MCP_OUTPUTS,
+    side_effect=True,
+    idempotent=False,
+    requires_approval=True,
+    uses_network=True,
+    connection_provider="mcp",
+    simulate=lambda ctx, inputs: {"tool": inputs.get("tool"), "text": "", "data": None, "dry_run": True},
+))
+

@@ -182,6 +182,19 @@ class WorkflowDefinition(BaseModel):
         return self
 
 
+MCP_ACTIONS = {"mcp_read", "mcp_call_tool"}
+
+
+def required_features(definition):
+    """Feature flags a definition needs, e.g. {"smarter_logic", "mcp_tools"}."""
+    needed = set()
+    if uses_smarter_logic(definition):
+        needed.add("smarter_logic")
+    if any(step.action in MCP_ACTIONS for step in definition.steps):
+        needed.add("mcp_tools")
+    return needed
+
+
 def uses_smarter_logic(definition):
     """True when a definition needs the `smarter_logic` feature."""
 

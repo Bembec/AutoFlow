@@ -233,6 +233,8 @@ export interface IntegrationInfo {
   secret_fields: string[];
   config_fields: string[];
   required_config: string[];
+  /** Secret fields that may be left empty */
+  optional_secrets?: string[];
   available: boolean;
 }
 

@@ -74,6 +74,12 @@ def list_connections(membership: ViewerAccess, session: Session):
 
 @workspace_router.post("/connections", status_code=201)
 def create_connection(request: ConnectionCreate, membership: AdminAccess, session: Session):
+    if request.provider == "mcp":
+        from autoflow import features
+        from autoflow.engine.limits import get_workspace
+
+        if not features.enabled("mcp_tools", get_workspace(session, membership.workspace_id)):
+            raise HTTPException(status_code=403, detail="MCP tools are not switched on for this workspace yet.")
     if catalog.PROVIDERS.get(request.provider) and catalog.PROVIDERS[request.provider].auth == "oauth2":
         raise HTTPException(status_code=409, detail="Use the OAuth sign-in flow for this app.")
 
@@ -123,6 +129,21 @@ def check_connection(connection_id: int, membership: MemberAccess, session: Sess
     connection = _get_connection(session, membership, connection_id)
     result = health.check(session, connection)
     return {**result, "status": connection.status, "last_checked_at": connection.last_checked_at}
+
+
+@workspace_router.get("/connections/{connection_id}/mcp-tools")
+def mcp_tools(connection_id: int, membership: MemberAccess, session: Session):
+    """The tools an MCP server offers, and which ones this connection allows."""
+    from autoflow.integrations import mcp
+    from autoflow.security import vault
+
+    connection = _get_connection(session, membership, connection_id)
+    if connection.provider != "mcp":
+        raise HTTPException(status_code=409, detail="This is not an MCP server connection.")
+    try:
+        return mcp.list_tools(dict(connection.config), vault.decrypt_json(connection.encrypted_secrets))
+    except mcp.MCPError as error:
+        raise HTTPException(status_code=502, detail=str(error))
 
 
 @workspace_router.delete("/connections/{connection_id}", status_code=204)

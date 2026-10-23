@@ -57,6 +57,14 @@ def _check(provider_name, secrets, config):
     if provider_name == "slack" and not str(secrets.get("webhook_url", "")).startswith(SLACK_WEBHOOK_PREFIX):
         raise ConnectionError_(f"webhook_url must start with {SLACK_WEBHOOK_PREFIX}")
 
+    if provider_name == "mcp":
+        from autoflow.integrations import mcp
+
+        try:
+            mcp.check_server_url(config["server_url"])
+        except mcp.MCPError as error:
+            raise ConnectionError_(str(error)) from error
+
     if provider_name == "shopify" and not SHOPIFY_DOMAIN.fullmatch(str(config["shop_domain"]).lower()):
         # The access token is only ever sent to the store's own Shopify address
         raise ConnectionError_("shop_domain must look like your-store.myshopify.com")
