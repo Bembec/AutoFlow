@@ -1,5 +1,13 @@
 # Changelog
 
+## V48.1: Fix: SQLite migrations no longer delete data
+- **Bug, found while starting the preview:** on SQLite, migrations that alter a table rebuild it by copying it and dropping the old one. With foreign keys enforced, that DROP cascade-deleted every row linked to the table. Each migration since V32 that changed `workspaces` wiped all memberships, workflows, runs, invoices and connections.
+  - PostgreSQL (production) changes tables in place and was never affected.
+  - Locally, only demo data was lost, and it has been re-seeded.
+- **Fix:** migrations now run with SQLite foreign-key enforcement off, then run `PRAGMA foreign_key_check` and refuse to finish if anything is left inconsistent (`storage/migrations/env.py`).
+- **Regression test** (`tests/test_migrations_keep_data.py`): seeds a workspace with a member and a workflow, migrates down and up through the table rebuilds, and checks nothing is lost. Without the fix, the test fails.
+- Checks: backend 325 passed.
+
 ## V48: Everything active, and a resume point
 - **All features are on by default:** conditions and loops, MCP tools, AI assistants and AI assistant access (the MCP server) join the others. Each can still be switched off per environment or per workspace. The tests that check "refused while off" now switch the feature off explicitly.
 - The help articles no longer say "ask support to switch it on". The website's "Early access" badge is removed.

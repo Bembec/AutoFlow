@@ -1,3 +1,3 @@
 """AutoFlow — AI-powered business workflow automation."""
 
-__version__ = "0.48.0"
+__version__ = "0.48.1"

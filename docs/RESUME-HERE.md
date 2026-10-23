@@ -3,13 +3,13 @@
 **Read this first when work starts again**, whether it's you, Claude or another developer. It says where the work stopped and exactly where to begin.
 
 - **Last updated:** 2026-10-23
-- **Version:** 0.48.0 (V48)
+- **Version:** 0.48.1 (V48 plus a data-safety fix)
 - **Repository:** github.com/Bembec/AutoFlow (`main`)
 
 ## Where we stopped
 
 Work paused at the owner's request after **V48** ("make everything active and interconnected"). Everything up to V48 is committed, pushed and passing:
-- backend: 324 tests;
+- backend: 325 tests;
 - frontend: type check, lint and production build.
 
 The decisions only you can make are in **[DECISIONS-NEEDED.md](DECISIONS-NEEDED.md)**.
