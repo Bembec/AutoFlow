@@ -28,6 +28,7 @@ class ReconnectNeeded(Exception):
 
 
 REFRESH_MARGIN_SECONDS = 120
+SLACK_WEBHOOK_PREFIX = "https://hooks.slack.com/"
 SHOPIFY_DOMAIN = re.compile(r"[a-z0-9][a-z0-9-]*\.myshopify\.com")
 
 
@@ -48,6 +49,9 @@ def _check(provider_name, secrets, config):
     missing = [name for name in provider.required_config if not config.get(name)]
     if missing:
         raise ConnectionError_(f"Missing config: {', '.join(missing)}")
+
+    if provider_name == "slack" and not str(secrets.get("webhook_url", "")).startswith(SLACK_WEBHOOK_PREFIX):
+        raise ConnectionError_(f"webhook_url must start with {SLACK_WEBHOOK_PREFIX}")
 
     if provider_name == "shopify" and not SHOPIFY_DOMAIN.fullmatch(str(config["shop_domain"]).lower()):
         # The access token is only ever sent to the store's own Shopify address

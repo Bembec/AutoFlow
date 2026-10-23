@@ -10,6 +10,10 @@ These always wait for a person in **Approvals**:
 
 To approve *every* action that changes something (saving, sending, posting), turn on **Settings → Safety limits → Approve everything**.
 
+## Notifications
+
+Under **Settings → Notifications**, choose an email address (sent through one of your email connections) and/or a Slack channel (add a **Slack** connection with an incoming-webhook URL). AutoFlow then tells you when something waits for your approval, or when a live run fails. Press **Send a test** to check it works.
+
 ## Test runs
 
 **Test run** uses example data and only *pretends* to send or save, so it's safe to press as often as you like.

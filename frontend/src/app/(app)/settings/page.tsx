@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button, Card, ErrorNote, Field, Loading, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import type { BusinessProfile, Member, Policies, Role } from "@/lib/types";
+import type { BusinessProfile, Connection, Member, NotificationSettings, Policies, Role } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
 export default function SettingsPage() {
@@ -17,6 +17,7 @@ export default function SettingsPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-6">
           <EmergencyStop />
+          <NotificationsCard />
           <PoliciesCard />
         </div>
         <div className="space-y-6">
@@ -196,6 +197,126 @@ function MembersCard() {
         </form>
       )}
       <ErrorNote message={action.error} />
+    </Card>
+  );
+}
+
+function NotificationsCard() {
+  const { base } = useSession();
+  const { data, error, loading, setData } = useApi<NotificationSettings>(`${base}/notifications`);
+  const { data: connections } = useApi<Connection[]>(`${base}/connections`);
+
+  if (loading && !data) return <Loading />;
+  if (!data) return <ErrorNote message={error} />;
+
+  return (
+    <NotificationsForm key={JSON.stringify(data)} data={data} connections={connections ?? []} onSaved={setData} />
+  );
+}
+
+function NotificationsForm({
+  data,
+  connections,
+  onSaved,
+}: {
+  data: NotificationSettings;
+  connections: Connection[];
+  onSaved: (settings: NotificationSettings) => void;
+}) {
+  const { base, can } = useSession();
+  const action = useAction();
+  const [form, setForm] = useState<NotificationSettings>(data);
+  const [sent, setSent] = useState(false);
+  const editable = can("admin");
+  const named = (provider: string) => connections.filter((c) => c.provider === provider);
+
+  return (
+    <Card>
+      <h2 className="font-semibold">Notifications</h2>
+      <p className="mt-1 text-sm text-slate-500">
+        Hear about it when something needs you, instead of checking the app. Sent by the background worker.
+      </p>
+      <form
+        className="mt-3 space-y-3"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const saved = await action.run(() =>
+            api<NotificationSettings>(`${base}/notifications`, { method: "PATCH", body: form }),
+          );
+          if (saved) onSaved(saved);
+        }}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Email me at">
+            <input
+              type="email"
+              className={inputClass}
+              value={form.notify_email ?? ""}
+              onChange={(e) => setForm({ ...form, notify_email: e.target.value })}
+              disabled={!editable}
+            />
+          </Field>
+          <Field label="Send email with" hint="An Email (SMTP) connection">
+            <select
+              className={inputClass}
+              value={form.notify_smtp_connection ?? ""}
+              onChange={(e) => setForm({ ...form, notify_smtp_connection: e.target.value })}
+              disabled={!editable}
+            >
+              <option value="">— none —</option>
+              {named("smtp").map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+            </select>
+          </Field>
+        </div>
+        <Field label="Post to Slack with" hint="A Slack connection (incoming webhook)">
+          <select
+            className={inputClass}
+            value={form.notify_slack_connection ?? ""}
+            onChange={(e) => setForm({ ...form, notify_slack_connection: e.target.value })}
+            disabled={!editable}
+          >
+            <option value="">— none —</option>
+            {named("slack").map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+          </select>
+        </Field>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.notify_on_approval}
+            onChange={(e) => setForm({ ...form, notify_on_approval: e.target.checked })}
+            disabled={!editable}
+          />
+          Something waits for my approval
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.notify_on_failure}
+            onChange={(e) => setForm({ ...form, notify_on_failure: e.target.checked })}
+            disabled={!editable}
+          />
+          A live run fails or needs attention
+        </label>
+        <ErrorNote message={action.error} />
+        {editable && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="submit" disabled={action.busy}>Save</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={action.busy}
+              onClick={async () => {
+                setSent(false);
+                const result = await action.run(() => api(`${base}/notifications/test`, { body: {} }));
+                if (result) setSent(true);
+              }}
+            >
+              Send a test
+            </Button>
+            {sent && <span className="text-sm text-emerald-700">Queued, so it should arrive in a few seconds.</span>}
+          </div>
+        )}
+      </form>
     </Card>
   );
 }

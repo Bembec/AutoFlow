@@ -30,6 +30,7 @@ from autoflow.engine import queue
 from autoflow.engine import service as engine
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.integrations import email_inbox
+from autoflow import notifications
 from autoflow.observability import init_error_tracking
 from autoflow.storage.db import session_scope, utc_now
 from autoflow.storage.models import AccessToken, Workflow, Workspace
@@ -153,6 +154,9 @@ def main():
                     logger.warning("Re-queued %s execution(s) from a stopped worker", recovered)
                 if started:
                     logger.info("Started %s scheduled/email run(s)", started)
+
+            with session_scope() as session:
+                notifications.deliver_pending(session)
 
             with session_scope() as session:
                 ran = queue.run_due(session, worker_id)

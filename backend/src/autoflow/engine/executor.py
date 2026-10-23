@@ -20,14 +20,14 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from autoflow import config
+from autoflow import config, notifications
 from autoflow.billing import service as billing
 from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templating import evaluate_condition, render
 from autoflow.storage.db import utc_now
-from autoflow.storage.models import Approval, StepExecution, Workspace
+from autoflow.storage.models import Approval, StepExecution, Workflow, Workspace
 
 
 TERMINAL_STATUSES = {"succeeded", "failed", "cancelled", "needs_attention"}
@@ -43,10 +43,27 @@ class ExecutionConflict(Exception):
     """The execution cannot do what was asked in its current state."""
 
 
+def _workflow_name(session, execution):
+    workflow = session.get(Workflow, execution.workflow_id)
+    return workflow.name if workflow else f"Workflow {execution.workflow_id}"
+
+
 def _finish(session, execution, status, error=None):
     execution.status = status
     execution.error = error
     execution.finished_at = utc_now()
+
+    if status in ("failed", "needs_attention") and execution.mode == "live":
+        label = "needs your attention" if status == "needs_attention" else "failed"
+        notifications.enqueue(
+            session,
+            execution.workspace_id,
+            "failure",
+            f"{_workflow_name(session, execution)}: run #{execution.id} {label}",
+            error or "",
+            link=f"/executions/{execution.id}",
+        )
+
     session.commit()
 
 
@@ -280,6 +297,17 @@ def _request_approval(session, execution, step, record, inputs, review=None):
         existing.decision = None
         existing.decided_at = None
         existing.decided_by_user_id = None
+
+    if existing is None or payload.get("review"):
+        what = "check an AI result" if payload.get("review") else f"approve \"{payload['step_name']}\""
+        notifications.enqueue(
+            session,
+            execution.workspace_id,
+            "approval",
+            f"{_workflow_name(session, execution)}: please {what}",
+            f"Run #{execution.id} is waiting for you." + (f" Reason: {review['reason']}" if review else ""),
+            link="/approvals",
+        )
 
     execution.status = "waiting_approval"
     session.commit()

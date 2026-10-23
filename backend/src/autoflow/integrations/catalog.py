@@ -48,6 +48,12 @@ PROVIDERS = {
             required_config=("shop_domain",),
         ),
         Provider(
+            name="slack",
+            label="Slack (incoming webhook, for notifications)",
+            auth="api_key",
+            secret_fields=("webhook_url",),
+        ),
+        Provider(
             name="imap",
             label="Incoming email (IMAP, e.g. Gmail app password)",
             auth="password",

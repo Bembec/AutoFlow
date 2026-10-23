@@ -57,6 +57,14 @@ class Workspace(Base):
     tax_id: Mapped[str | None] = mapped_column(String(100))
     invoice_prefix: Mapped[str] = mapped_column(String(20), default="INV-", server_default="INV-")
 
+    # --- owner notifications (V23) ---
+    notify_email: Mapped[str | None] = mapped_column(String(320))
+    # Names of the workspace's own smtp / slack connections used to notify
+    notify_smtp_connection: Mapped[str | None] = mapped_column(String(100))
+    notify_slack_connection: Mapped[str | None] = mapped_column(String(100))
+    notify_on_approval: Mapped[bool] = mapped_column(default=True, server_default=true())
+    notify_on_failure: Mapped[bool] = mapped_column(default=True, server_default=true())
+
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
     )
@@ -458,3 +466,23 @@ class AIUsageEvent(Base):
     )
     kind: Mapped[str] = mapped_column(String(30))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
+
+
+class Notification(Base):
+    """A message to the workspace owner, sent by the worker (email and/or Slack)."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    # approval | failure
+    kind: Mapped[str] = mapped_column(String(30))
+    subject: Mapped[str] = mapped_column(String(300))
+    body: Mapped[str] = mapped_column(Text)
+    link: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+    sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime, index=True)
+    attempts: Mapped[int] = mapped_column(default=0)
+    last_error: Mapped[str | None] = mapped_column(Text)

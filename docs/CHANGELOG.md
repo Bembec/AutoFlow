@@ -1,5 +1,12 @@
 # Changelog
 
+## V23: Owner notifications
+- AutoFlow tells the business when something needs them: a step or AI result waiting for approval, or a **live** run that failed or needs attention. Test runs never alert.
+- Channels: email through the workspace's own SMTP connection, and/or Slack (new `slack` connection; the webhook URL must be on `hooks.slack.com`).
+- Notifications are queued in the same transaction as the event and delivered by the worker, so they never slow down or break a workflow. Each is delivered once, failed sends retry up to 5 times, and the email master switch still applies.
+- Settings: email address, mailbox and Slack connections, per-kind toggles, and a "Send a test" button. API: `GET/PATCH /workspaces/{id}/notifications` and `POST …/notifications/test`.
+- Migration 0010. 8 new tests; backend suite 196 passed.
+
 ## V22: AI quality evals and help centre
 - **AI builder eval** (`backend/evals/`): 15 plain-language e-commerce requests, each with checks (expected actions and trigger, admitting unsupported apps, asking about vague requests, never disabling approvals). Run it with `python evals/run_builder_eval.py`; results are saved to `data/output/evals/`. The grading logic has unit tests.
 - First live run (Gemini) found a real gap: the builder prompt didn't know the email and document triggers. The prompt now explains every trigger type. The re-run passed the affected cases (email, document, escalation, unsupported app); the injection case was safely refused.

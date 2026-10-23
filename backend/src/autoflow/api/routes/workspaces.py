@@ -1,8 +1,9 @@
 """Workspaces and their members."""
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
+from autoflow import notifications
 from autoflow.accounts import service as accounts
 from autoflow.engine import limits
 from autoflow.engine import service as engine
@@ -71,6 +72,52 @@ def remove_member(user_id: int, membership: AdminAccess, session: Session):
         raise HTTPException(status_code=409, detail=str(error))
 
     session.commit()
+
+
+class NotificationSettings(BaseModel):
+    notify_email: EmailStr | None = None
+    notify_smtp_connection: str | None = Field(None, max_length=100)
+    notify_slack_connection: str | None = Field(None, max_length=100)
+    notify_on_approval: bool | None = None
+    notify_on_failure: bool | None = None
+
+
+NOTIFICATION_FIELDS = (
+    "notify_email", "notify_smtp_connection", "notify_slack_connection", "notify_on_approval", "notify_on_failure",
+)
+
+
+@router.get("/workspaces/{workspace_id}/notifications")
+def get_notification_settings(membership: ViewerAccess, session: Session):
+    workspace = limits.get_workspace(session, membership.workspace_id)
+    return {field: getattr(workspace, field) for field in NOTIFICATION_FIELDS}
+
+
+@router.patch("/workspaces/{workspace_id}/notifications")
+def update_notification_settings(request: NotificationSettings, membership: AdminAccess, session: Session):
+    workspace = limits.get_workspace(session, membership.workspace_id)
+    for field, value in request.model_dump(exclude_unset=True).items():
+        if field in ("notify_on_approval", "notify_on_failure") and value is None:
+            continue
+        setattr(workspace, field, value or None if isinstance(value, str) else value)
+    session.commit()
+    return {field: getattr(workspace, field) for field in NOTIFICATION_FIELDS}
+
+
+@router.post("/workspaces/{workspace_id}/notifications/test", status_code=202)
+def send_test_notification(membership: AdminAccess, session: Session):
+    queued = notifications.enqueue(
+        session,
+        membership.workspace_id,
+        "test",
+        "Test notification",
+        "Notifications are set up. You will hear from AutoFlow when something needs you.",
+        link="/dashboard",
+    )
+    if queued is None:
+        raise HTTPException(status_code=409, detail="Set an email (with a mailbox connection) or a Slack connection first.")
+    session.commit()
+    return {"queued": True, "note": "The background worker sends it within a few seconds."}
 
 
 class EmergencyStop(BaseModel):

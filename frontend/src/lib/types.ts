@@ -166,6 +166,14 @@ export interface InvoiceSummary {
   url: string;
 }
 
+export interface NotificationSettings {
+  notify_email: string | null;
+  notify_smtp_connection: string | null;
+  notify_slack_connection: string | null;
+  notify_on_approval: boolean;
+  notify_on_failure: boolean;
+}
+
 export interface BusinessProfile {
   business_name: string | null;
   business_address: string | null;
