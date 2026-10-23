@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
+import { clearPendingTask, peekPendingTask } from "@/lib/pendingTask";
 import type { AIDraft, TemplateInfo, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
@@ -25,9 +26,12 @@ export default function NewWorkflowPage() {
   const draftAction = useAction();
   const saveAction = useAction();
 
-  const [request, setRequest] = useState("");
+  // Prefilled with the task typed on the website before signing up
+  const [request, setRequest] = useState(peekPendingTask);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState<AIDraft | null>(null);
+
+  useEffect(clearPendingTask, []);
 
   async function askAI(event?: React.FormEvent) {
     event?.preventDefault();

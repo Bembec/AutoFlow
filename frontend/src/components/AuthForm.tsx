@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
 import { ApiError, api, setToken } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { peekPendingTask } from "@/lib/pendingTask";
 import { useAction } from "@/lib/useApi";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
@@ -43,7 +44,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       return true;
     });
 
-    if (done) router.push(mode === "register" ? "/get-started" : "/dashboard");
+    // A task typed into the website demo goes straight to the AI builder
+    if (done) router.push(mode === "login" ? "/dashboard" : peekPendingTask() ? "/workflows/new" : "/get-started");
   }
 
   return (

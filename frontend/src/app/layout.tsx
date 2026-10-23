@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: BRAND.name,
+  title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
   description: BRAND.tagline,
   appleWebApp: { capable: true, title: BRAND.name, statusBarStyle: "default" },
 };

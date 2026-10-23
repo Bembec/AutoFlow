@@ -1,5 +1,37 @@
 # Changelog
 
+## V31: Public website pages
+- **Shared site layout** (`app/(site)/`) with a sticky header and footer. The mobile menu works without JavaScript.
+- **Home page** (`/`):
+  - hero with a working **"type a task" demo**: type a task or pick an example to preview the drafted steps, with approval steps marked;
+  - "Works with" strip;
+  - three-step "how it works";
+  - six feature cards;
+  - template highlights;
+  - security teaser;
+  - closing call to action.
+- **"Build this for real"** keeps the typed task through sign-up (session storage only). After sign-up the AI builder opens with the task already filled in. Without a task, new accounts go to Get started.
+- **Pricing** (`/pricing`) reads the live plan list (`/plans`), so prices always match `plans.json`. It includes a plain-language FAQ: what counts as a task, running out, changing plans, no card needed.
+- **Templates** (`/templates`): a gallery from the live template list, grouped by category, with "What it needs".
+- **Integrations** (`/integrations`): store, email, data, team alerts, webhooks, REST and AI steps. It describes only what the product does today.
+- **Security** (`/security`) covers:
+  - workspace isolation;
+  - encrypted credentials;
+  - export and deletion;
+  - approvals, emergency stop and limits;
+  - careful AI;
+  - two-factor login and scrypt password hashes;
+  - roles and the activity log;
+  - signed webhooks;
+  - no double actions;
+  - run records;
+  - outbound-call protection.
+
+  No certifications are claimed.
+- Page titles follow the pattern "Page · Brand" (a title template in the root layout).
+- The site text is in English for now. It will be translated once the brand and launch market are decided.
+- Checks: frontend type check, lint and production build clean, with every site page pre-rendered as static and checked for content. No backend changes.
+
 ## V30: Guided onboarding
 - **Get started page** (`/get-started`). New accounts land here.
   - Pick your platform: Shopify, WooCommerce or somewhere else.
