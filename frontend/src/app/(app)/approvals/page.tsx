@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { Button, Card, EmptyState, ErrorNote, JsonBlock, Loading, PageHeader, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -15,6 +16,8 @@ export default function ApprovalsPage() {
   const path = view === "pending" ? `${base}/approvals?status=pending` : `${base}/approvals`;
   const { data, error, loading, reload } = useApi<Approval[]>(path);
   const items = view === "history" ? data?.filter((a) => a.status !== "pending") : data;
+  // Notification links open one approval: /approvals?focus=<id>
+  const focus = Number(useSearchParams().get("focus")) || null;
 
   return (
     <>
@@ -41,7 +44,7 @@ export default function ApprovalsPage() {
       ) : (
         <div className="space-y-4">
           {items.map((approval) => (
-            <ApprovalCard key={approval.id} approval={approval} onDecided={reload} />
+            <ApprovalCard key={approval.id} approval={approval} onDecided={reload} focused={approval.id === focus} />
           ))}
         </div>
       )}
@@ -56,8 +59,21 @@ function title(approval: Approval) {
   return `Approve step: ${approval.payload.step_name}`;
 }
 
-function ApprovalCard({ approval, onDecided }: { approval: Approval; onDecided: () => void }) {
+function ApprovalCard({
+  approval,
+  onDecided,
+  focused = false,
+}: {
+  approval: Approval;
+  onDecided: () => void;
+  focused?: boolean;
+}) {
   const { base, can } = useSession();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (focused) cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focused]);
   const action = useAction();
   const [category, setCategory] = useState<string>(approval.payload.suggested_category ?? "");
   const [output, setOutput] = useState(JSON.stringify(approval.payload.output ?? {}, null, 2));
@@ -89,6 +105,7 @@ function ApprovalCard({ approval, onDecided }: { approval: Approval; onDecided: 
   }
 
   return (
+    <div ref={cardRef} className={`scroll-mt-4 rounded-xl ${focused ? "ring-2 ring-indigo-500" : ""}`}>
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
@@ -170,14 +187,16 @@ function ApprovalCard({ approval, onDecided }: { approval: Approval; onDecided: 
 
       {pending && can("member") && (
         <div className="mt-4 flex gap-2">
-          <Button onClick={() => decide(true)} disabled={action.busy}>
+          {/* Large tap targets on phones */}
+          <Button className="flex-1 py-3 sm:flex-none sm:py-2" onClick={() => decide(true)} disabled={action.busy}>
             {isReview ? "Accept and continue" : "Approve"}
           </Button>
-          <Button variant="secondary" onClick={() => decide(false)} disabled={action.busy}>
+          <Button variant="secondary" className="flex-1 py-3 sm:flex-none sm:py-2" onClick={() => decide(false)} disabled={action.busy}>
             Reject
           </Button>
         </div>
       )}
     </Card>
+    </div>
   );
 }

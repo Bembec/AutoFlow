@@ -74,6 +74,11 @@ function Shell({ children }: { children: React.ReactNode }) {
         <Link href="/dashboard" className="font-semibold">
           Auto<span className="text-indigo-600">Flow</span>
         </Link>
+        {dashboard && dashboard.pending_approvals > 0 && (
+          <Link href="/approvals" className="ml-auto mr-3 rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
+            {dashboard.pending_approvals} to approve
+          </Link>
+        )}
         <button
           onClick={() => setOpen(!open)}
           className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"

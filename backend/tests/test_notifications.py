@@ -54,7 +54,7 @@ def test_approval_waiting_is_notified(ws):
     kind, subject, link = queued()[0]
     assert kind == "approval"
     assert subject == 'Shop flow: please approve "send"'
-    assert link.endswith("/approvals")
+    assert "/approvals?focus=" in link
 
 
 def test_live_failures_are_notified_but_test_runs_are_not(ws):

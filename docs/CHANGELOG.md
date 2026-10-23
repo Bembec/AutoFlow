@@ -1,5 +1,11 @@
 # Changelog
 
+## V24: Mobile approvals (installable web app)
+- Web app manifest and icon: add AutoFlow to a phone's home screen and it opens on **Approvals**, like an app (shortcuts to Approvals and Run history). It's a progressive web app, so it needs no app store.
+- Approval notifications link straight to the approval (`/approvals?focus=<id>`), which is highlighted and scrolled into view.
+- Phone layout: large full-width Approve/Reject buttons and a "N to approve" badge in the header.
+- Low-memory policy: only targeted checks ran locally (45 backend tests, frontend type check and lint). Heavier checks are listed in `docs/deferred-checks.md`.
+
 ## V23: Owner notifications
 - AutoFlow tells the business when something needs them: a step or AI result waiting for approval, or a **live** run that failed or needs attention. Test runs never alert.
 - Channels: email through the workspace's own SMTP connection, and/or Slack (new `slack` connection; the webhook URL must be on `hooks.slack.com`).

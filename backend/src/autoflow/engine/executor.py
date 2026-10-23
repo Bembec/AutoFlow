@@ -280,15 +280,18 @@ def _request_approval(session, execution, step, record, inputs, review=None):
         execution_id=execution.id, step_id=step.id
     ).first()
 
+    approval = existing
     if existing is None:
-        session.add(Approval(
+        approval = Approval(
             workspace_id=execution.workspace_id,
             kind="step",
             customer_email=str(inputs.get("to") or inputs.get("email") or ""),
             payload=payload,
             execution_id=execution.id,
             step_id=step.id,
-        ))
+        )
+        session.add(approval)
+        session.flush()  # gives the approval its id for the notification link
     elif existing.status != "pending":
         # The step was approved to run; now its result needs a review too
         payload["previous_decision"] = existing.decision
@@ -306,7 +309,7 @@ def _request_approval(session, execution, step, record, inputs, review=None):
             "approval",
             f"{_workflow_name(session, execution)}: please {what}",
             f"Run #{execution.id} is waiting for you." + (f" Reason: {review['reason']}" if review else ""),
-            link="/approvals",
+            link=f"/approvals?focus={approval.id}",
         )
 
     execution.status = "waiting_approval"
