@@ -438,6 +438,8 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
   );
   const action = useAction();
   const [created, setCreated] = useState<{ url: string; secret: string } | null>(null);
+  const [scheme, setScheme] = useState<"autoflow" | "shopify">("autoflow");
+  const [shopifySecret, setShopifySecret] = useState("");
 
   if (definition.trigger.type === "email") {
     return (
@@ -500,19 +502,41 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
       )}
       <ErrorNote message={action.error} />
       {editable && (
-        <Button
-          className="mt-3"
-          variant={webhook.data ? "secondary" : "primary"}
-          disabled={action.busy}
-          onClick={async () => {
-            const result = await action.run(() =>
-              api<{ url: string; secret: string }>(`${base}/workflows/${workflow.id}/webhook`, { body: {} }),
-            );
-            if (result) setCreated(result);
-          }}
-        >
-          {webhook.data ? "Rotate secret" : "Create webhook URL"}
-        </Button>
+        <div className="mt-3 space-y-3">
+          <Field label="Who sends it?">
+            <select className={inputClass} value={scheme} onChange={(e) => setScheme(e.target.value as "autoflow" | "shopify")}>
+              <option value="autoflow">Any app (AutoFlow signature)</option>
+              <option value="shopify">Shopify</option>
+            </select>
+          </Field>
+          {scheme === "shopify" && (
+            <Field label="Shopify signing secret" hint="Shopify admin → Settings → Notifications → Webhooks: “Your webhooks will be signed with …”">
+              <input
+                className={`${inputClass} font-mono`}
+                type="password"
+                autoComplete="off"
+                value={shopifySecret}
+                onChange={(e) => setShopifySecret(e.target.value)}
+              />
+            </Field>
+          )}
+          <Button
+            variant={webhook.data ? "secondary" : "primary"}
+            disabled={action.busy || (scheme === "shopify" && shopifySecret.length < 16)}
+            onClick={async () => {
+              const body = scheme === "shopify" ? { signature_scheme: "shopify", secret: shopifySecret } : {};
+              const result = await action.run(() =>
+                api<{ url: string; secret: string }>(`${base}/workflows/${workflow.id}/webhook`, { body }),
+              );
+              if (result) {
+                setCreated(scheme === "shopify" ? { url: result.url, secret: "(your Shopify secret)" } : result);
+                setShopifySecret("");
+              }
+            }}
+          >
+            {webhook.data ? "Update webhook" : "Create webhook URL"}
+          </Button>
+        </div>
       )}
     </Card>
   );

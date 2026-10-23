@@ -1,5 +1,11 @@
 # Changelog
 
+## V22: AI quality evals and help centre
+- **AI builder eval** (`backend/evals/`): 15 plain-language e-commerce requests, each with checks (expected actions and trigger, admitting unsupported apps, asking about vague requests, never disabling approvals). Run it with `python evals/run_builder_eval.py`; results are saved to `data/output/evals/`. The grading logic has unit tests.
+- First live run (Gemini) found a real gap: the builder prompt didn't know the email and document triggers. The prompt now explains every trigger type. The re-run passed the affected cases (email, document, escalation, unsupported app); the injection case was safely refused.
+- **Help centre** (`docs/help/`): getting started, connecting Gmail (app passwords, SMTP/IMAP), connecting Shopify (webhooks and Admin token), setting up each e-commerce template, and staying in control.
+- Web app: the Trigger tab can set up Shopify-signed webhooks (paste the signing secret) without the API.
+
 ## V21: Shopify Admin connector, AI usage accounting, error tracking
 - **Shopify connection** (Admin API access token + `shop_domain`). The domain must be `*.myshopify.com`, so the token can't be sent anywhere else. New actions:
   - `shopify_tag_order`: merges tags and keeps existing ones; running it again changes nothing.

@@ -28,7 +28,13 @@ SYSTEM_PROMPT = """You design business automations for AutoFlow, a no-code workf
 Turn the user's request into a workflow definition that uses ONLY the actions in the catalogue below.
 
 Definition format:
-- "trigger": {"type": "manual" | "webhook" | "schedule", "schedule": "<cron, schedule only>", "sample_payload": {realistic example trigger data}}
+- "trigger": {"type": "manual" | "webhook" | "schedule" | "email" | "document", "schedule": "<cron, schedule only>", "connection": "<imap connection name, email only>", "sample_payload": {realistic example trigger data}}
+  Choose the trigger that matches how the work starts:
+  - "email": an email arrives in a mailbox. Trigger data: from, subject, text, attachments, attachments_text (text read from attached PDFs/scans). Set "connection" to a name such as "inbox".
+  - "document": someone uploads a PDF, scan or photo. Trigger data: filename, text.
+  - "webhook": another app (e.g. Shopify, a website form, a review app) sends data.
+  - "schedule": at fixed times (cron, UTC).
+  - "manual": the user starts it.
 - "steps": ordered list. Each step: {"id": "snake_case_id", "name": "short label", "action": "<catalogue name>", "inputs": {...}, optional "when": {"left": ..., "op": "eq|neq|contains|exists|not_exists", "right": ...}, optional "retry": {"max_attempts": 1-5, "backoff_seconds": n}, optional "timeout_seconds": 1-300}
 - Inputs may reference data with "{{trigger.<field>}}" or "{{steps.<earlier_step_id>.output.<field>}}". Only reference earlier steps and outputs the catalogue lists.
 - Provide every required input of each action, and no inputs the action does not declare.

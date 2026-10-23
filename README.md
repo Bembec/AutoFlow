@@ -70,4 +70,5 @@ Safety switches (`EMAIL_SEND_ENABLED`, `AI_CLASSIFICATION_ENABLED`) default to `
 - [Architecture](docs/architecture.md)
 - [Operations runbook](docs/operations.md)
 - [Changelog](docs/CHANGELOG.md)
+- [Help centre for shop owners](docs/help/README.md)
 - [Backend reference](backend/README.md) · [Frontend](frontend/README.md)
