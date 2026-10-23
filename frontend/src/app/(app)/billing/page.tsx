@@ -27,6 +27,7 @@ interface Billing {
   period: { start: string; end: string };
   usage: { billable_tasks: number; included_tasks: number | null; projected_tasks: number };
   limits: { workflows: { used: number; max: number | null }; seats: { used: number; max: number | null } };
+  ai: { calls: number; estimated_cost_usd: number; budget_usd: number | null; cost_per_call_usd: number };
   alerts: string[];
   online_payments: boolean;
 }
@@ -103,6 +104,8 @@ export default function BillingPage() {
             </p>
           </div>
 
+          <AiMeter ai={data.ai} />
+
           <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
             <div>
               <dt className="text-slate-500">Workflows</dt>
@@ -175,5 +178,33 @@ export default function BillingPage() {
         })}
       </div>
     </>
+  );
+}
+
+const usd = (value: number) => `$${value.toFixed(2)}`;
+
+/** Estimated AI spend against the plan's monthly AI budget. */
+function AiMeter({ ai }: { ai: Billing["ai"] }) {
+  const { t } = useI18n();
+  const share = ai.budget_usd ? Math.min(100, Math.round((ai.estimated_cost_usd / ai.budget_usd) * 100)) : 0;
+  return (
+    <div className="mt-6">
+      <div className="flex justify-between gap-2 text-sm">
+        <span>{t("bill.ai")}</span>
+        <span className="tabular-nums text-slate-600">
+          {ai.budget_usd === null
+            ? t("bill.aiNoCap", { cost: usd(ai.estimated_cost_usd) })
+            : t("bill.aiOf", { cost: usd(ai.estimated_cost_usd), budget: usd(ai.budget_usd) })}
+        </span>
+      </div>
+      {ai.budget_usd !== null && (
+        <div className="mt-1 h-3 rounded-full bg-slate-100">
+          <div className={`h-3 rounded-full ${share >= 90 ? "bg-red-500" : "bg-brand-500"}`} style={{ width: `${share}%` }} />
+        </div>
+      )}
+      <p className="mt-2 text-xs text-slate-500">
+        {t("bill.aiHint", { calls: ai.calls.toLocaleString(), rate: `$${ai.cost_per_call_usd}` })}
+      </p>
+    </div>
   );
 }

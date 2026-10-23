@@ -30,6 +30,20 @@ Admins see **Settings → Activity log**: who added people, connected apps, publ
 
 Under **Settings → Safety limits** you choose the most runs, AI calls and emails per day. When a limit is reached, AutoFlow stops that step and tells you why. This prevents runaway costs or accidental mass emails.
 
+New accounts start with lower daily limits for their first week: 200 runs, 50 AI calls and 20 emails. This stops brand-new accounts being misused for spam. Contact support if you need them lifted sooner.
+
+## Email safety check
+
+Every email a workflow sends is checked before it can be approved:
+- An email that asks for a password or security code and contains a link looks like phishing. It is **blocked** and can't be sent.
+- Other warning signs are **shown to the approver**: link shorteners, links to raw IP addresses, many links or recipients, threats to close an account, or requests for card details.
+
+Emails also carry a header so recipients can report abuse to us.
+
+## AI budget
+
+Each plan includes a monthly AI budget, estimated from the number of AI calls. **Plan & usage** shows how much is used. When it runs out, AI steps pause until the next period; everything else keeps running. Each run's page also shows how many AI calls it made and roughly what they cost.
+
 ## Pause or stop
 
 - **Pause** one workflow from its page. Runs in progress are cancelled, and nothing new starts until you resume.

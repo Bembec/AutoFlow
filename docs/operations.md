@@ -87,6 +87,14 @@ Point an uptime checker at `/health` and `/ready`, and ship logs to your log pla
 4. **Tell customers.** Update the status page, and email the affected workspace owners.
 5. **Write it up** within 5 working days: timeline, cause, and what prevents a repeat.
 
+## Trust and safety
+
+- **Abuse reports** arrive through the public form at `/report-abuse` (`POST /abuse-reports`, at most 5 per IP address per hour). Every SMTP email carries `X-AutoFlow-Workspace` and `X-Report-Abuse` headers. Staff, listed in `AUTOFLOW_STAFF_EMAILS`, review reports at `GET /staff/abuse-reports` and close them with `POST /staff/abuse-reports/{id}/close`.
+- **Suspend a workspace** that breaks the acceptable-use rules: `POST /staff/workspaces/{id}/suspend` with a reason. It stops all automations, and the owner can't resume them. To restore the workspace, use `POST /staff/workspaces/{id}/unsuspend`.
+- **New accounts** get lower daily limits for 7 days. Lift them early for a known customer with `POST /staff/workspaces/{id}/trust`.
+- **Blocked phishing** is logged as the `outbound.blocked` audit event. Check these events when reviewing a report.
+- **The AI budget** is estimated as AI calls x `AUTOFLOW_AI_COST_PER_CALL_USD` (default 0.01) against `ai_budget_usd_month` in `plans.json`. Tune both from real provider bills.
+
 ## Customer data requests
 
 - **Export:** the workspace owner downloads a full JSON export from `GET /workspaces/{id}/export`. Secrets are never included.

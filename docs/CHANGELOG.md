@@ -1,5 +1,29 @@
 # Changelog
 
+## V33: Trust and safety (Phase 1 additions)
+- **Email safety check** on every email step, before approval, in test and live runs:
+  - It **blocks** credential phishing: a request for a password or security code plus a link. The step fails and the `outbound.blocked` audit event is logged.
+  - It **warns** the approver about link shorteners, raw-IP links, many links or recipients, account threats, and requests for card or bank details. Failed-payment emails stay possible.
+- **New-account limits:** lower daily limits (200 runs, 50 AI calls, 20 emails) for a workspace's first 7 days. The dashboard explains them, and staff can lift them early.
+- **Abuse reporting:**
+  - a public `/report-abuse` page, linked in the site footer and on the Security page;
+  - `X-AutoFlow-Workspace` and `X-Report-Abuse` headers on every email sent;
+  - rate-limited `POST /abuse-reports`;
+  - staff list and close reports.
+- **Acceptable use enforced in the product:** staff can suspend a workspace, which stops all automations, and the owner can't resume while suspended. Every staff action is audited.
+- **AI cost meter and hard cap:**
+  - each plan has a monthly AI budget (`ai_budget_usd_month`, proposals: Free $2, Starter $15, Growth $50, Business $150, Enterprise uncapped);
+  - spend is estimated as calls x `AUTOFLOW_AI_COST_PER_CALL_USD`;
+  - Plan & usage shows a meter and alerts at 80% and 100%;
+  - AI steps pause at the cap while everything else keeps running.
+- **Cost on the run timeline:** each run shows its AI calls and estimated cost.
+- Migration 0013 adds `abuse_reports`, `workspaces.trusted_at` and `workspaces.staff_suspended_reason`.
+- 8 new interface texts in all five languages. The help article "Staying in control" and `operations.md` are updated.
+- Checks:
+  - backend: 231 passed, including 11 new trust-and-safety tests;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+
 ## V32: Insights and automation suggestions
 - **Insights page** (`/insights`, new menu item):
   - time saved, value saved, live runs and success rate over the last 30 days;

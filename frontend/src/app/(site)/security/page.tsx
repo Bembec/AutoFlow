@@ -5,6 +5,7 @@ import {
   KeyRound,
   Lock,
   type LucideIcon,
+  MailWarning,
   RefreshCw,
   ScrollText,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
   Webhook,
 } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { SiteCta, SiteHero } from "@/components/site/SiteChrome";
 
@@ -55,6 +57,11 @@ const SECTIONS: { title: string; items: { icon: LucideIcon; title: string; text:
         icon: Siren,
         title: "Emergency stop and limits",
         text: "One switch pauses every automation. Daily limits on runs, emails and AI use prevent runaway costs.",
+      },
+      {
+        icon: MailWarning,
+        title: "No spam or phishing",
+        text: "Outgoing email is checked before it is approved or sent; phishing is blocked. New accounts start with lower limits, and anyone can report abuse.",
       },
       {
         icon: Bot,
@@ -110,6 +117,9 @@ export default function SecurityPage() {
     <>
       <SiteHero eyebrow="Security" title="Built to be trusted with your store">
         <p>Automation touches your customers and your money. Here is how we keep both safe.</p>
+        <p className="mt-3 text-base">
+          Received spam or phishing sent through us? <Link href="/report-abuse" className="font-medium text-brand-700 underline">Report it</Link>.
+        </p>
       </SiteHero>
       <div className="mx-auto max-w-6xl space-y-14 px-4 pb-20 sm:px-6">
         {SECTIONS.map((section) => (

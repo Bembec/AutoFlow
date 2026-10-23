@@ -82,6 +82,7 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2 text-slate-600">
             <li><Link href="/register" className="hover:text-slate-900">Create an account</Link></li>
             <li><Link href="/login" className="hover:text-slate-900">Sign in</Link></li>
+            <li><Link href="/report-abuse" className="hover:text-slate-900">Report abuse</Link></li>
           </ul>
         </div>
       </div>

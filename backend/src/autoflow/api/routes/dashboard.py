@@ -92,9 +92,7 @@ def dashboard(membership: ViewerAccess, session: Session):
             for execution in recent
         ],
         "usage_today": limits.usage_today(session, workspace_id),
-        "limits": {
-            "executions": workspace.max_executions_per_day,
-            "ai_calls": workspace.max_ai_calls_per_day,
-            "emails": workspace.max_emails_per_day,
-        },
+        "limits": limits.effective_limits(workspace),
+        # Lower limits for brand-new accounts end at this time (None = not limited)
+        "new_account_until": limits.new_account_until(workspace),
     }

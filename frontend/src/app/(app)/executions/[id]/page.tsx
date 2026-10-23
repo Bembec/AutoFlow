@@ -79,6 +79,9 @@ export default function ExecutionPage() {
             {" · "}{execution.mode === "live" ? t("ex.liveMode") : t("ex.testMode")}
             {" · "}{t("ex.started", { time: formatTime(execution.started_at ?? execution.created_at) })}
             {execution.finished_at && <> · {t("ex.finished", { time: formatTime(execution.finished_at) })}</>}
+            {execution.ai_calls ? (
+              <> · {t("ex.aiCost", { calls: execution.ai_calls, cost: `$${(execution.ai_cost_usd ?? 0).toFixed(2)}` })}</>
+            ) : null}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -172,6 +175,14 @@ function StepCard({ step, description }: { step: StepExecution; description?: st
             </div>
             {step.error && (
               <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{step.error}</p>
+            )}
+            {Array.isArray(step.output?.safety_warnings) && (
+              <div className="mt-3 rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-900">
+                <p className="font-medium">{t("ex.safety")}</p>
+                <ul className="mt-1 list-disc pl-5">
+                  {(step.output.safety_warnings as string[]).map((warning) => <li key={warning}>{warning}</li>)}
+                </ul>
+              </div>
             )}
             {(step.input || step.output) && (
               <TechnicalDetails>

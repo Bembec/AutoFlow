@@ -198,6 +198,16 @@ def summary(session, workspace_id, now=None):
         if projected > included and share < 1.0:
             alerts.append(f"At the current pace you will need about {projected:,} tasks this period.")
 
+    from autoflow.engine import limits
+
+    ai = limits.ai_budget(session, workspace_id)
+    if ai["budget_usd"] and ai["estimated_cost_usd"] >= 0.8 * ai["budget_usd"]:
+        alerts.append(
+            "This period's AI budget is used up; AI steps are paused until the next period."
+            if ai["estimated_cost_usd"] + ai["cost_per_call_usd"] > ai["budget_usd"]
+            else "80% of this period's AI budget is used."
+        )
+
     if subscription.status == "past_due":
         alerts.append("The last payment failed. Update your payment method to avoid interruption.")
 
@@ -222,5 +232,6 @@ def summary(session, workspace_id, now=None):
             "workflows": {"used": workflows, "max": plan["max_workflows"]},
             "seats": {"used": seats, "max": plan["max_seats"]},
         },
+        "ai": {key: ai[key] for key in ("calls", "estimated_cost_usd", "budget_usd", "cost_per_call_usd")},
         "alerts": alerts,
     }

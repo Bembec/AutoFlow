@@ -102,6 +102,8 @@ export interface Execution {
   /** Delayed or queued: not picked up before this time */
   run_after?: string | null;
   steps: StepExecution[];
+  ai_calls?: number;
+  ai_cost_usd?: number;
 }
 
 export interface ApprovalPayload {
@@ -119,6 +121,8 @@ export interface ApprovalPayload {
   inputs?: Record<string, unknown>;
   review?: boolean;
   output?: Record<string, unknown>;
+  /** Outbound safety-check notes for email steps */
+  safety_warnings?: string[];
   [key: string]: unknown;
 }
 
@@ -205,6 +209,8 @@ export interface Dashboard {
   }[];
   usage_today: { executions: number; ai_calls: number; emails: number };
   limits: { executions: number; ai_calls: number; emails: number };
+  /** Lower limits for brand-new accounts end at this time */
+  new_account_until?: string | null;
 }
 
 export interface IntegrationInfo {

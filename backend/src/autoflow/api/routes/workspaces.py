@@ -176,6 +176,12 @@ def emergency_stop(membership: AdminAccess, session: Session, request: Emergency
 
 @router.post("/workspaces/{workspace_id}/resume-automations")
 def resume_automations(membership: AdminAccess, session: Session):
+    workspace = limits.get_workspace(session, membership.workspace_id)
+    if workspace.staff_suspended_reason:
+        raise HTTPException(
+            status_code=403,
+            detail=f"AutoFlow staff paused this workspace: {workspace.staff_suspended_reason} Contact support to resolve it.",
+        )
     engine.resume_automations(session, membership.workspace_id)
     audit.for_member(membership, session, "automation.resumed")
     return {"automation_paused": False}

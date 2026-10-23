@@ -128,6 +128,11 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <Card>
             <h2 className="font-semibold">{t("dash.limits")}</h2>
+            {data.new_account_until && (
+              <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900">
+                {t("dash.newAccount", { date: formatTime(data.new_account_until) })}
+              </p>
+            )}
             <div className="mt-4 space-y-4">
               <Meter label={t("dash.limitRuns")} used={data.usage_today.executions} limit={data.limits.executions} />
               <Meter label={t("dash.limitAi")} used={data.usage_today.ai_calls} limit={data.limits.ai_calls} />

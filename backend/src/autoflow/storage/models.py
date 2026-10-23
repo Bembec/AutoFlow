@@ -78,6 +78,12 @@ class Workspace(Base):
     time_value_per_hour: Mapped[float | None] = mapped_column(Float)
     time_value_currency: Mapped[str] = mapped_column(String(3), default="USD", server_default="USD")
 
+    # --- trust and safety (V33) ---
+    # Staff checked this workspace: new-account limits no longer apply
+    trusted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # Set by staff (e.g. after an abuse report); owners can't resume while set
+    staff_suspended_reason: Mapped[str | None] = mapped_column(Text)
+
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
     )
@@ -290,6 +296,20 @@ class WorkflowExecution(Base):
         cascade="all, delete-orphan",
         order_by="StepExecution.position",
     )
+
+    @property
+    def ai_calls(self):
+        """AI model calls made by this run's steps (every attempt costs)."""
+        from autoflow.ai.steps import AI_ACTIONS
+
+        return sum(step.attempts for step in self.steps if step.action in AI_ACTIONS)
+
+    @property
+    def ai_cost_usd(self):
+        """Estimated AI cost of this run, from the configured cost per call."""
+        from autoflow.engine.limits import ai_cost_per_call
+
+        return round(self.ai_calls * ai_cost_per_call(), 4)
 
 
 class StepExecution(Base):
@@ -518,4 +538,24 @@ class AuditEvent(Base):
     target: Mapped[str | None] = mapped_column(String(200))
     details: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     ip: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
+
+
+class AbuseReport(Base):
+    """A report from anyone that an AutoFlow workspace sent spam or phishing."""
+
+    __tablename__ = "abuse_reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Filled when the report names a workspace (the X-AutoFlow-Workspace header)
+    workspace_id: Mapped[int | None] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="SET NULL"), index=True
+    )
+    reporter_email: Mapped[str | None] = mapped_column(String(320))
+    # spam | phishing | other
+    category: Mapped[str] = mapped_column(String(20))
+    message: Mapped[str] = mapped_column(Text)
+    ip: Mapped[str | None] = mapped_column(String(64))
+    # open | closed
+    status: Mapped[str] = mapped_column(String(20), default="open", server_default="open")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)

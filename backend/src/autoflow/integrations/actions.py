@@ -15,6 +15,7 @@ from urllib.parse import quote, urljoin
 
 import requests
 
+from autoflow import config as app_config
 from autoflow.engine.actions import Action, ActionError, InputSpec, register
 from autoflow.security.net import UnsafeURL, check_public_url
 
@@ -113,6 +114,9 @@ def _smtp_send(ctx, inputs):
     message["From"] = config["from_address"]
     message["To"] = recipient
     message["Subject"] = subject
+    # Lets recipients and mail providers report abuse to us, traced to the workspace
+    message["X-AutoFlow-Workspace"] = str(ctx.workspace_id)
+    message["X-Report-Abuse"] = f"{app_config.PUBLIC_URL}/report-abuse?workspace={ctx.workspace_id}"
     message.set_content(inputs["body"])
 
     try:

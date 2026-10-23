@@ -20,12 +20,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from autoflow import config, notifications
+from autoflow import audit, config, notifications
 from autoflow.billing import service as billing
 from autoflow.engine import limits
 from autoflow.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templating import evaluate_condition, render
+from autoflow.security import outbound
 from autoflow.storage.db import utc_now
 from autoflow.storage.models import Approval, StepExecution, Workflow, Workspace
 
@@ -185,12 +186,29 @@ def execute(session, execution):
             context["steps"][step.id] = {"output": record.output}
             continue
 
+        # Outgoing email is checked for phishing and spam before anyone approves it
+        warnings = []
+        if action.name in limits.EMAIL_ACTIONS:
+            findings = outbound.check_email(inputs)
+            blocked = outbound.blocking(findings)
+            if blocked:
+                record.status = "failed"
+                record.error = blocked[0]["reason"]
+                record.finished_at = utc_now()
+                audit.record(
+                    session, "outbound.blocked", workspace_id=execution.workspace_id,
+                    target=f"execution:{execution.id}", details={"step": step.id, "reasons": [f["reason"] for f in blocked]},
+                )
+                _finish(session, execution, "failed", f"Step {step.id} blocked by the safety check: {blocked[0]['reason']}")
+                return execution
+            warnings = [finding["reason"] for finding in findings]
+
         needs_approval = step.needs_approval() or (
             workspace.approve_all_side_effects and action.side_effect
         )
 
         if execution.mode == "live" and needs_approval and record.status != "approved":
-            _request_approval(session, execution, step, record, inputs)
+            _request_approval(session, execution, step, record, inputs, warnings=warnings)
             return execution
 
         try:
@@ -205,6 +223,9 @@ def execute(session, execution):
 
         if not _run_step(session, execution, step, record, action, inputs):
             return execution
+        if warnings:
+            record.output = {**(record.output or {}), "safety_warnings": warnings}
+            session.commit()
 
         context["steps"][step.id] = {"output": record.output}
 
@@ -257,7 +278,7 @@ def _delay_elapsed(session, execution, step, record, inputs):
     return False
 
 
-def _request_approval(session, execution, step, record, inputs, review=None):
+def _request_approval(session, execution, step, record, inputs, review=None, warnings=None):
     """Pause the execution until a human decides.
 
     Without `review` this gates the step before it runs. With `review`
@@ -275,6 +296,8 @@ def _request_approval(session, execution, step, record, inputs, review=None):
     }
     if review is not None:
         payload.update({"review": True, **review})
+    if warnings:
+        payload["safety_warnings"] = warnings
 
     existing = session.query(Approval).filter_by(
         execution_id=execution.id, step_id=step.id

@@ -135,6 +135,15 @@ function ApprovalCard({
         <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{approval.payload.reason}</p>
       )}
 
+      {approval.payload.safety_warnings && approval.payload.safety_warnings.length > 0 && (
+        <div role="alert" className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-900">
+          <p className="font-medium">{t("appr.safety")}</p>
+          <ul className="mt-1 list-disc pl-5">
+            {approval.payload.safety_warnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+        </div>
+      )}
+
       {approval.kind === "classification" && (
         <div className="mt-3 space-y-2 text-sm">
           <p className="rounded-lg bg-slate-50 p-3 italic text-slate-700">“{approval.payload.message}”</p>

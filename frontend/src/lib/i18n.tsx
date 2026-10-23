@@ -301,6 +301,15 @@ const en = {
   "sug.template-reviews.reason": "Answering reviews quickly builds trust. AI drafts a personal reply to each one; you approve it.",
   "sug.template-supplier-invoices.title": "Stop typing supplier invoices",
   "sug.template-supplier-invoices.reason": "Your email is connected. AI can read invoices that arrive there and add them to your bookkeeping sheet.",
+
+  "appr.safety": "Safety check: please read before approving",
+  "dash.newAccount": "New-account limits apply until {date}. They stop brand-new accounts being misused for spam; contact support to lift them sooner.",
+  "bill.ai": "AI usage this period",
+  "bill.aiOf": "{cost} of {budget} AI budget (estimate)",
+  "bill.aiNoCap": "{cost} so far (estimate); no AI cap on this plan",
+  "bill.aiHint": "{calls} AI calls, estimated at {rate} each. AI steps pause when the budget is used up; everything else keeps running.",
+  "ex.aiCost": "AI: {calls} calls, about {cost}",
+  "ex.safety": "Safety check notes",
 };
 
 export type MessageKey = keyof typeof en;
@@ -551,6 +560,14 @@ const es: Dictionary = {
   "sug.template-reviews.reason": "Responder rápido a las reseñas genera confianza. La IA redacta una respuesta personal y tú la apruebas.",
   "sug.template-supplier-invoices.title": "Deja de teclear facturas de proveedores",
   "sug.template-supplier-invoices.reason": "Tu correo está conectado. La IA puede leer las facturas que lleguen y añadirlas a tu hoja de contabilidad.",
+  "appr.safety": "Control de seguridad: léelo antes de aprobar",
+  "dash.newAccount": "Los límites de cuenta nueva se aplican hasta el {date}. Evitan que las cuentas nuevas se usen para spam; contacta con soporte para quitarlos antes.",
+  "bill.ai": "Uso de IA en este periodo",
+  "bill.aiOf": "{cost} de {budget} de presupuesto de IA (estimación)",
+  "bill.aiNoCap": "{cost} hasta ahora (estimación); sin tope de IA en este plan",
+  "bill.aiHint": "{calls} llamadas a la IA, estimadas en {rate} cada una. Los pasos de IA se pausan al agotar el presupuesto; el resto sigue funcionando.",
+  "ex.aiCost": "IA: {calls} llamadas, unos {cost}",
+  "ex.safety": "Notas del control de seguridad",
 };
 
 const fr: Dictionary = {
@@ -798,6 +815,14 @@ const fr: Dictionary = {
   "sug.template-reviews.reason": "Répondre vite aux avis crée la confiance. L'IA rédige une réponse personnelle, vous l'approuvez.",
   "sug.template-supplier-invoices.title": "Ne saisissez plus les factures fournisseurs",
   "sug.template-supplier-invoices.reason": "Votre e-mail est connecté. L'IA peut lire les factures reçues et les ajouter à votre tableau comptable.",
+  "appr.safety": "Contrôle de sécurité : à lire avant d'approuver",
+  "dash.newAccount": "Les limites des nouveaux comptes s'appliquent jusqu'au {date}. Elles empêchent l'usage des nouveaux comptes pour du spam ; contactez le support pour les lever plus tôt.",
+  "bill.ai": "Utilisation de l'IA sur la période",
+  "bill.aiOf": "{cost} sur {budget} de budget IA (estimation)",
+  "bill.aiNoCap": "{cost} jusqu'ici (estimation) ; pas de plafond IA sur ce plan",
+  "bill.aiHint": "{calls} appels à l'IA, estimés à {rate} chacun. Les étapes IA s'arrêtent quand le budget est épuisé ; le reste continue.",
+  "ex.aiCost": "IA : {calls} appels, environ {cost}",
+  "ex.safety": "Remarques du contrôle de sécurité",
 };
 
 const de: Dictionary = {
@@ -1045,6 +1070,14 @@ const de: Dictionary = {
   "sug.template-reviews.reason": "Schnelle Antworten auf Bewertungen schaffen Vertrauen. Die KI entwirft eine persönliche Antwort, Sie geben sie frei.",
   "sug.template-supplier-invoices.title": "Lieferantenrechnungen nicht mehr abtippen",
   "sug.template-supplier-invoices.reason": "Ihre E-Mail ist verbunden. Die KI kann eingehende Rechnungen lesen und in Ihre Buchhaltungstabelle eintragen.",
+  "appr.safety": "Sicherheitsprüfung: bitte vor der Freigabe lesen",
+  "dash.newAccount": "Bis {date} gelten Limits für neue Konten. Sie verhindern, dass neue Konten für Spam missbraucht werden; der Support kann sie früher aufheben.",
+  "bill.ai": "KI-Nutzung in diesem Zeitraum",
+  "bill.aiOf": "{cost} von {budget} KI-Budget (Schätzung)",
+  "bill.aiNoCap": "Bisher {cost} (Schätzung); kein KI-Limit in diesem Tarif",
+  "bill.aiHint": "{calls} KI-Aufrufe, geschätzt je {rate}. KI-Schritte pausieren, wenn das Budget aufgebraucht ist; alles andere läuft weiter.",
+  "ex.aiCost": "KI: {calls} Aufrufe, etwa {cost}",
+  "ex.safety": "Hinweise der Sicherheitsprüfung",
 };
 
 const tr: Dictionary = {
@@ -1292,6 +1325,14 @@ const tr: Dictionary = {
   "sug.template-reviews.reason": "Yorumlara hızlı yanıt vermek güven oluşturur. Yapay zekâ kişisel bir yanıt taslağı hazırlar, siz onaylarsınız.",
   "sug.template-supplier-invoices.title": "Tedarikçi faturalarını elle girmeyi bırakın",
   "sug.template-supplier-invoices.reason": "E-postanız bağlı. Yapay zekâ gelen faturaları okuyup muhasebe tablonuza ekleyebilir.",
+  "appr.safety": "Güvenlik kontrolü: onaylamadan önce okuyun",
+  "dash.newAccount": "Yeni hesap sınırları {date} tarihine kadar geçerli. Yeni hesapların spam için kötüye kullanılmasını önler; daha erken kaldırmak için destekle iletişime geçin.",
+  "bill.ai": "Bu dönemdeki yapay zekâ kullanımı",
+  "bill.aiOf": "{budget} yapay zekâ bütçesinin {cost} kadarı (tahmini)",
+  "bill.aiNoCap": "Şu ana kadar {cost} (tahmini); bu planda yapay zekâ sınırı yok",
+  "bill.aiHint": "{calls} yapay zekâ çağrısı, her biri tahmini {rate}. Bütçe bitince yapay zekâ adımları durur; geri kalan her şey çalışmaya devam eder.",
+  "ex.aiCost": "Yapay zekâ: {calls} çağrı, yaklaşık {cost}",
+  "ex.safety": "Güvenlik kontrolü notları",
 };
 
 export const LANGUAGES = {

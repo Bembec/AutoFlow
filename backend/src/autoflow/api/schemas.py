@@ -254,3 +254,5 @@ class ExecutionOut(OrmModel):
     finished_at: datetime | None
     run_after: datetime | None = None
     steps: list[StepExecutionOut]
+    ai_calls: int = 0
+    ai_cost_usd: float = 0

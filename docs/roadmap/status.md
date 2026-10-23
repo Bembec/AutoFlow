@@ -63,12 +63,12 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | --- | --- | --- |
 | Platform verifications (Google CASA, Shopify review, WhatsApp, Microsoft) | ☐ | Depend on the Gmail-access and Shopify-route decisions |
 | Sending limits | ☑ | Daily email, run and AI limits per workspace (V13) |
-| New-account restrictions, outbound content checks, abuse reports | ☐ | Buildable now |
+| New-account restrictions, outbound content checks, abuse reports | ☑ | V33 |
 | Email from the customer's own mailbox | ☑ | Each workspace's own SMTP connection |
-| Acceptable-use policy enforced in product | ☐ | Needs the policy text (legal) |
+| Acceptable-use policy enforced in product | ◐ | V33: staff suspension, phishing block; policy text still needs legal |
 | AI-provider data terms on trust page | ☐ | Needs provider choice and legal review |
 | Pinned models + 200-request test set as release gate | ◐ | Fixed model IDs, fallback provider, 15-case eval |
-| AI cost meter and hard cap | ◐ | Daily AI-call cap and usage log; no money meter yet |
+| AI cost meter and hard cap | ☑ | V33: monthly AI budget per plan (estimated USD); tune with real bills |
 | Label AI-generated messages | ☐ | Scope to check with counsel |
 | Untrusted input handling | ☑ | Prompt-injection guard, limited tools, review queue |
 | Definition of done, item status with owners | ◐ | This file tracks status; owners to add |
@@ -77,7 +77,7 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | Recovery targets | ◐ | Runbook exists; targets set once hosting is chosen |
 | Compensation (undo) | ☐ | e.g. void invoice, send correction |
 | Test mode with sample data | ☑ | |
-| Run timeline with cost | ◐ | Plain-language timeline (V29); cost per run to do |
+| Run timeline with cost | ☑ | V29 timeline + V33 AI calls and estimated cost per run |
 | Connection health and one-click reconnect | ◐ | Status, last error and token refresh; expiry warnings and reconnect to do |
 | WCAG 2.2 AA and plain-language errors | ◐ | V29 pass; formal audit to do |
 | Gate evidence: zero duplicates in 1,000 test runs | ☐ | Buildable now as an automated soak test |
