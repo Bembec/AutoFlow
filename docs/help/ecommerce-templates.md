@@ -103,5 +103,45 @@ When a WooCommerce order starts processing, AutoFlow adds a note the customer ca
 
 **Needs:** a WooCommerce order webhook and a WooCommerce connection named "store".
 
+## Welcome first-time customers
+
+When someone buys from you for the first time, they get a warm welcome email, after your approval. Returning customers get nothing extra.
+
+## Ask for a review a week later
+
+Seven days after an order is paid, the customer is asked how they like it and invited to leave a review, after your approval. Change the wait in the first step. Needs the background worker.
+
+## Orders → spreadsheet, and WooCommerce orders → spreadsheet
+
+Each paid order becomes one row in a Google Sheet: date or status, order number, customer, email and total.
+
+## Customers → Airtable
+
+Keeps a customer list in Airtable. Each order adds the customer, or updates them if they're already there (matched by email).
+
+## Tag big orders (early access)
+
+Shopify orders over 150 get the tag "big-order", so your team packs them first.
+
+## Bad review alert (early access)
+
+A review of 2 stars or less emails you straight away, so you can put it right quickly.
+
+## Payment failed reminder
+
+When a payment fails, the customer gets a friendly note with a link to pay again on your own shop, after your approval.
+
+## WooCommerce completed: thank you
+
+When a WooCommerce order is marked completed, the customer gets a thank-you and an invitation to review, after your approval.
+
+## WooCommerce cancelled → void invoice (early access)
+
+When a WooCommerce order is cancelled or refunded, its invoice is voided and keeps its number.
+
+## Wholesale lead alert
+
+AI spots wholesale or bulk enquiries in your inbox and emails you a short summary, so big buyers never wait.
+
 > **Early access** templates use comparisons or loops. They appear in your workspace once **smarter logic** is switched on (see "Conditions and loops").
 

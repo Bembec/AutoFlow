@@ -1,5 +1,22 @@
 # Changelog
 
+## V41: Template library reaches 25
+- **Eleven new e-commerce templates:**
+  - **Welcome first-time customers:** only for a customer's first order.
+  - **Ask for a review a week later:** uses a 7-day wait.
+  - **Orders → spreadsheet** and **WooCommerce orders → spreadsheet**.
+  - **Customers → Airtable:** adds or updates customers, matched by email.
+  - **Tag big orders** (early access): Shopify orders over 150 get the "big-order" tag.
+  - **Bad review alert** (early access): for reviews of 2 stars or less.
+  - **Payment failed reminder:** a link to pay again on your own shop.
+  - **WooCommerce completed: thank you**.
+  - **WooCommerce cancelled → void invoice** (early access): uses OR, for cancelled or refunded.
+  - **Wholesale lead alert:** AI spots bulk enquiries and emails you a summary.
+- **25 templates in total**, meeting the Phase 2 target. Every new one test-runs with its own sample data, with every step actually running, and its conditions are tested to skip the right cases.
+- Every email still waits for approval.
+- The help article "E-commerce templates" covers all of them, and the help assistant's copy is re-synced.
+- Checks: backend 290 passed. There are no app changes, since templates come from the server.
+
 ## V40: Help assistant
 - A **Help** button on every app page opens a panel for "how do I…?" questions, answered in the user's language.
 - **It answers only from the help articles.**

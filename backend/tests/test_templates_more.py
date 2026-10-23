@@ -61,8 +61,8 @@ def test_the_library_has_the_new_templates_and_all_are_valid(client):
     for slug in NEW:
         assert listed[slug]["requires"] and listed[slug]["category"] == "E-commerce"
         WorkflowDefinition.model_validate(TEMPLATES[slug]["definition"])
-    assert {slug for slug, t in listed.items() if t["feature"]} == {
-        "low-stock-alert", "order-lines-to-sheet", "vip-thank-you"}
+    assert {"low-stock-alert", "order-lines-to-sheet", "vip-thank-you"} <= {
+        slug for slug, t in listed.items() if t["feature"]}
 
 
 @pytest.mark.parametrize("slug", NEW)
