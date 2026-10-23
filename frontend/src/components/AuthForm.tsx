@@ -6,11 +6,13 @@ import { useState } from "react";
 
 import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
 import { api, setToken } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useAction } from "@/lib/useApi";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const { busy, error, run } = useAction();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,16 +42,16 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             Auto<span className="text-indigo-600">Flow</span>
           </Link>
           <h1 className="mt-4 text-xl font-semibold">
-            {mode === "login" ? "Sign in" : "Create your account"}
+            {mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
           </h1>
         </div>
 
         {mode === "register" && (
-          <Field label="Your name">
+          <Field label={t("auth.name")}>
             <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
           </Field>
         )}
-        <Field label="Email">
+        <Field label={t("auth.email")}>
           <input
             className={inputClass}
             type="email"
@@ -59,7 +61,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             required
           />
         </Field>
-        <Field label="Password" hint={mode === "register" ? "At least 8 characters." : undefined}>
+        <Field label={t("auth.password")} hint={mode === "register" ? t("auth.passwordHint") : undefined}>
           <input
             className={inputClass}
             type="password"
@@ -74,17 +76,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         <ErrorNote message={error} />
 
         <Button type="submit" disabled={busy} className="w-full">
-          {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+          {busy ? t("auth.wait") : mode === "login" ? t("auth.signIn") : t("auth.create")}
         </Button>
 
         <p className="text-center text-sm text-slate-500">
           {mode === "login" ? (
             <>
-              New here? <Link href="/register" className="text-indigo-600 hover:underline">Create an account</Link>
+              {t("auth.newHere")} <Link href="/register" className="text-indigo-600 hover:underline">{t("auth.create")}</Link>
             </>
           ) : (
             <>
-              Have an account? <Link href="/login" className="text-indigo-600 hover:underline">Sign in</Link>
+              {t("auth.haveAccount")} <Link href="/login" className="text-indigo-600 hover:underline">{t("auth.signIn")}</Link>
             </>
           )}
         </p>

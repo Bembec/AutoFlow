@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Card, EmptyState, ErrorNote, JsonBlock, Loading, PageHeader, StatusBadge, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { type MessageKey, useI18n } from "@/lib/i18n";
 import type { Approval } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
 
@@ -16,14 +17,15 @@ export default function ApprovalsPage() {
   const path = view === "pending" ? `${base}/approvals?status=pending` : `${base}/approvals`;
   const { data, error, loading, reload } = useApi<Approval[]>(path);
   const items = view === "history" ? data?.filter((a) => a.status !== "pending") : data;
+  const { t } = useI18n();
   // Notification links open one approval: /approvals?focus=<id>
   const focus = Number(useSearchParams().get("focus")) || null;
 
   return (
     <>
       <PageHeader
-        title="Approvals"
-        description="Anything sensitive waits here for a person: emails to customers, unsure AI results, and possible prompt-injection attempts."
+        title={t("appr.title")}
+        description={t("appr.subtitle")}
       />
       <div className="mb-4 flex gap-2">
         {(["pending", "history"] as const).map((item) => (
@@ -32,7 +34,7 @@ export default function ApprovalsPage() {
             onClick={() => setView(item)}
             className={`rounded-full px-3 py-1 text-sm ${view === item ? "bg-indigo-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
           >
-            {item === "pending" ? "Waiting" : "Decided"}
+            {item === "pending" ? t("appr.waiting") : t("appr.decided")}
           </button>
         ))}
       </div>
@@ -40,7 +42,7 @@ export default function ApprovalsPage() {
       {loading && !data ? (
         <Loading />
       ) : !items || items.length === 0 ? (
-        <EmptyState title={view === "pending" ? "Nothing waiting for you" : "No decisions yet"} />
+        <EmptyState title={view === "pending" ? t("appr.nothingWaiting") : t("appr.noDecisions")} />
       ) : (
         <div className="space-y-4">
           {items.map((approval) => (
@@ -52,11 +54,12 @@ export default function ApprovalsPage() {
   );
 }
 
-function title(approval: Approval) {
-  if (approval.kind === "classification") return "Check the AI’s category";
-  if (approval.kind === "email") return "Send this email?";
-  if (approval.payload.review) return `Review AI result: ${approval.payload.step_name}`;
-  return `Approve step: ${approval.payload.step_name}`;
+function title(approval: Approval, t: (key: MessageKey, vars?: Record<string, string | number>) => string) {
+  if (approval.kind === "classification") return t("appr.checkCategory");
+  if (approval.kind === "email") return t("appr.sendEmail");
+  const name = approval.payload.step_name ?? "";
+  if (approval.payload.review) return t("appr.reviewResult", { name });
+  return t("appr.approveStep", { name });
 }
 
 function ApprovalCard({
@@ -69,6 +72,7 @@ function ApprovalCard({
   focused?: boolean;
 }) {
   const { base, can } = useSession();
+  const { t } = useI18n();
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,7 +98,7 @@ function ApprovalCard({
         const corrected = JSON.parse(output);
         if (JSON.stringify(corrected) !== JSON.stringify(approval.payload.output)) body = { output: corrected };
       } catch {
-        return action.setError("The corrected result is not valid JSON.");
+        return action.setError(t("appr.badJson"));
       }
     }
 
@@ -109,7 +113,7 @@ function ApprovalCard({
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="font-semibold">{title(approval)}</h2>
+          <h2 className="font-semibold">{title(approval, t)}</h2>
           <p className="text-xs text-slate-500">
             {approval.customer_email && <>{approval.customer_email} · </>}
             {formatTime(approval.created_at)}
@@ -117,7 +121,7 @@ function ApprovalCard({
               <>
                 {" · "}
                 <Link href={`/executions/${approval.execution_id}`} className="hover:text-indigo-600">
-                  run #{approval.execution_id}
+                  {t("appr.run", { id: approval.execution_id })}
                 </Link>
               </>
             )}
@@ -134,11 +138,11 @@ function ApprovalCard({
         <div className="mt-3 space-y-2 text-sm">
           <p className="rounded-lg bg-slate-50 p-3 italic text-slate-700">“{approval.payload.message}”</p>
           <p>
-            AI says <strong>{approval.payload.suggested_category}</strong>: {approval.payload.reason}
+            {t("appr.aiSays")} <strong>{approval.payload.suggested_category}</strong>: {approval.payload.reason}
           </p>
           {pending && (
             <label className="flex items-center gap-2">
-              Category
+              {t("appr.category")}
               <select className={`${inputClass} w-auto`} value={category} onChange={(e) => setCategory(e.target.value)}>
                 {["Sales", "Support", "Other"].map((option) => <option key={option}>{option}</option>)}
               </select>
@@ -149,8 +153,8 @@ function ApprovalCard({
 
       {email && looksLikeEmail && !isReview && (
         <div className="mt-3 rounded-lg border border-slate-200 text-sm">
-          <p className="border-b border-slate-200 px-3 py-2"><span className="text-slate-500">To:</span> {String(email.to)}</p>
-          <p className="border-b border-slate-200 px-3 py-2"><span className="text-slate-500">Subject:</span> {String(email.subject)}</p>
+          <p className="border-b border-slate-200 px-3 py-2"><span className="text-slate-500">{t("appr.to")}</span> {String(email.to)}</p>
+          <p className="border-b border-slate-200 px-3 py-2"><span className="text-slate-500">{t("appr.subject")}</span> {String(email.subject)}</p>
           <p className="whitespace-pre-wrap px-3 py-2">{String(email.body)}</p>
         </div>
       )}
@@ -162,12 +166,12 @@ function ApprovalCard({
       {isReview && (
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
-            <p className="mb-1 text-xs font-medium uppercase text-slate-500">What the AI read</p>
+            <p className="mb-1 text-xs font-medium uppercase text-slate-500">{t("appr.whatAiRead")}</p>
             <JsonBlock value={approval.payload.inputs} />
           </div>
           <div>
             <p className="mb-1 text-xs font-medium uppercase text-slate-500">
-              {pending ? "Result (correct it if needed)" : "Result"}
+              {pending ? t("appr.resultEdit") : t("appr.result")}
             </p>
             {pending ? (
               <textarea
@@ -189,10 +193,10 @@ function ApprovalCard({
         <div className="mt-4 flex gap-2">
           {/* Large tap targets on phones */}
           <Button className="flex-1 py-3 sm:flex-none sm:py-2" onClick={() => decide(true)} disabled={action.busy}>
-            {isReview ? "Accept and continue" : "Approve"}
+            {isReview ? t("appr.accept") : t("appr.approve")}
           </Button>
           <Button variant="secondary" className="flex-1 py-3 sm:flex-none sm:py-2" onClick={() => decide(false)} disabled={action.busy}>
-            Reject
+            {t("appr.reject")}
           </Button>
         </div>
       )}

@@ -4,19 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { LANGUAGES, type Language, type MessageKey, useI18n } from "@/lib/i18n";
 import { SessionProvider, useSession } from "@/lib/session";
 import { useApi } from "@/lib/useApi";
 import type { Dashboard } from "@/lib/types";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/workflows", label: "Workflows" },
-  { href: "/executions", label: "Run history" },
-  { href: "/approvals", label: "Approvals" },
-  { href: "/invoices", label: "Invoices" },
-  { href: "/connections", label: "Connected apps" },
-  { href: "/billing", label: "Plan & usage" },
-  { href: "/settings", label: "Settings" },
+const NAV: { href: string; label: MessageKey }[] = [
+  { href: "/dashboard", label: "nav.dashboard" },
+  { href: "/workflows", label: "nav.workflows" },
+  { href: "/executions", label: "nav.runs" },
+  { href: "/approvals", label: "nav.approvals" },
+  { href: "/invoices", label: "nav.invoices" },
+  { href: "/connections", label: "nav.connections" },
+  { href: "/billing", label: "nav.billing" },
+  { href: "/settings", label: "nav.settings" },
 ];
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,20 @@ function Shell({ children }: { children: React.ReactNode }) {
   const { me, workspace, base, switchWorkspace, logout } = useSession();
   const [open, setOpen] = useState(false);
   const { data: dashboard } = useApi<Dashboard>(`${base}/dashboard`);
+  const { t, language, setLanguage } = useI18n();
+
+  const languagePicker = (
+    <select
+      aria-label={t("nav.language")}
+      value={language}
+      onChange={(event) => setLanguage(event.target.value as Language)}
+      className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+    >
+      {Object.entries(LANGUAGES).map(([code, { label }]) => (
+        <option key={code} value={code}>{label}</option>
+      ))}
+    </select>
+  );
 
   const nav = (
     <nav className="flex flex-col gap-1">
@@ -38,7 +53,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               active ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            {item.label}
+            {t(item.label)}
             {item.href === "/approvals" && dashboard && dashboard.pending_approvals > 0 && (
               <span className="rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
                 {dashboard.pending_approvals}
@@ -63,9 +78,10 @@ function Shell({ children }: { children: React.ReactNode }) {
             current={workspace.id}
             onChange={switchWorkspace}
           />
+          {languagePicker}
           <p className="truncate px-1 text-xs text-slate-500">{me.email}</p>
           <button onClick={logout} className="px-1 text-xs text-slate-500 hover:text-slate-900">
-            Sign out
+            {t("nav.signOut")}
           </button>
         </div>
       </aside>
@@ -76,7 +92,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </Link>
         {dashboard && dashboard.pending_approvals > 0 && (
           <Link href="/approvals" className="ml-auto mr-3 rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold text-white">
-            {dashboard.pending_approvals} to approve
+            {t("nav.toApprove", { count: dashboard.pending_approvals })}
           </Link>
         )}
         <button
@@ -84,7 +100,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
           aria-expanded={open}
         >
-          Menu
+          {t("nav.menu")}
         </button>
       </header>
       {open && (
@@ -92,7 +108,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           {nav}
           <div className="mt-4 space-y-2">
             <WorkspaceSwitcher workspaces={me.workspaces} current={workspace.id} onChange={switchWorkspace} />
-            <button onClick={logout} className="text-sm text-slate-600">Sign out</button>
+            {languagePicker}
+            <button onClick={logout} className="text-sm text-slate-600">{t("nav.signOut")}</button>
           </div>
         </div>
       )}
@@ -100,8 +117,8 @@ function Shell({ children }: { children: React.ReactNode }) {
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8">
         {dashboard?.automation_paused && (
           <div role="alert" className="mb-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
-            <strong>All automations are stopped.</strong> {dashboard.paused_reason}{" "}
-            <Link href="/settings" className="underline">Resume in Settings</Link>
+            <strong>{t("banner.stopped")}</strong> {dashboard.paused_reason}{" "}
+            <Link href="/settings" className="underline">{t("banner.resume")}</Link>
           </div>
         )}
         {children}

@@ -1,5 +1,11 @@
 # Changelog
 
+## V26: Interface languages
+- Translation system (`frontend/src/lib/i18n.tsx`): one dictionary per language, with missing keys falling back to English, so pages can be translated step by step.
+- Languages: English, Spanish, French, German and Turkish. The browser language is detected automatically, and a picker in the menu changes it (remembered per device). The server render uses English, so there is no hydration mismatch.
+- Translated: navigation, sign-in and registration, dashboard, and the approvals inbox (the phone screen). Other pages are still in English.
+- Every language has all 65 keys. Checks: frontend type check, lint and production build clean; no backend changes.
+
 ## V25: WooCommerce support
 - **Webhooks:** new `woocommerce` signature scheme (`X-WC-Webhook-Signature`, base64 HMAC-SHA256). WooCommerce's setup ping is answered without starting a run, so WooCommerce keeps the webhook active, and its delivery id is used for de-duplication.
 - **Orders:** `create_invoice` now understands WooCommerce orders (billing details, line items, totals, `cart_hash` for order tracking).

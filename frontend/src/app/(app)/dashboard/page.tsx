@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Card, EmptyState, ErrorNote, LinkButton, Loading, PageHeader, StatusBadge, formatMinutes, formatTime } from "@/components/ui";
 import { useSession } from "@/lib/session";
+import { useI18n } from "@/lib/i18n";
 import type { Dashboard } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
@@ -40,6 +41,7 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
 export default function DashboardPage() {
   const { base, workspace } = useSession();
   const { data, error, loading } = useApi<Dashboard>(`${base}/dashboard`);
+  const { t } = useI18n();
 
   if (loading && !data) return <Loading />;
   if (error) return <ErrorNote message={error} />;
@@ -51,27 +53,31 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title={workspace.name}
-        description="What your automations did for you."
-        actions={<LinkButton href="/workflows/new">New workflow</LinkButton>}
+        description={t("dash.subtitle")}
+        actions={<LinkButton href="/workflows/new">{t("dash.newWorkflow")}</LinkButton>}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Time saved (30 days)" value={formatMinutes(data.minutes_saved_30d)} hint="Successful live runs × minutes per run" />
-        <Stat label="Runs today" value={today} hint={`${data.executions_today.failed ?? 0} failed`} />
+        <Stat label={t("dash.timeSaved")} value={formatMinutes(data.minutes_saved_30d)} hint={t("dash.timeSavedHint")} />
+        <Stat label={t("dash.runsToday")} value={today} hint={t("dash.failed", { count: data.executions_today.failed ?? 0 })} />
         <Stat
-          label="Waiting for you"
+          label={t("dash.waiting")}
           value={<Link href="/approvals" className="hover:text-indigo-600">{data.pending_approvals}</Link>}
-          hint="Approvals and reviews"
+          hint={t("dash.waitingHint")}
         />
-        <Stat label="Workflows" value={data.workflows.total} hint={`${data.workflows.active} active · ${data.workflows.paused} paused`} />
+        <Stat
+          label={t("dash.workflows")}
+          value={data.workflows.total}
+          hint={t("dash.workflowsHint", { active: data.workflows.active, paused: data.workflows.paused })}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
-          <h2 className="font-semibold">Recent runs</h2>
+          <h2 className="font-semibold">{t("dash.recentRuns")}</h2>
           {data.recent_executions.length === 0 ? (
             <div className="mt-4">
-              <EmptyState title="No runs yet">Open a workflow and press “Test run” to see it work step by step.</EmptyState>
+              <EmptyState title={t("dash.noRuns")}>{t("dash.noRunsHint")}</EmptyState>
             </div>
           ) : (
             <ul className="mt-3 divide-y divide-slate-100">
@@ -97,18 +103,18 @@ export default function DashboardPage() {
 
         <div className="space-y-6">
           <Card>
-            <h2 className="font-semibold">Today’s limits</h2>
+            <h2 className="font-semibold">{t("dash.limits")}</h2>
             <div className="mt-4 space-y-4">
-              <Meter label="Runs" used={data.usage_today.executions} limit={data.limits.executions} />
-              <Meter label="AI calls" used={data.usage_today.ai_calls} limit={data.limits.ai_calls} />
-              <Meter label="Emails sent" used={data.usage_today.emails} limit={data.limits.emails} />
+              <Meter label={t("dash.limitRuns")} used={data.usage_today.executions} limit={data.limits.executions} />
+              <Meter label={t("dash.limitAi")} used={data.usage_today.ai_calls} limit={data.limits.ai_calls} />
+              <Meter label={t("dash.limitEmails")} used={data.usage_today.emails} limit={data.limits.emails} />
             </div>
           </Card>
 
           <Card>
-            <h2 className="font-semibold">Time saved by workflow</h2>
+            <h2 className="font-semibold">{t("dash.byWorkflow")}</h2>
             {data.per_workflow.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-500">No workflows yet.</p>
+              <p className="mt-3 text-sm text-slate-500">{t("dash.noWorkflows")}</p>
             ) : (
               <ul className="mt-3 space-y-2 text-sm">
                 {data.per_workflow.map((item) => (
