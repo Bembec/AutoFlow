@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ export default function ApprovalsPage() {
           <button
             key={item}
             onClick={() => setView(item)}
-            className={`rounded-full px-3 py-1 text-sm ${view === item ? "bg-indigo-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
+            className={`rounded-full px-3 py-1 text-sm ${view === item ? "bg-brand-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
           >
             {item === "pending" ? t("appr.waiting") : t("appr.decided")}
           </button>
@@ -42,7 +43,7 @@ export default function ApprovalsPage() {
       {loading && !data ? (
         <Loading />
       ) : !items || items.length === 0 ? (
-        <EmptyState title={view === "pending" ? t("appr.nothingWaiting") : t("appr.noDecisions")} />
+        <EmptyState icon={CheckCircle2} title={view === "pending" ? t("appr.nothingWaiting") : t("appr.noDecisions")} />
       ) : (
         <div className="space-y-4">
           {items.map((approval) => (
@@ -109,7 +110,7 @@ function ApprovalCard({
   }
 
   return (
-    <div ref={cardRef} className={`scroll-mt-4 rounded-xl ${focused ? "ring-2 ring-indigo-500" : ""}`}>
+    <div ref={cardRef} className={`scroll-mt-4 rounded-xl ${focused ? "ring-2 ring-brand-500" : ""}`}>
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
@@ -120,7 +121,7 @@ function ApprovalCard({
             {approval.execution_id && (
               <>
                 {" · "}
-                <Link href={`/executions/${approval.execution_id}`} className="hover:text-indigo-600">
+                <Link href={`/executions/${approval.execution_id}`} className="hover:text-brand-600">
                   {t("appr.run", { id: approval.execution_id })}
                 </Link>
               </>

@@ -240,7 +240,7 @@ export function StepEditor({
                 if (dragIndex !== null) move(dragIndex, index);
                 setDragIndex(null);
               }}
-              className={`rounded-xl border bg-white ${open ? "border-indigo-400" : "border-slate-200"} ${dragIndex === index ? "opacity-50" : ""}`}
+              className={`rounded-xl border bg-white ${open ? "border-brand-400" : "border-slate-200"} ${dragIndex === index ? "opacity-50" : ""}`}
             >
               <div className="flex items-center gap-2 px-3 py-2">
                 {editable && <span className="cursor-grab select-none text-slate-400" title="Drag to reorder">⠿</span>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { History } from "lucide-react";
 import Link from "next/link";
 
 import { Card, EmptyState, ErrorNote, LinkButton, Loading, PageHeader, StatusBadge, formatMinutes, formatTime } from "@/components/ui";
@@ -30,7 +31,7 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
       </div>
       <div className="mt-1 h-2 rounded-full bg-slate-100">
         <div
-          className={`h-2 rounded-full ${share >= 90 ? "bg-red-500" : "bg-indigo-500"}`}
+          className={`h-2 rounded-full ${share >= 90 ? "bg-red-500" : "bg-brand-500"}`}
           style={{ width: `${share}%` }}
         />
       </div>
@@ -62,7 +63,7 @@ export default function DashboardPage() {
         <Stat label={t("dash.runsToday")} value={today} hint={t("dash.failed", { count: data.executions_today.failed ?? 0 })} />
         <Stat
           label={t("dash.waiting")}
-          value={<Link href="/approvals" className="hover:text-indigo-600">{data.pending_approvals}</Link>}
+          value={<Link href="/approvals" className="hover:text-brand-600">{data.pending_approvals}</Link>}
           hint={t("dash.waitingHint")}
         />
         <Stat
@@ -77,7 +78,7 @@ export default function DashboardPage() {
           <h2 className="font-semibold">{t("dash.recentRuns")}</h2>
           {data.recent_executions.length === 0 ? (
             <div className="mt-4">
-              <EmptyState title={t("dash.noRuns")}>{t("dash.noRunsHint")}</EmptyState>
+              <EmptyState icon={History} title={t("dash.noRuns")}>{t("dash.noRunsHint")}</EmptyState>
             </div>
           ) : (
             <ul className="mt-3 divide-y divide-slate-100">
@@ -119,7 +120,7 @@ export default function DashboardPage() {
               <ul className="mt-3 space-y-2 text-sm">
                 {data.per_workflow.map((item) => (
                   <li key={item.id} className="flex justify-between gap-2">
-                    <Link href={`/workflows/${item.id}`} className="truncate hover:text-indigo-600">
+                    <Link href={`/workflows/${item.id}`} className="truncate hover:text-brand-600">
                       {item.name}
                     </Link>
                     <span className="shrink-0 tabular-nums text-slate-500">

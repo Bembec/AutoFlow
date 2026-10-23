@@ -1,5 +1,6 @@
 "use client";
 
+import { Plug } from "lucide-react";
 import { useState } from "react";
 
 import { Button, Card, EmptyState, ErrorNote, Field, Loading, PageHeader, StatusBadge, formatTime, inputClass } from "@/components/ui";
@@ -64,7 +65,7 @@ export default function ConnectionsPage() {
       {loading && !connections ? (
         <Loading />
       ) : connections && connections.length === 0 ? (
-        <EmptyState title={t("conn.empty")}>Connect Airtable, your mailbox, Google Sheets or any API.</EmptyState>
+        <EmptyState icon={Plug} title={t("conn.empty")}>Connect Airtable, your mailbox, Google Sheets or any API.</EmptyState>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {connections?.map((connection) => (

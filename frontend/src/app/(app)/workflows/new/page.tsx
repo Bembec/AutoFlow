@@ -89,7 +89,7 @@ export default function NewWorkflowPage() {
                     key={example}
                     type="button"
                     onClick={() => setRequest(example)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-left text-xs text-slate-600 hover:border-indigo-300 hover:text-indigo-700"
+                    className="rounded-full border border-slate-200 px-3 py-1 text-left text-xs text-slate-600 hover:border-brand-300 hover:text-brand-700"
                   >
                     {example.slice(0, 48)}…
                   </button>
@@ -127,7 +127,7 @@ export default function NewWorkflowPage() {
                   <div>
                     <p className="text-sm font-medium">
                       {template.name}
-                      <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-normal text-indigo-700">
+                      <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-normal text-brand-700">
                         {template.category}
                       </span>
                     </p>

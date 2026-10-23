@@ -94,7 +94,7 @@ export default function BillingPage() {
             </div>
             {included !== null && (
               <div className="mt-1 h-3 rounded-full bg-slate-100">
-                <div className={`h-3 rounded-full ${share >= 90 ? "bg-red-500" : "bg-indigo-500"}`} style={{ width: `${share}%` }} />
+                <div className={`h-3 rounded-full ${share >= 90 ? "bg-red-500" : "bg-brand-500"}`} style={{ width: `${share}%` }} />
               </div>
             )}
             <p className="mt-2 text-xs text-slate-500">
@@ -151,7 +151,7 @@ export default function BillingPage() {
         {plans?.map((plan) => {
           const current = plan.name === data.plan.name;
           return (
-            <Card key={plan.name} className={current ? "border-indigo-400 ring-1 ring-indigo-400" : ""}>
+            <Card key={plan.name} className={current ? "border-brand-400 ring-1 ring-brand-400" : ""}>
               <p className="font-semibold">{plan.label}</p>
               <p className="mt-1 text-2xl font-semibold">
                 {plan.price_usd_month === null ? "Custom" : `$${plan.price_usd_month}`}
@@ -164,7 +164,7 @@ export default function BillingPage() {
                 <li>{unlimited(plan.max_seats)} seat{plan.max_seats === 1 ? "" : "s"}</li>
               </ul>
               {current ? (
-                <p className="mt-4 text-sm font-medium text-indigo-700">{t("bill.yourPlan")}</p>
+                <p className="mt-4 text-sm font-medium text-brand-700">{t("bill.yourPlan")}</p>
               ) : owner && data.online_payments && plan.price_usd_month ? (
                 <Button className="mt-4 w-full" disabled={action.busy} onClick={() => redirect("checkout", { plan: plan.name })}>
                   {t("bill.choose", { plan: plan.label })}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
 import { ApiError, api, setToken } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
@@ -49,8 +50,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     <main className="flex min-h-screen items-center justify-center px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div>
-          <Link href="/" className="text-lg font-semibold">
-            Auto<span className="text-indigo-600">Flow</span>
+          <Link href="/" className="text-lg">
+            <Logo />
           </Link>
           <h1 className="mt-4 text-xl font-semibold">
             {mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
@@ -107,11 +108,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         <p className="text-center text-sm text-slate-500">
           {mode === "login" ? (
             <>
-              {t("auth.newHere")} <Link href="/register" className="text-indigo-600 hover:underline">{t("auth.create")}</Link>
+              {t("auth.newHere")} <Link href="/register" className="text-brand-600 hover:underline">{t("auth.create")}</Link>
             </>
           ) : (
             <>
-              {t("auth.haveAccount")} <Link href="/login" className="text-indigo-600 hover:underline">{t("auth.signIn")}</Link>
+              {t("auth.haveAccount")} <Link href="/login" className="text-brand-600 hover:underline">{t("auth.signIn")}</Link>
             </>
           )}
         </p>

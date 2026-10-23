@@ -1,6 +1,8 @@
 // Small typed client for the AutoFlow API. Requests go to /api/*, which
 // next.config.ts forwards to the backend.
 
+import { type MessageKey, translateNow } from "./i18n";
+
 const TOKEN_KEY = "autoflow.token";
 
 export class ApiError extends Error {
@@ -29,15 +31,51 @@ export function setToken(token: string | null) {
   }
 }
 
-function describe(detail: unknown): string {
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) {
+// FastAPI's built-in messages say nothing useful to a shop owner
+const GENERIC_DETAILS = new Set([
+  "Not Found",
+  "Not authenticated",
+  "Forbidden",
+  "Unauthorized",
+  "Method Not Allowed",
+  "Internal Server Error",
+  "Request Entity Too Large",
+]);
+
+const STATUS_MESSAGES: Record<number, MessageKey> = {
+  401: "err.401",
+  403: "err.403",
+  404: "err.404",
+  413: "err.413",
+  429: "err.429",
+};
+
+function fieldName(location: unknown): string {
+  // ["body", "steps", 0, "name"] -> "steps 1 name"
+  if (!Array.isArray(location)) return "";
+  return location
+    .filter((part) => part !== "body" && part !== "query" && part !== "path")
+    .map((part) => (typeof part === "number" ? String(part + 1) : String(part).replaceAll("_", " ")))
+    .join(" ");
+}
+
+/** A message a non-technical person can act on. */
+function describe(status: number, detail: unknown): string {
+  if (status >= 500) return translateNow("err.500");
+  if (typeof detail === "string" && detail && !GENERIC_DETAILS.has(detail)) return detail;
+  if (Array.isArray(detail) && detail.length) {
     // FastAPI validation errors
     return detail
-      .map((item) => (typeof item === "object" && item && "msg" in item ? String(item.msg) : String(item)))
+      .map((item) => {
+        if (typeof item !== "object" || !item || !("msg" in item)) return String(item);
+        const where = fieldName((item as { loc?: unknown }).loc);
+        const message = String(item.msg).replace(/^Value error, /, "");
+        return where ? `${where}: ${message}` : message;
+      })
       .join("; ");
   }
-  return "Something went wrong.";
+  const key = STATUS_MESSAGES[status];
+  return translateNow(key ?? "err.generic");
 }
 
 export async function api<T>(
@@ -50,18 +88,23 @@ export async function api<T>(
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
-  const response = await fetch(`/api${path}`, {
-    method: options.method ?? (options.body !== undefined ? "POST" : "GET"),
-    headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`/api${path}`, {
+      method: options.method ?? (options.body !== undefined ? "POST" : "GET"),
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    });
+  } catch {
+    throw new ApiError(0, translateNow("err.network"));
+  }
 
   if (response.status === 204) return undefined as T;
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new ApiError(response.status, describe((data as { detail?: unknown }).detail));
+    throw new ApiError(response.status, describe(response.status, (data as { detail?: unknown }).detail));
   }
 
   return data as T;
@@ -69,6 +112,7 @@ export async function api<T>(
 
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
+  if (error instanceof TypeError) return translateNow("err.network");
   if (error instanceof Error) return error.message;
-  return "Something went wrong.";
+  return translateNow("err.generic");
 }

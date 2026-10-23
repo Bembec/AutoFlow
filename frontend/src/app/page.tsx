@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Logo } from "@/components/Logo";
+
 // Public, static page: should always render instantly
 export const instant = true;
 
@@ -22,21 +24,19 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-8 sm:px-6">
       <header className="flex items-center justify-between">
-        <span className="text-lg font-semibold">
-          Auto<span className="text-indigo-600">Flow</span>
-        </span>
+        <Logo className="text-lg" />
         <nav className="flex gap-2 text-sm">
           <Link href="/login" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-white">
             Sign in
           </Link>
-          <Link href="/register" className="rounded-lg bg-indigo-600 px-3 py-2 font-medium text-white hover:bg-indigo-500">
+          <Link href="/register" className="rounded-lg bg-brand-600 px-3 py-2 font-medium text-white hover:bg-brand-500">
             Start free
           </Link>
         </nav>
       </header>
 
       <section className="py-20 text-center sm:py-28">
-        <p className="text-sm font-medium text-indigo-600">Save 10+ hours a week. No code. Live in minutes.</p>
+        <p className="text-sm font-medium text-brand-600">Save 10+ hours a week. No code. Live in minutes.</p>
         <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Tell it what you want done.
         </h1>
@@ -44,7 +44,7 @@ export default function Home() {
           AutoFlow builds the workflow, connects your apps, and runs it for you — with a human in the loop for anything that matters.
         </p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link href="/register" className="rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-500">
+          <Link href="/register" className="rounded-lg bg-brand-600 px-5 py-3 font-medium text-white hover:bg-brand-500">
             Build your first workflow
           </Link>
         </div>
@@ -53,7 +53,7 @@ export default function Home() {
       <section className="grid gap-4 pb-16 sm:grid-cols-3">
         {STEPS.map((step, index) => (
           <div key={step.title} className="rounded-xl border border-slate-200 bg-white p-5">
-            <p className="text-sm font-semibold text-indigo-600">{index + 1}</p>
+            <p className="text-sm font-semibold text-brand-600">{index + 1}</p>
             <h2 className="mt-1 font-semibold">{step.title}</h2>
             <p className="mt-2 text-sm text-slate-600">{step.text}</p>
           </div>

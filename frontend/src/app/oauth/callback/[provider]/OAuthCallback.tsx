@@ -34,7 +34,7 @@ export function OAuthCallback() {
       <div className="max-w-sm rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
         <p className={ok === false ? "text-red-700" : "text-slate-800"}>{message}</p>
         {ok !== null && (
-          <Link href="/connections" className="mt-4 inline-block text-sm text-indigo-600 hover:underline">
+          <Link href="/connections" className="mt-4 inline-block text-sm text-brand-600 hover:underline">
             Back to connected apps
           </Link>
         )}

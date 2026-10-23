@@ -32,12 +32,12 @@ function StepCard({ data }: NodeProps<StepNode>) {
   const tone = data.status
     ? STATUS_RING[data.status] ?? "border-slate-200 bg-white"
     : data.kind === "trigger"
-      ? "border-indigo-300 bg-indigo-50"
+      ? "border-brand-300 bg-brand-50"
       : "border-slate-200 bg-white";
 
   return (
     <div
-      className={`w-64 rounded-xl border-2 px-3 py-2 shadow-sm ${tone} ${data.selected ? "ring-2 ring-indigo-500" : ""}`}
+      className={`w-64 rounded-xl border-2 px-3 py-2 shadow-sm ${tone} ${data.selected ? "ring-2 ring-brand-500" : ""}`}
     >
       {data.kind !== "trigger" && <Handle type="target" position={Position.Top} className="!bg-slate-400" />}
       <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{data.subtitle}</p>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Workflow as WorkflowIcon } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState, ErrorNote, LinkButton, Loading, PageHeader, StatusBadge, formatTime } from "@/components/ui";
@@ -32,9 +33,12 @@ export default function WorkflowsPage() {
       {loading && !data ? (
         <Loading />
       ) : data && data.length === 0 ? (
-        <EmptyState title={t("wf.empty")}>
-          {t("wf.emptyHint")}{" "}
-          <Link href="/workflows/new" className="text-indigo-600 hover:underline">{t("wf.create")}</Link>
+        <EmptyState
+          title={t("wf.empty")}
+          icon={WorkflowIcon}
+          action={can("member") && <LinkButton href="/workflows/new">{t("wf.create")}</LinkButton>}
+        >
+          {t("wf.emptyHint")}
         </EmptyState>
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -51,7 +55,7 @@ export default function WorkflowsPage() {
               {data?.map((workflow) => (
                 <tr key={workflow.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
-                    <Link href={`/workflows/${workflow.id}`} className="font-medium text-slate-900 hover:text-indigo-600">
+                    <Link href={`/workflows/${workflow.id}`} className="font-medium text-slate-900 hover:text-brand-600">
                       {workflow.name}
                     </Link>
                     {workflow.description && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { History } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -28,9 +29,10 @@ export default function ExecutionsPage() {
           <button
             key={item}
             onClick={() => setFilter(item)}
-            className={`rounded-full px-3 py-1 text-sm ${filter === item ? "bg-indigo-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
+            aria-pressed={filter === item}
+            className={`rounded-full px-3 py-1 text-sm ${filter === item ? "bg-brand-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
           >
-            {item.replaceAll("_", " ")}
+            {item === "all" ? t("ui.all") : t(`status.${item}`)}
           </button>
         ))}
       </div>
@@ -38,7 +40,7 @@ export default function ExecutionsPage() {
       {loading && !data ? (
         <Loading />
       ) : data && data.length === 0 ? (
-        <EmptyState title={t("runs.empty")} />
+        <EmptyState icon={History} title={t("runs.empty")} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-left text-sm">
@@ -55,7 +57,7 @@ export default function ExecutionsPage() {
               {data?.map((execution) => (
                 <tr key={execution.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
-                    <Link href={`/executions/${execution.id}`} className="font-medium text-indigo-600 hover:underline">
+                    <Link href={`/executions/${execution.id}`} className="font-medium text-brand-600 hover:underline">
                       #{execution.id}
                     </Link>
                   </td>

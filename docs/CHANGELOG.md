@@ -1,5 +1,25 @@
 # Changelog
 
+## V29: Design system and in-app polish
+- **Swappable brand.** All accent colours come from one `brand-*` palette in `frontend/src/app/globals.css`. Name, wordmark, tagline and theme colour live in `frontend/src/lib/brand.ts`. A shared `Logo` component is used in the app, sign-in and home pages. A rebrand means editing those two files and the two `icon.svg` files.
+- **Icons** (lucide-react) in the navigation, empty states, errors, menu and sign-out.
+- **Consistent controls.** There is an accessible `Tabs` component (arrow keys, `role="tab"`), used on the workflow page. Checkboxes and radios share the brand colour, selects share one style, and inputs have a disabled look.
+- **Plain-language run view.** Each step shows a status icon, a readable name and what the action does. Raw input and output, action names and trigger JSON sit under "Technical details". The trigger shows its simple fields as a readable list, and each run status gets a one-line explanation.
+- **Status badges** use plain, translated words, for example "Done", "Needs your check" and "Waiting for approval".
+- **Loading skeletons** replace the bare "Loading…" text.
+- **Illustrated empty states** with an icon and a next-step button.
+- **Plain-language errors.** The server's generic messages and every 5xx error become an actionable sentence in the user's language. Network failures are explained, and validation errors name the field.
+- **Accessibility:**
+  - "Skip to content" link;
+  - `aria-current` on the current page;
+  - visible keyboard focus everywhere;
+  - reduced-motion support;
+  - `aria-pressed` on run filters;
+  - a labelled, collapsible mobile menu.
+- **Desktop layout:** the sidebar stays in place while you scroll, and content is capped at a readable width.
+- 47 new interface texts in all five languages (206 in total).
+- Checks: frontend type check, lint and production build all clean. No backend changes.
+
 ## V28: Translations finished
 - Every page of the web app now uses the translation system: workflows, the new-workflow builder, workflow detail (tabs, publish, pause, run panel), run history and run detail, connected apps, invoices, plan and usage, and all Settings cards.
 - 159 interface texts, complete in English, Spanish, French, German and Turkish.

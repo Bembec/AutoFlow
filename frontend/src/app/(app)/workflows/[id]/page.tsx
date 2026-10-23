@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import { StepEditor } from "@/components/StepEditor";
 import { WorkflowCanvas } from "@/components/WorkflowCanvas";
-import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, formatTime, inputClass } from "@/components/ui";
+import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, Tabs, formatTime, inputClass } from "@/components/ui";
 import { api, getToken } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { T, useI18n } from "@/lib/i18n";
@@ -158,16 +158,8 @@ export default function WorkflowPage() {
         </div>
 
         <div className="xl:col-span-2">
-          <div className="mb-3 flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
-            {tabs.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setTab(item.id)}
-                className={`rounded-md px-3 py-1.5 text-sm ${tab === item.id ? "bg-white font-medium shadow-sm" : "text-slate-600"}`}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className="mb-3">
+            <Tabs tabs={tabs} value={tab} onChange={setTab} label={workflow.name} />
           </div>
 
           {tab === "run" && (
@@ -357,7 +349,7 @@ function RunPanel({
               </li>
             ))}
           </ol>
-          <Link href={`/executions/${result.id}`} className="mt-3 inline-block text-indigo-600 hover:underline">
+          <Link href={`/executions/${result.id}`} className="mt-3 inline-block text-brand-600 hover:underline">
             Open full run →
           </Link>
         </div>

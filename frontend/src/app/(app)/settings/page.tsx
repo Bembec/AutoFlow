@@ -261,7 +261,7 @@ function TwoFactorCard() {
         >
           <p className="text-sm">
             1. In your authenticator app, add an account with this key (or{" "}
-            <a href={setup.otpauth_uri} className="text-indigo-600 underline">open it on this phone</a>):
+            <a href={setup.otpauth_uri} className="text-brand-600 underline">open it on this phone</a>):
           </p>
           <p className="break-all rounded bg-slate-100 px-2 py-1 font-mono text-sm">{setup.secret}</p>
           <Field label="2. Enter the 6-digit code it shows">

@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState, ErrorNote, Loading, PageHeader, formatTime } from "@/components/ui";
@@ -23,8 +24,8 @@ export default function InvoicesPage() {
       {loading && !data ? (
         <Loading />
       ) : data && data.length === 0 ? (
-        <EmptyState title={t("inv.empty")}>
-          Install the <Link href="/workflows/new" className="text-indigo-600 hover:underline">Order → invoice</Link> template
+        <EmptyState icon={FileText} title={t("inv.empty")}>
+          Install the <Link href="/workflows/new" className="text-brand-600 hover:underline">Order → invoice</Link> template
           and connect your store&apos;s &quot;order paid&quot; webhook.
         </EmptyState>
       ) : (
@@ -43,7 +44,7 @@ export default function InvoicesPage() {
               {data?.map((invoice) => (
                 <tr key={invoice.number} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
-                    <a href={invoice.url} target="_blank" rel="noreferrer" className="font-medium text-indigo-600 hover:underline">
+                    <a href={invoice.url} target="_blank" rel="noreferrer" className="font-medium text-brand-600 hover:underline">
                       {invoice.number}
                     </a>
                   </td>

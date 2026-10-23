@@ -1,11 +1,14 @@
 "use client";
 
+import { AlertCircle, ChevronRight, Inbox, type LucideIcon } from "lucide-react";
 import Link from "next/link";
+
+import { type MessageKey, useI18n } from "@/lib/i18n";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
 const BUTTON_STYLES: Record<ButtonVariant, string> = {
-  primary: "bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-indigo-300",
+  primary: "bg-brand-600 text-white hover:bg-brand-500 disabled:bg-brand-300",
   secondary: "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:text-slate-400",
   danger: "bg-red-600 text-white hover:bg-red-500 disabled:bg-red-300",
   ghost: "text-slate-600 hover:bg-slate-100 disabled:text-slate-300",
@@ -87,10 +90,14 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   const style = STATUS_STYLES[status] ?? "bg-slate-100 text-slate-600 ring-slate-500/20";
+  const key = `status.${status}` as MessageKey;
+  const label = t(key);
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>
-      {status.replaceAll("_", " ")}
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>
+      <span aria-hidden className="size-1.5 rounded-full bg-current opacity-70" />
+      {label === key ? status.replaceAll("_", " ") : label}
     </span>
   );
 }
@@ -98,23 +105,118 @@ export function StatusBadge({ status }: { status: string }) {
 export function ErrorNote({ message }: { message: string | null | undefined }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-      {message}
+    <p role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <span>{message}</span>
     </p>
   );
 }
 
-export function EmptyState({ title, children }: { title: string; children?: React.ReactNode }) {
+export function EmptyState({
+  title,
+  icon: Icon = Inbox,
+  action,
+  children,
+}: {
+  title: string;
+  icon?: LucideIcon;
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+      <span className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+        <Icon aria-hidden className="size-6" />
+      </span>
       <p className="font-medium text-slate-800">{title}</p>
-      {children && <div className="mt-2 text-sm text-slate-500">{children}</div>}
+      {children && <div className="mx-auto mt-2 max-w-md text-sm text-slate-500">{children}</div>}
+      {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );
 }
 
-export function Loading({ label = "Loading…" }: { label?: string }) {
-  return <p className="py-8 text-center text-sm text-slate-500">{label}</p>;
+/** A grey placeholder bar shown while content loads. */
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <span aria-hidden className={`block animate-shimmer rounded-md bg-slate-200 ${className}`} />;
+}
+
+/** Page-level loading state: placeholder rows instead of a bare "Loading…". */
+export function Loading({ rows = 4 }: { rows?: number }) {
+  const { t } = useI18n();
+  return (
+    <div role="status" aria-live="polite" className="space-y-3 py-2">
+      <span className="sr-only">{t("ui.loading")}</span>
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4">
+          <Skeleton className="size-9 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-1/3" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Accessible tab bar (arrow keys move between tabs). */
+export function Tabs<Id extends string>({
+  tabs,
+  value,
+  onChange,
+  label,
+}: {
+  tabs: { id: Id; label: React.ReactNode }[];
+  value: Id;
+  onChange: (id: Id) => void;
+  label: string;
+}) {
+  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    const index = tabs.findIndex((tab) => tab.id === value);
+    const next = tabs[(index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+    onChange(next.id);
+    event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${next.id}"]`)?.focus();
+  }
+
+  return (
+    <div role="tablist" aria-label={label} onKeyDown={onKeyDown} className="flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
+      {tabs.map((tab) => {
+        const selected = tab.id === value;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            data-tab={tab.id}
+            aria-selected={selected}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(tab.id)}
+            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+              selected ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Collapsed section for raw data most people never need to see. */
+export function TechnicalDetails({ children, label }: { children: React.ReactNode; label?: React.ReactNode }) {
+  const { t } = useI18n();
+  return (
+    <details className="group mt-3 text-sm">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 [&::-webkit-details-marker]:hidden">
+        <ChevronRight aria-hidden className="size-3.5 transition-transform group-open:rotate-90" />
+        {label ?? t("ui.technical")}
+      </summary>
+      <div className="mt-2">{children}</div>
+    </details>
+  );
 }
 
 export function Field({
@@ -135,8 +237,9 @@ export function Field({
   );
 }
 
+/** Shared look for text inputs, textareas and selects. */
 export const inputClass =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-50 disabled:text-slate-500";
 
 export function JsonBlock({ value }: { value: unknown }) {
   return (

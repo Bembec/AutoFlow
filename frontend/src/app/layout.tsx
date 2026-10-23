@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { BRAND } from "@/lib/brand";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AutoFlow",
-  description: "Tell it what you want done. AutoFlow builds the workflow, connects your apps, and runs it for you.",
-  appleWebApp: { capable: true, title: "AutoFlow", statusBarStyle: "default" },
+  title: BRAND.name,
+  description: BRAND.tagline,
+  appleWebApp: { capable: true, title: BRAND.name, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
+  themeColor: BRAND.themeColor,
   width: "device-width",
   initialScale: 1,
 };
