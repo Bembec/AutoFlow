@@ -28,6 +28,8 @@ const nextConfig: NextConfig = {
       { source: "/api/:path*", destination: `${apiUrl}/:path*` },
       // Public webhook URLs are served from the app's address too
       { source: "/hooks/:path*", destination: `${apiUrl}/hooks/:path*` },
+      // The MCP server for outside AI assistants
+      { source: "/mcp", destination: `${apiUrl}/mcp` },
       // Customers open invoice links on the app's address
       { source: "/invoices/:path*", destination: `${apiUrl}/invoices/:path*` },
     ];

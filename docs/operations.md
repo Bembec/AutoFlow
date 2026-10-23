@@ -40,7 +40,7 @@ Staging and production have separate databases, secret keys, Stripe accounts (te
 Its mailbox points at an unreachable host, so nothing is ever sent. Running the command again changes nothing. Sign in as `demo@autoflow.example` / `demo-password-2026`, or pass `--email` and `--password`. Never run it against production.
 
 **Feature flags** (`backend/src/autoflow/features.py`) let you switch features without a deploy:
-- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, `help_assistant`, and three that are in development and off by default: `smarter_logic`, `mcp_tools` and `ai_assistants`;
+- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, `help_assistant`, and four that are in development and off by default: `smarter_logic`, `mcp_tools`, `ai_assistants` and `mcp_server`;
 - set them per environment with `AUTOFLOW_FEATURES="smarter_logic=on,ai_builder=off"`;
 - override them for one workspace with `PUT /staff/workspaces/{id}/features` (null removes an override);
 - the server enforces them, and the app hides what is off;
@@ -127,6 +127,14 @@ Point an uptime checker at `/health` and `/ready`, and ship logs to your log pla
   - void an invoice: `POST /workspaces/{id}/invoices/{invoice_id}/void`, or the `void_invoice` step;
   - confirm that an uncertain step happened: `POST /executions/{id}/confirm-done`. It never re-runs the step; `retry` covers the opposite case.
 - **Connection health:** `POST /connections/{id}/check` runs a read-only login or fetch. A connection that breaks, during a check or a run, alerts the owner once. Network errors don't mark a connection broken.
+
+## MCP server (AI assistant access)
+
+`POST /mcp` speaks MCP (JSON-RPC over Streamable HTTP, JSON replies). The web app forwards `/mcp` to the API, so the public address is `AUTOFLOW_PUBLIC_URL/mcp`.
+- **Authentication:** workspace API keys (`afk_…`), stored as SHA-256 hashes. Admins create and revoke them under Settings.
+- **Tools:** one `run_<name>_<id>` tool per published, active workflow with `mcp_enabled`, plus the read-only `list_recent_runs` and `get_run`.
+- **Limits and logging:** each key can start 60 runs an hour; every run started this way is audited as `mcp.run_workflow`.
+- **Feature flag:** `mcp_server`.
 
 ## Help assistant
 

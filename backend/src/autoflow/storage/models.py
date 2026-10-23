@@ -218,6 +218,8 @@ class Workflow(Base):
     minutes_saved_per_run: Mapped[int] = mapped_column(default=5, server_default=text("5"))
     # Slug of the template it was installed from (None = built by hand or by AI)
     source_template: Mapped[str | None] = mapped_column(String(100))
+    # Offered as a tool to outside AI assistants through the MCP server (V44)
+    mcp_enabled: Mapped[bool] = mapped_column(default=False, server_default=false())
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
@@ -568,3 +570,23 @@ class AbuseReport(Base):
     # open | closed
     status: Mapped[str] = mapped_column(String(20), default="open", server_default="open")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)
+
+
+class ApiKey(Base):
+    """A workspace key for outside AI assistants (the MCP server). Only a hash is stored."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(100))
+    # First characters, shown so people can tell keys apart
+    prefix: Mapped[str] = mapped_column(String(16))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+    last_used_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    revoked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+

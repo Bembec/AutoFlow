@@ -189,6 +189,7 @@ def update_workflow(
         request.description,
         request.definition,
         request.minutes_saved_per_run,
+        request.mcp_enabled,
     ))
 
 

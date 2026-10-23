@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button, Card, ErrorNote, Field, Loading, PageHeader, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useFeatures } from "@/lib/features";
 import { useSession } from "@/lib/session";
 import { T, useI18n } from "@/lib/i18n";
 import type { BusinessProfile, Connection, Member, NotificationSettings, Policies, Role } from "@/lib/types";
@@ -26,6 +27,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <BusinessCard />
           <MembersCard />
+          <AssistantAccessCard />
           <AuditCard />
           <NewWorkspaceCard />
         </div>
@@ -547,3 +549,88 @@ function NewWorkspaceCard() {
     </Card>
   );
 }
+
+interface ApiKeyInfo {
+  id: number;
+  name: string;
+  prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked: boolean;
+}
+
+/** Keys that let outside AI assistants use opted-in workflows (MCP). */
+function AssistantAccessCard() {
+  const { base, can } = useSession();
+  const { t } = useI18n();
+  const feature = useFeatures();
+  const enabled = feature("mcp_server", false) && can("admin");
+  const { data, reload } = useApi<{ server_url: string; keys: ApiKeyInfo[] }>(enabled ? `${base}/api-keys` : null);
+  const action = useAction();
+  const [name, setName] = useState("");
+  const [created, setCreated] = useState<string | null>(null);
+
+  if (!enabled) return null;
+
+  return (
+    <Card>
+      <h2 className="font-semibold">{t("mcp.title")}</h2>
+      <p className="mt-1 text-sm text-slate-500">{t("mcp.about")}</p>
+      {data && (
+        <p className="mt-3 text-sm">
+          {t("mcp.server")}: <code className="break-all rounded bg-slate-100 px-1.5 py-0.5">{data.server_url}</code>
+        </p>
+      )}
+      {created && (
+        <div role="status" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          {t("mcp.copyNow")} <code className="block break-all pt-1 font-mono">{created}</code>
+        </div>
+      )}
+      <ul className="mt-3 divide-y divide-slate-100 text-sm">
+        {data?.keys.map((key) => (
+          <li key={key.id} className="flex items-center justify-between gap-2 py-2">
+            <span>
+              <span className="font-medium">{key.name}</span>{" "}
+              <code className="text-xs text-slate-500">{key.prefix}…</code>
+              <span className="block text-xs text-slate-500">
+                {key.revoked ? t("mcp.revoked") : key.last_used_at ? t("mcp.lastUsed", { time: formatTime(key.last_used_at) }) : ""}
+              </span>
+            </span>
+            {!key.revoked && (
+              <Button
+                variant="ghost"
+                className="px-2 py-1 text-xs text-red-600"
+                disabled={action.busy}
+                onClick={async () => {
+                  await action.run(() => api(`${base}/api-keys/${key.id}`, { method: "DELETE" }));
+                  reload();
+                }}
+              >
+                {t("mcp.revoke")}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <form
+        className="mt-3 flex flex-wrap items-end gap-2"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const result = await action.run(() => api<{ key: string }>(`${base}/api-keys`, { body: { name } }));
+          if (result) {
+            setCreated(result.key);
+            setName("");
+            reload();
+          }
+        }}
+      >
+        <Field label={t("mcp.keyName")}>
+          <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
+        </Field>
+        <Button type="submit" variant="secondary" disabled={action.busy}>{t("mcp.create")}</Button>
+      </form>
+      <ErrorNote message={action.error} />
+    </Card>
+  );
+}
+

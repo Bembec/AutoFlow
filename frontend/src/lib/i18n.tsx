@@ -373,6 +373,18 @@ const en = {
   "as.notLive": "Not switched on yet: test it and publish",
   "as.open": "Open",
   "as.approvalNote": "Every proposed action and every email waits for your approval.",
+
+  "mcp.title": "Access for AI assistants (MCP)",
+  "mcp.about": "Let AI assistants you use elsewhere (for example Claude) run the workflows you choose and check their runs. Approvals and limits still apply.",
+  "mcp.server": "Server address",
+  "mcp.keyName": "Name for a new key",
+  "mcp.create": "Create key",
+  "mcp.copyNow": "Copy this key now. It won't be shown again:",
+  "mcp.revoke": "Revoke",
+  "mcp.revoked": "revoked",
+  "mcp.lastUsed": "last used {time}",
+  "mcp.optIn": "Let AI assistants run this workflow",
+  "mcp.optInHint": "Through an access key from Settings. Approvals and limits still apply.",
 };
 
 export type MessageKey = keyof typeof en;
@@ -690,6 +702,17 @@ const es: Dictionary = {
   "as.notLive": "Aún no activo: pruébalo y publícalo",
   "as.open": "Abrir",
   "as.approvalNote": "Cada acción propuesta y cada correo esperan tu aprobación.",
+  "mcp.title": "Acceso para asistentes de IA (MCP)",
+  "mcp.about": "Permite que asistentes de IA que usas en otros sitios (por ejemplo Claude) ejecuten los flujos que elijas y consulten sus ejecuciones. Las aprobaciones y límites siguen aplicándose.",
+  "mcp.server": "Dirección del servidor",
+  "mcp.keyName": "Nombre de la nueva clave",
+  "mcp.create": "Crear clave",
+  "mcp.copyNow": "Copia esta clave ahora. No se volverá a mostrar:",
+  "mcp.revoke": "Revocar",
+  "mcp.revoked": "revocada",
+  "mcp.lastUsed": "último uso {time}",
+  "mcp.optIn": "Permitir que asistentes de IA ejecuten este flujo",
+  "mcp.optInHint": "Mediante una clave de acceso de Ajustes. Las aprobaciones y límites siguen aplicándose.",
 };
 
 const fr: Dictionary = {
@@ -1004,6 +1027,17 @@ const fr: Dictionary = {
   "as.notLive": "Pas encore actif : testez puis publiez",
   "as.open": "Ouvrir",
   "as.approvalNote": "Chaque action proposée et chaque e-mail attendent votre approbation.",
+  "mcp.title": "Accès pour les assistants IA (MCP)",
+  "mcp.about": "Laissez les assistants IA que vous utilisez ailleurs (par exemple Claude) lancer les flux de votre choix et consulter leurs exécutions. Approbations et limites s'appliquent toujours.",
+  "mcp.server": "Adresse du serveur",
+  "mcp.keyName": "Nom de la nouvelle clé",
+  "mcp.create": "Créer une clé",
+  "mcp.copyNow": "Copiez cette clé maintenant. Elle ne sera plus affichée :",
+  "mcp.revoke": "Révoquer",
+  "mcp.revoked": "révoquée",
+  "mcp.lastUsed": "dernière utilisation {time}",
+  "mcp.optIn": "Autoriser les assistants IA à lancer ce flux",
+  "mcp.optInHint": "Via une clé d'accès des Réglages. Approbations et limites s'appliquent toujours.",
 };
 
 const de: Dictionary = {
@@ -1318,6 +1352,17 @@ const de: Dictionary = {
   "as.notLive": "Noch nicht aktiv: testen und veröffentlichen",
   "as.open": "Öffnen",
   "as.approvalNote": "Jede vorgeschlagene Aktion und jede E-Mail wartet auf Ihre Freigabe.",
+  "mcp.title": "Zugang für KI-Assistenten (MCP)",
+  "mcp.about": "Lassen Sie KI-Assistenten, die Sie anderswo nutzen (z. B. Claude), ausgewählte Workflows starten und Läufe ansehen. Freigaben und Limits gelten weiter.",
+  "mcp.server": "Serveradresse",
+  "mcp.keyName": "Name für einen neuen Schlüssel",
+  "mcp.create": "Schlüssel erstellen",
+  "mcp.copyNow": "Kopieren Sie diesen Schlüssel jetzt. Er wird nicht wieder angezeigt:",
+  "mcp.revoke": "Widerrufen",
+  "mcp.revoked": "widerrufen",
+  "mcp.lastUsed": "zuletzt genutzt {time}",
+  "mcp.optIn": "KI-Assistenten dürfen diesen Workflow starten",
+  "mcp.optInHint": "Über einen Zugangsschlüssel aus den Einstellungen. Freigaben und Limits gelten weiter.",
 };
 
 const tr: Dictionary = {
@@ -1632,6 +1677,17 @@ const tr: Dictionary = {
   "as.notLive": "Henüz açık değil: test edip yayınlayın",
   "as.open": "Aç",
   "as.approvalNote": "Önerilen her işlem ve her e-posta onayınızı bekler.",
+  "mcp.title": "Yapay zekâ asistanları için erişim (MCP)",
+  "mcp.about": "Başka yerlerde kullandığınız yapay zekâ asistanlarının (ör. Claude) seçtiğiniz iş akışlarını çalıştırmasına ve çalıştırmalara bakmasına izin verin. Onaylar ve sınırlar geçerli kalır.",
+  "mcp.server": "Sunucu adresi",
+  "mcp.keyName": "Yeni anahtar için ad",
+  "mcp.create": "Anahtar oluştur",
+  "mcp.copyNow": "Bu anahtarı şimdi kopyalayın. Bir daha gösterilmeyecek:",
+  "mcp.revoke": "İptal et",
+  "mcp.revoked": "iptal edildi",
+  "mcp.lastUsed": "son kullanım {time}",
+  "mcp.optIn": "Yapay zekâ asistanları bu iş akışını çalıştırabilsin",
+  "mcp.optInHint": "Ayarlar'daki bir erişim anahtarıyla. Onaylar ve sınırlar geçerli kalır.",
 };
 
 export const LANGUAGES = {

@@ -86,7 +86,7 @@ def create_workflow(
 
 def update_workflow(
     session, workspace_id, workflow_id, name=None, description=None, definition=None,
-    minutes_saved_per_run=None,
+    minutes_saved_per_run=None, mcp_enabled=None,
 ):
     workflow = get_workflow(session, workspace_id, workflow_id)
 
@@ -99,6 +99,8 @@ def update_workflow(
         workflow.description = description
     if minutes_saved_per_run is not None:
         workflow.minutes_saved_per_run = minutes_saved_per_run
+    if mcp_enabled is not None:
+        workflow.mcp_enabled = mcp_enabled
 
     if definition is not None:
         draft = version_in_state(workflow, "draft")

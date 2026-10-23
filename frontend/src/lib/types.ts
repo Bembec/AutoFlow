@@ -68,6 +68,8 @@ export interface Workflow {
   description: string;
   status: "active" | "paused" | "archived";
   minutes_saved_per_run: number;
+  /** Offered to outside AI assistants through the MCP server */
+  mcp_enabled?: boolean;
   created_at: string;
   updated_at: string;
   versions: WorkflowVersion[];

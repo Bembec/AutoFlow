@@ -163,6 +163,7 @@ class WorkflowUpdate(BaseModel):
     description: str | None = None
     definition: WorkflowDefinition | None = None
     minutes_saved_per_run: int | None = Field(None, ge=0, le=10_000)
+    mcp_enabled: bool | None = None
 
 
 class WorkflowVersionOut(OrmModel):
@@ -179,6 +180,7 @@ class WorkflowOut(OrmModel):
     description: str
     status: str
     minutes_saved_per_run: int
+    mcp_enabled: bool = False
     created_at: datetime
     updated_at: datetime
     versions: list[WorkflowVersionOut]

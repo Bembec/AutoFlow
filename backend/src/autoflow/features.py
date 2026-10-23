@@ -30,6 +30,7 @@ FLAGS = {
     "help_assistant": Flag(True, "Ask the help assistant (answers only from the help articles)."),
     "smarter_logic": Flag(False, "Comparisons, AND/OR conditions and for-each loops (in development)."),
     "mcp_tools": Flag(False, "Connect MCP servers and use their tools in workflows (in development)."),
+    "mcp_server": Flag(False, "Let outside AI assistants run opted-in workflows through MCP (in development)."),
     "ai_assistants": Flag(False, "AI assistants that look things up and propose actions for approval (in development)."),
 }
 

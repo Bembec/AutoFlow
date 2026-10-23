@@ -1,5 +1,28 @@
 # Changelog
 
+## V44: AutoFlow as an MCP server (behind the `mcp_server` flag)
+- **Outside AI assistants** (any MCP client, such as Claude) can run the workflows you opt in and check their runs, at `/mcp` (JSON-RPC over Streamable HTTP; supports initialize, ping, `tools/list` and `tools/call`).
+- **Workspace API keys** under Settings → Access for AI assistants:
+  - shown once, stored only as a hash;
+  - "last used" is displayed;
+  - revoke any time, which takes effect immediately;
+  - creating and revoking keys is audited.
+- **Opt-in per workflow:** "Let AI assistants run this workflow" in the workflow's Settings. Only published, active workflows that are ticked become tools. Their input schema comes from the trigger's sample data.
+- **Tools:** `run_<workflow>` per opted-in workflow, plus the read-only `list_recent_runs` and `get_run` (only for opted-in workflows).
+- **The usual rules apply:**
+  - approvals still wait for a person, and the assistant is told so;
+  - limits, the email safety check and audit logging (`mcp.run_workflow` with the key's name) all apply;
+  - an optional `idempotency_key` returns the same run instead of starting a second one;
+  - each key can start 60 runs an hour;
+  - other workspaces' runs are never visible.
+- Migration 0017 adds `api_keys` and `workflows.mcp_enabled`. The web app forwards `/mcp` to the API.
+- A new help article: "Let other AI assistants use AutoFlow (MCP)".
+- Checks:
+  - backend: 310 passed, including 6 MCP server tests;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+- Testing with a real MCP client needs a public address and is listed in deferred checks.
+
 ## V43: AI assistants, part 2: ready-made roles
 - **AI assistants page** (`/assistants`, a new menu item shown only when `ai_assistants` is on):
   - **Your assistants:** each one shows whether it's live, how many it handled this week, how many are waiting for approval (with a link) and failures, plus Open and Pause/Resume.

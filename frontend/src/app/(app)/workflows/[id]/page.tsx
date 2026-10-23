@@ -10,6 +10,7 @@ import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, Tabs, formatTime, inputClass } from "@/components/ui";
 import { api, getToken } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useFeatures } from "@/lib/features";
 import { T, useI18n } from "@/lib/i18n";
 import type { ActionInfo, Definition, Execution, Workflow } from "@/lib/types";
 import { useAction, useApi } from "@/lib/useApi";
@@ -609,6 +610,9 @@ function SettingsPanel({
   const [name, setName] = useState(workflow.name);
   const [description, setDescription] = useState(workflow.description);
   const [minutes, setMinutes] = useState(workflow.minutes_saved_per_run);
+  const [mcpEnabled, setMcpEnabled] = useState(Boolean(workflow.mcp_enabled));
+  const feature = useFeatures();
+  const { t } = useI18n();
 
   return (
     <Card>
@@ -619,7 +623,7 @@ function SettingsPanel({
           const updated = await action.run(() =>
             api<Workflow>(`${base}/workflows/${workflow.id}`, {
               method: "PATCH",
-              body: { name, description, minutes_saved_per_run: minutes },
+              body: { name, description, minutes_saved_per_run: minutes, mcp_enabled: mcpEnabled },
             }),
           );
           if (updated) onSaved(updated);
@@ -641,6 +645,21 @@ function SettingsPanel({
             disabled={!editable}
           />
         </Field>
+        {feature("mcp_server", false) && (
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={mcpEnabled}
+              disabled={!editable}
+              onChange={(e) => setMcpEnabled(e.target.checked)}
+            />
+            <span>
+              {t("mcp.optIn")}
+              <span className="block text-xs text-slate-500">{t("mcp.optInHint")}</span>
+            </span>
+          </label>
+        )}
         <ErrorNote message={action.error} />
         {editable && <Button type="submit" disabled={action.busy}>Save</Button>}
       </form>
