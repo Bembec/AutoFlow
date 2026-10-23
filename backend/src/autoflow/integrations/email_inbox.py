@@ -23,6 +23,7 @@ import re
 from html import unescape
 
 from autoflow import documents
+from autoflow.engine import limits
 from autoflow.engine import service as engine
 from autoflow.integrations import connections
 
@@ -40,7 +41,7 @@ def _html_to_text(html):
     return re.sub(r"[ \t]+", " ", unescape(text)).strip()
 
 
-def parse_message(raw, allow_ai=True):
+def parse_message(raw, allow_ai=True, before_ai=None):
     """Turn a raw email into trigger data."""
 
     message = email.message_from_bytes(raw, policy=email.policy.default)
@@ -60,7 +61,7 @@ def parse_message(raw, allow_ai=True):
         data = part.get_payload(decode=True) or b""
         filename = part.get_filename() or "attachment"
         try:
-            attachments.append(documents.extract_text(data, filename, allow_ai=allow_ai))
+            attachments.append(documents.extract_text(data, filename, allow_ai=allow_ai, before_ai=before_ai))
         except documents.DocumentError as error:
             attachments.append({"filename": filename, "size": len(data), "text": "", "error": str(error)})
 
@@ -81,6 +82,13 @@ def parse_message(raw, allow_ai=True):
             f"--- {a['filename']} ---\n{a['text']}" for a in attachments if a.get("text")
         ),
     }
+
+
+def _count_ai(session, workspace_id):
+    try:
+        limits.use_ai_call(session, limits.get_workspace(session, workspace_id), "ocr")
+    except limits.LimitReached as error:
+        raise documents.DocumentError(str(error)) from error
 
 
 def _connect(config, secrets):
@@ -116,7 +124,7 @@ def poll_workflow(session, workflow, trigger):
             if raw is None:
                 continue
 
-            payload = parse_message(raw)
+            payload = parse_message(raw, before_ai=lambda: _count_ai(session, workflow.workspace_id))
             _, created = engine.start_execution(
                 session,
                 workflow.workspace_id,

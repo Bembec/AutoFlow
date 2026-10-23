@@ -9,7 +9,7 @@ from autoflow import documents
 from autoflow.ai import builder, providers
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
-from autoflow.engine import executor
+from autoflow.engine import executor, limits
 from autoflow.engine import service as engine
 from autoflow.engine.actions import describe_actions
 from autoflow.engine.templates import TEMPLATES
@@ -234,6 +234,13 @@ async def run_with_document(
 
     data = await file.read(documents.MAX_BYTES + 1)
 
+    def count_ai():
+        # Reading a scan or photo is an AI call: it counts toward the daily limit
+        try:
+            limits.use_ai_call(session, limits.get_workspace(session, membership.workspace_id), "ocr")
+        except limits.LimitReached as error:
+            raise documents.DocumentError(str(error)) from error
+
     workflow = _errors(lambda: engine.get_workflow(session, membership.workspace_id, workflow_id))
     if mode == "live":
         published = engine.version_in_state(workflow, "published")
@@ -243,7 +250,9 @@ async def run_with_document(
 
     try:
         # Reading the file can involve an AI call (OCR), so run it off the event loop
-        payload = await run_in_threadpool(documents.extract_text, data, file.filename or "document")
+        payload = await run_in_threadpool(
+            documents.extract_text, data, file.filename or "document", True, count_ai
+        )
     except documents.DocumentError as error:
         raise HTTPException(status_code=422, detail=str(error))
 

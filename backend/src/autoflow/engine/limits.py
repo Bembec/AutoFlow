@@ -13,7 +13,7 @@ from datetime import datetime, time, timezone
 
 from sqlalchemy import func, select
 
-from autoflow.storage.models import StepExecution, WorkflowExecution, Workspace
+from autoflow.storage.models import AIUsageEvent, StepExecution, WorkflowExecution, Workspace
 
 
 EMAIL_ACTIONS = {"send_email", "smtp_send_email"}
@@ -59,7 +59,28 @@ def usage_today(session, workspace_id):
         )
     )
 
-    return {"executions": executions or 0, "ai_calls": int(ai_calls or 0), "emails": emails or 0}
+    # AI calls outside steps, e.g. reading scanned documents
+    other_ai_calls = session.scalar(
+        select(func.count(AIUsageEvent.id)).where(
+            AIUsageEvent.workspace_id == workspace_id, AIUsageEvent.created_at >= since
+        )
+    )
+
+    return {
+        "executions": executions or 0,
+        "ai_calls": int(ai_calls or 0) + (other_ai_calls or 0),
+        "emails": emails or 0,
+    }
+
+
+def use_ai_call(session, workspace, kind):
+    """Check the daily AI limit and record one AI call made outside a step."""
+
+    if usage_today(session, workspace.id)["ai_calls"] >= workspace.max_ai_calls_per_day:
+        raise LimitReached(f"Daily limit of {workspace.max_ai_calls_per_day} AI calls reached.")
+
+    session.add(AIUsageEvent(workspace_id=workspace.id, kind=kind))
+    session.commit()
 
 
 def check_can_start(session, workspace):

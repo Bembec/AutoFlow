@@ -40,6 +40,14 @@ PROVIDERS = {
             required_config=("host", "username", "from_address"),
         ),
         Provider(
+            name="shopify",
+            label="Shopify store (Admin API access token)",
+            auth="api_key",
+            secret_fields=("access_token",),
+            config_fields=("shop_domain",),
+            required_config=("shop_domain",),
+        ),
+        Provider(
             name="imap",
             label="Incoming email (IMAP, e.g. Gmail app password)",
             auth="password",

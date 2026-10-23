@@ -30,6 +30,7 @@ from autoflow.engine import queue
 from autoflow.engine import service as engine
 from autoflow.engine.definition import WorkflowDefinition
 from autoflow.integrations import email_inbox
+from autoflow.observability import init_error_tracking
 from autoflow.storage.db import session_scope, utc_now
 from autoflow.storage.models import AccessToken, Workflow, Workspace
 
@@ -122,6 +123,7 @@ def housekeeping(session):
 def main():
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s")
     config.check_deployment_settings()
+    init_error_tracking("worker")
 
     stopping = False
 

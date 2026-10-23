@@ -27,6 +27,7 @@ from autoflow.api.routes import (
     workflows,
     workspaces,
 )
+from autoflow.observability import init_error_tracking
 from autoflow.storage import database_status, initialize_storage
 
 
@@ -45,6 +46,7 @@ def auto_migrate():
 @asynccontextmanager
 async def lifespan(app):
     config.check_deployment_settings()
+    init_error_tracking("api")
 
     if auto_migrate():
         initialize_storage()

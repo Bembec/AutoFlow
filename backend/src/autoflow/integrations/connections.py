@@ -7,6 +7,7 @@ A revoked or failed refresh marks the connection "error" so the owner
 knows to reconnect, instead of retrying forever.
 """
 
+import re
 import time
 
 import requests
@@ -27,6 +28,7 @@ class ReconnectNeeded(Exception):
 
 
 REFRESH_MARGIN_SECONDS = 120
+SHOPIFY_DOMAIN = re.compile(r"[a-z0-9][a-z0-9-]*\.myshopify\.com")
 
 
 def _check(provider_name, secrets, config):
@@ -46,6 +48,10 @@ def _check(provider_name, secrets, config):
     missing = [name for name in provider.required_config if not config.get(name)]
     if missing:
         raise ConnectionError_(f"Missing config: {', '.join(missing)}")
+
+    if provider_name == "shopify" and not SHOPIFY_DOMAIN.fullmatch(str(config["shop_domain"]).lower()):
+        # The access token is only ever sent to the store's own Shopify address
+        raise ConnectionError_("shop_domain must look like your-store.myshopify.com")
 
     return provider
 

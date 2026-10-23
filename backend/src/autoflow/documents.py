@@ -51,7 +51,10 @@ def _limit(text):
     return text[:MAX_TEXT_CHARS], len(text) > MAX_TEXT_CHARS
 
 
-def _ocr(data, mime_type):
+def _ocr(data, mime_type, before_ai):
+    if before_ai is not None:
+        # e.g. checks and records the workspace's daily AI limit
+        before_ai()
     try:
         text, provider = providers.transcribe(data, mime_type)
     except providers.AIUnavailable as error:
@@ -59,8 +62,12 @@ def _ocr(data, mime_type):
     return text, provider
 
 
-def extract_text(data, filename="", allow_ai=True):
-    """Return {"filename", "content_type", "size", "text", "pages", "method", "truncated"}."""
+def extract_text(data, filename="", allow_ai=True, before_ai=None):
+    """Return {"filename", "content_type", "size", "text", "pages", "method", "truncated"}.
+
+    `before_ai` is called right before an AI model reads the file; it may
+    raise DocumentError to stop (for example when a limit is reached).
+    """
 
     if not data:
         raise DocumentError("The file is empty.")
@@ -88,13 +95,13 @@ def extract_text(data, filename="", allow_ai=True):
         if len(text.strip()) < SCAN_THRESHOLD_PER_PAGE * max(pages, 1):
             if not allow_ai:
                 raise DocumentError("This PDF is a scan; reading it needs AI, which is not allowed here.")
-            text, provider = _ocr(data, content_type)
+            text, provider = _ocr(data, content_type, before_ai)
             method = f"ai_ocr:{provider}"
 
     elif content_type.startswith("image/"):
         if not allow_ai:
             raise DocumentError("Reading images needs AI, which is not allowed here.")
-        text, provider = _ocr(data, content_type)
+        text, provider = _ocr(data, content_type, before_ai)
         method = f"ai_ocr:{provider}"
 
     else:

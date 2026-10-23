@@ -445,3 +445,16 @@ class CheckoutRecord(Base):
     email: Mapped[str | None] = mapped_column(String(320))
     completed_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+
+
+class AIUsageEvent(Base):
+    """AI model calls made outside workflow steps (e.g. reading scans), for daily limits."""
+
+    __tablename__ = "ai_usage_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(30))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)

@@ -262,3 +262,95 @@ register(Action(
     connection_provider="google",
     simulate=lambda ctx, inputs: {"updated_range": None, "dry_run": True},
 ))
+
+
+# --- Shopify Admin API ------------------------------------------------------
+
+def _shopify_order_url(ctx, order_id):
+    from autoflow.integrations.connections import SHOPIFY_DOMAIN
+
+    domain = str(ctx.credentials["config"]["shop_domain"]).lower()
+    if not SHOPIFY_DOMAIN.fullmatch(domain):
+        raise ActionError("The Shopify connection has an invalid shop_domain.", retryable=False)
+
+    version = os.getenv("SHOPIFY_API_VERSION", "2025-07")
+    order_id = str(order_id).strip()
+    if not order_id.isdigit():
+        raise ActionError("order_id must be the numeric Shopify order id.", retryable=False)
+
+    headers = {
+        "X-Shopify-Access-Token": ctx.credentials["secrets"]["access_token"],
+        "Content-Type": "application/json",
+    }
+    return f"https://{domain}/admin/api/{version}/orders/{order_id}.json", headers, order_id
+
+
+def _shopify_tag_order(ctx, inputs):
+    url, headers, order_id = _shopify_order_url(ctx, inputs["order_id"])
+
+    response = requests.get(url, headers=headers, params={"fields": "id,tags"}, timeout=20)
+    if not response.ok:
+        raise _http_error(response, "Shopify")
+
+    existing = [t.strip() for t in (response.json().get("order", {}).get("tags") or "").split(",") if t.strip()]
+    wanted = [t.strip() for t in str(inputs["tags"]).split(",") if t.strip()]
+    merged = existing + [t for t in wanted if t not in existing]
+
+    if merged == existing:
+        return {"tags": ", ".join(merged), "changed": False}
+
+    response = requests.put(
+        url, headers=headers, json={"order": {"id": int(order_id), "tags": ", ".join(merged)}}, timeout=20
+    )
+    if not response.ok:
+        raise _http_error(response, "Shopify")
+
+    return {"tags": ", ".join(merged), "changed": True}
+
+
+register(Action(
+    name="shopify_tag_order",
+    description="Add tags to a Shopify order (e.g. \"invoiced\"). Existing tags are kept.",
+    handler=_shopify_tag_order,
+    inputs={
+        "connection": InputSpec("string", description="Name of a shopify connection"),
+        "order_id": InputSpec("any", description="Numeric Shopify order id, e.g. {{trigger.id}}"),
+        "tags": InputSpec("string", description="Comma-separated tags"),
+    },
+    outputs={"tags": "all tags on the order", "changed": "boolean"},
+    side_effect=True,
+    idempotent=True,
+    uses_network=True,
+    connection_provider="shopify",
+    simulate=lambda ctx, inputs: {"tags": inputs["tags"], "changed": False, "dry_run": True},
+))
+
+
+def _shopify_note_order(ctx, inputs):
+    url, headers, order_id = _shopify_order_url(ctx, inputs["order_id"])
+
+    response = requests.put(
+        url, headers=headers, json={"order": {"id": int(order_id), "note": str(inputs["note"])}}, timeout=20
+    )
+    if not response.ok:
+        raise _http_error(response, "Shopify")
+
+    return {"note": str(inputs["note"])}
+
+
+register(Action(
+    name="shopify_set_order_note",
+    description="Set the internal note on a Shopify order (replaces the current note).",
+    handler=_shopify_note_order,
+    inputs={
+        "connection": InputSpec("string", description="Name of a shopify connection"),
+        "order_id": InputSpec("any", description="Numeric Shopify order id, e.g. {{trigger.id}}"),
+        "note": InputSpec("string"),
+    },
+    outputs={"note": "text"},
+    side_effect=True,
+    idempotent=True,
+    uses_network=True,
+    connection_provider="shopify",
+    simulate=lambda ctx, inputs: {"note": inputs["note"], "dry_run": True},
+))

@@ -1,5 +1,14 @@
 # Changelog
 
+## V21: Shopify Admin connector, AI usage accounting, error tracking
+- **Shopify connection** (Admin API access token + `shop_domain`). The domain must be `*.myshopify.com`, so the token can't be sent anywhere else. New actions:
+  - `shopify_tag_order`: merges tags and keeps existing ones; running it again changes nothing.
+  - `shopify_set_order_note`.
+
+  Order ids must be numeric, and the API version is set with `SHOPIFY_API_VERSION` (default 2025-07).
+- **AI reading of scans and photos** (uploads and email attachments) now counts toward the daily AI limit. It is recorded in `ai_usage_events` (migration 0009). Uploads over the limit are refused with a clear message; for emails, only the affected attachment is skipped.
+- **Optional error tracking:** set `SENTRY_DSN` (and install `sentry-sdk`) to report API and worker errors. No personal data is sent and tracing is off by default.
+
 ## V20: Email and document triggers
 - **Email trigger:** the worker watches an IMAP mailbox (new `imap` connection type, e.g. Gmail with an app password) and starts one run per new email. Messages are read without being marked, and marked read only after their run exists. The Message-ID is the idempotency key, so no email is processed twice. Trigger data includes the sender, subject, text (HTML-only emails converted), attachments and `attachments_text`.
 - **Document trigger and uploads:** `POST /workspaces/{id}/workflows/{wf}/documents` (multipart) starts a run from a PDF, image or text file. Any workflow accepts uploads in test mode; live uploads need a published document-trigger workflow.
