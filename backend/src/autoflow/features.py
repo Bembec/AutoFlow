@@ -27,6 +27,7 @@ FLAGS = {
     "ai_builder": Flag(True, "Draft workflows from plain words with AI."),
     "insights_suggestions": Flag(True, "Suggestions for what to automate or fix next on Insights."),
     "connection_checks": Flag(True, "The Check connection button on Connected apps."),
+    "help_assistant": Flag(True, "Ask the help assistant (answers only from the help articles)."),
     "smarter_logic": Flag(False, "Comparisons, AND/OR conditions and for-each loops (in development)."),
     "mcp_tools": Flag(False, "Connect MCP servers and use their tools in workflows (in development)."),
 }

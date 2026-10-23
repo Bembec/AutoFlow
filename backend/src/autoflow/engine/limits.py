@@ -24,6 +24,9 @@ from autoflow.storage.models import AIUsageEvent, StepExecution, WorkflowExecuti
 
 EMAIL_ACTIONS = {"send_email", "smtp_send_email"}
 
+# Help-assistant questions: logged for rate limiting, but not the customer's AI usage
+HELP_KIND = "help"
+
 NEW_ACCOUNT_DAYS = 7
 NEW_ACCOUNT_LIMITS = {"executions": 200, "ai_calls": 50, "emails": 20}
 
@@ -79,7 +82,8 @@ def ai_calls_since(session, workspace_id, since):
     )
     outside = session.scalar(
         select(func.count(AIUsageEvent.id)).where(
-            AIUsageEvent.workspace_id == workspace_id, AIUsageEvent.created_at >= since
+            AIUsageEvent.workspace_id == workspace_id, AIUsageEvent.created_at >= since,
+            AIUsageEvent.kind != HELP_KIND,
         )
     )
     return int(in_steps or 0) + (outside or 0)
@@ -147,7 +151,8 @@ def usage_today(session, workspace_id):
     # AI calls outside steps, e.g. reading scanned documents
     other_ai_calls = session.scalar(
         select(func.count(AIUsageEvent.id)).where(
-            AIUsageEvent.workspace_id == workspace_id, AIUsageEvent.created_at >= since
+            AIUsageEvent.workspace_id == workspace_id, AIUsageEvent.created_at >= since,
+            AIUsageEvent.kind != HELP_KIND,
         )
     )
 

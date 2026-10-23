@@ -22,6 +22,7 @@ from autoflow.api.routes import (
     commerce,
     dashboard,
     data,
+    help,
     insights,
     integrations,
     onboarding,
@@ -103,6 +104,7 @@ def create_app():
     app.include_router(onboarding.router)
     app.include_router(insights.router)
     app.include_router(safety.router)
+    app.include_router(help.router)
     app.include_router(billing.router)
     app.include_router(data.router)
     app.include_router(commerce.router)
