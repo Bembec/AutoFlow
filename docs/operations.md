@@ -40,7 +40,7 @@ Staging and production have separate databases, secret keys, Stripe accounts (te
 Its mailbox points at an unreachable host, so nothing is ever sent. Running the command again changes nothing. Sign in as `demo@autoflow.example` / `demo-password-2026`, or pass `--email` and `--password`. Never run it against production.
 
 **Feature flags** (`backend/src/autoflow/features.py`) let you switch features without a deploy:
-- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, and two that are in development and off by default: `smarter_logic` and `mcp_tools`;
+- the current flags are `ai_builder`, `insights_suggestions`, `connection_checks`, `help_assistant`, and two that are in development and off by default: `smarter_logic` and `mcp_tools`;
 - set them per environment with `AUTOFLOW_FEATURES="smarter_logic=on,ai_builder=off"`;
 - override them for one workspace with `PUT /staff/workspaces/{id}/features` (null removes an override);
 - the server enforces them, and the app hides what is off;
@@ -127,6 +127,10 @@ Point an uptime checker at `/health` and `/ready`, and ship logs to your log pla
   - void an invoice: `POST /workspaces/{id}/invoices/{invoice_id}/void`, or the `void_invoice` step;
   - confirm that an uncertain step happened: `POST /executions/{id}/confirm-done`. It never re-runs the step; `retry` covers the opposite case.
 - **Connection health:** `POST /connections/{id}/check` runs a read-only login or fetch. A connection that breaks, during a check or a run, alerts the owner once. Network errors don't mark a connection broken.
+
+## Help assistant
+
+The in-app help assistant answers only from the help articles. The server ships a copy of `docs/help` in `backend/src/autoflow/help_docs`. After editing any help article, run `python backend/scripts/sync_help.py`; a test fails if the copies differ. Questions don't count against the customer's AI limits, and each workspace can ask up to 30 an hour.
 
 ## Customer data requests
 

@@ -7,7 +7,7 @@
 import { useSession } from "@/lib/session";
 import { useApi } from "@/lib/useApi";
 
-export type FeatureName = "ai_builder" | "insights_suggestions" | "connection_checks" | "smarter_logic" | "mcp_tools";
+export type FeatureName = "ai_builder" | "insights_suggestions" | "connection_checks" | "smarter_logic" | "mcp_tools" | "help_assistant";
 
 export function useFeatures() {
   const { base } = useSession();

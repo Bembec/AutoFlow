@@ -1,5 +1,20 @@
 # Changelog
 
+## V40: Help assistant
+- A **Help** button on every app page opens a panel for "how do I…?" questions, answered in the user's language.
+- **It answers only from the help articles.**
+  - The question is matched to the most relevant help sections, with rare words weighted more heavily.
+  - The AI writes a short answer from those sections alone, and says so (pointing to support) when they don't cover the question.
+  - The answer shows which articles and sections it came from.
+  - Without an AI service, the matching help sections are shown instead, so help always works.
+- **Free for customers:** questions don't count against the workspace's AI limits or budget. Each workspace can ask up to 30 an hour.
+- **Help ships with the server:** `docs/help` is the master copy, packaged into the backend by `scripts/sync_help.py`, and a test fails if they drift.
+- `POST /workspaces/{id}/help/ask`, behind the `help_assistant` feature flag (on by default).
+- 10 new interface texts in all five languages.
+- Checks:
+  - backend: 276 passed, including 3 help-assistant tests;
+  - frontend: type check, lint and build all clean.
+
 ## V39: MCP tools (behind the `mcp_tools` flag)
 - **MCP server connections:**
   - a server URL (https and public addresses only);

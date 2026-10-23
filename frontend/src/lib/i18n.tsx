@@ -344,6 +344,17 @@ const en = {
   "diff.field.review_below_confidence": "review threshold",
   "diff.field.input": "input “{name}”",
   "diff.empty": "(empty)",
+
+  "help.button": "Help",
+  "help.title": "Ask for help",
+  "help.note": "Answers come only from AutoFlow's help articles.",
+  "help.placeholder": "e.g. How do I void an invoice?",
+  "help.ask": "Ask",
+  "help.asking": "Looking it up…",
+  "help.sources": "From the help:",
+  "help.notFound": "I couldn't find that in the help articles. Please contact support and we'll help you.",
+  "help.noAi": "The AI isn't available right now, but here's what the help articles say:",
+  "help.close": "Close help",
 };
 
 export type MessageKey = keyof typeof en;
@@ -634,6 +645,16 @@ const es: Dictionary = {
   "diff.field.review_below_confidence": "umbral de revisión",
   "diff.field.input": "entrada “{name}”",
   "diff.empty": "(vacío)",
+  "help.button": "Ayuda",
+  "help.title": "Pide ayuda",
+  "help.note": "Las respuestas salen solo de los artículos de ayuda de AutoFlow.",
+  "help.placeholder": "p. ej. ¿Cómo anulo una factura?",
+  "help.ask": "Preguntar",
+  "help.asking": "Buscando…",
+  "help.sources": "De la ayuda:",
+  "help.notFound": "No lo encontré en los artículos de ayuda. Contacta con soporte y te ayudaremos.",
+  "help.noAi": "La IA no está disponible ahora, pero esto dicen los artículos de ayuda:",
+  "help.close": "Cerrar ayuda",
 };
 
 const fr: Dictionary = {
@@ -921,6 +942,16 @@ const fr: Dictionary = {
   "diff.field.review_below_confidence": "seuil de vérification",
   "diff.field.input": "entrée « {name} »",
   "diff.empty": "(vide)",
+  "help.button": "Aide",
+  "help.title": "Demander de l'aide",
+  "help.note": "Les réponses viennent uniquement des articles d'aide d'AutoFlow.",
+  "help.placeholder": "ex. : Comment annuler une facture ?",
+  "help.ask": "Demander",
+  "help.asking": "Recherche…",
+  "help.sources": "Tiré de l'aide :",
+  "help.notFound": "Je n'ai pas trouvé cela dans les articles d'aide. Contactez le support, nous vous aiderons.",
+  "help.noAi": "L'IA n'est pas disponible pour l'instant, mais voici ce que disent les articles d'aide :",
+  "help.close": "Fermer l'aide",
 };
 
 const de: Dictionary = {
@@ -1208,6 +1239,16 @@ const de: Dictionary = {
   "diff.field.review_below_confidence": "Prüfschwelle",
   "diff.field.input": "Eingabe „{name}“",
   "diff.empty": "(leer)",
+  "help.button": "Hilfe",
+  "help.title": "Hilfe fragen",
+  "help.note": "Antworten stammen nur aus den Hilfeartikeln von AutoFlow.",
+  "help.placeholder": "z. B. Wie storniere ich eine Rechnung?",
+  "help.ask": "Fragen",
+  "help.asking": "Wird nachgeschlagen…",
+  "help.sources": "Aus der Hilfe:",
+  "help.notFound": "Das habe ich in den Hilfeartikeln nicht gefunden. Bitte wenden Sie sich an den Support.",
+  "help.noAi": "Die KI ist gerade nicht verfügbar, aber das steht in den Hilfeartikeln:",
+  "help.close": "Hilfe schließen",
 };
 
 const tr: Dictionary = {
@@ -1495,6 +1536,16 @@ const tr: Dictionary = {
   "diff.field.review_below_confidence": "inceleme eşiği",
   "diff.field.input": "“{name}” girdisi",
   "diff.empty": "(boş)",
+  "help.button": "Yardım",
+  "help.title": "Yardım isteyin",
+  "help.note": "Yanıtlar yalnızca AutoFlow yardım makalelerinden gelir.",
+  "help.placeholder": "ör. Bir faturayı nasıl iptal ederim?",
+  "help.ask": "Sor",
+  "help.asking": "Aranıyor…",
+  "help.sources": "Yardımdan:",
+  "help.notFound": "Bunu yardım makalelerinde bulamadım. Lütfen destekle iletişime geçin, size yardımcı olalım.",
+  "help.noAi": "Yapay zekâ şu anda kullanılamıyor, ancak yardım makaleleri şöyle diyor:",
+  "help.close": "Yardımı kapat",
 };
 
 export const LANGUAGES = {

@@ -19,6 +19,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { HelpAssistant } from "@/components/HelpAssistant";
 import { Logo } from "@/components/Logo";
 import { LANGUAGES, type Language, type MessageKey, useI18n } from "@/lib/i18n";
 import { SessionProvider, useSession } from "@/lib/session";
@@ -157,6 +158,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         )}
         {children}
       </main>
+      <HelpAssistant />
     </div>
   );
 }
