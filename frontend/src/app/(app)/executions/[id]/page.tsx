@@ -108,10 +108,22 @@ export default function ExecutionPage() {
               {t("ex.checkedRetry")}
             </Button>
           )}
+          {can("member") && execution.status === "needs_attention" && (
+            <Button
+              variant="secondary"
+              disabled={action.busy}
+              onClick={() => operate("confirm-done", undefined, t("ex.confirmDoneAsk"))}
+            >
+              {t("ex.confirmDone")}
+            </Button>
+          )}
         </div>
       </div>
 
       {summary !== summaryKey && <p className="mb-4 text-sm text-slate-700">{summary}</p>}
+      {execution.status === "needs_attention" && (
+        <p className="mb-4 text-sm text-slate-600">{t("ex.uncertainHelp")}</p>
+      )}
       <ErrorNote message={action.error ?? execution.error} />
       {execution.status === "queued" && execution.run_after && (
         <p className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">

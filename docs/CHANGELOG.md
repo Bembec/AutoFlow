@@ -1,5 +1,29 @@
 # Changelog
 
+## V34: Proof of reliability (Phase 1 additions)
+- **Duplicate test** (`tests/test_duplicate_soak.py`) runs real shop orders through the order → invoice template in queue mode while forcing:
+  - the same webhook twice;
+  - store redeliveries;
+  - double approvals;
+  - a mail-server failure followed by a retry;
+  - a worker crash mid-send.
+
+  It counts real effects. **Evidence for the MVP gate:** 1,000 orders and 1,167 runs gave exactly 1,000 invoices, 834 emails and 834 billable events, with **zero duplicate business effects** (`docs/evidence/duplicate-soak.md`). CI runs 60 orders on every push.
+- **Compensation:**
+  - **void an invoice** from the Invoices page, or with the new `void_invoice` workflow step (e.g. for a refund webhook). The invoice keeps its number, the customer's link shows VOID, and voiding twice is harmless;
+  - **"It did happen — continue"** for uncertain steps (`POST /executions/{id}/confirm-done`). The step is recorded as done by a person and is never repeated, alongside the existing "I checked — retry".
+- **Connection health:**
+  - **Check connection** makes a read-only call (SMTP or IMAP login, Airtable whoami, Shopify shop, WooCommerce orders, a Google token refresh);
+  - broken connections alert the owner once;
+  - a **Reconnect** button signs in again (OAuth) or asks for the new password or key;
+  - network trouble isn't mistaken for bad credentials.
+- Migration 0014 adds `invoices.voided_at`, `invoices.void_reason` and `connections.last_checked_at`.
+- 11 new interface texts in all five languages. The help article "Staying in control" and `operations.md` are updated.
+- Checks:
+  - backend: 238 passed;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+
 ## V33: Trust and safety (Phase 1 additions)
 - **Email safety check** on every email step, before approval, in test and live runs:
   - It **blocks** credential phishing: a request for a password or security code plus a link. The step fails and the `outbound.blocked` audit event is logged.

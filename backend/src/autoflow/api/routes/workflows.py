@@ -299,6 +299,14 @@ def cancel_execution(execution_id: int, membership: MemberAccess, session: Sessi
     ))
 
 
+@workspace_router.post("/executions/{execution_id}/confirm-done", response_model=schemas.ExecutionOut)
+def confirm_execution_step_done(execution_id: int, membership: MemberAccess, session: Session):
+    """The uncertain step did happen (e.g. the email arrived): continue after it."""
+    return _errors(lambda: executor.confirm_completed(
+        session, engine.get_execution(session, membership.workspace_id, execution_id)
+    ))
+
+
 @workspace_router.post("/executions/{execution_id}/retry", response_model=schemas.ExecutionOut)
 def retry_execution(
     execution_id: int,

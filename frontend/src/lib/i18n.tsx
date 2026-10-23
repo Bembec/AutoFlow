@@ -310,6 +310,18 @@ const en = {
   "bill.aiHint": "{calls} AI calls, estimated at {rate} each. AI steps pause when the budget is used up; everything else keeps running.",
   "ex.aiCost": "AI: {calls} calls, about {cost}",
   "ex.safety": "Safety check notes",
+
+  "ex.confirmDone": "It did happen — continue",
+  "ex.confirmDoneAsk": "Only continue if you checked that the uncertain step DID happen (for example, the customer received the email). It will not be repeated. Continue?",
+  "ex.uncertainHelp": "Check whether the step happened, then choose: retry it if it did not, or continue if it did.",
+  "inv.void": "Void",
+  "inv.voided": "Void",
+  "inv.voidAsk": "Why is this invoice being voided? It keeps its number and shows VOID to the customer.",
+  "conn.check": "Check connection",
+  "conn.checking": "Checking…",
+  "conn.reconnect": "Reconnect",
+  "conn.lastChecked": "Last checked {time}",
+  "conn.newSecrets": "Enter the new password or key. The old one is replaced.",
 };
 
 export type MessageKey = keyof typeof en;
@@ -568,6 +580,17 @@ const es: Dictionary = {
   "bill.aiHint": "{calls} llamadas a la IA, estimadas en {rate} cada una. Los pasos de IA se pausan al agotar el presupuesto; el resto sigue funcionando.",
   "ex.aiCost": "IA: {calls} llamadas, unos {cost}",
   "ex.safety": "Notas del control de seguridad",
+  "ex.confirmDone": "Sí ocurrió — continuar",
+  "ex.confirmDoneAsk": "Continúa solo si comprobaste que el paso dudoso SÍ ocurrió (por ejemplo, el cliente recibió el correo). No se repetirá. ¿Continuar?",
+  "ex.uncertainHelp": "Comprueba si el paso ocurrió y elige: reintentarlo si no ocurrió, o continuar si sí.",
+  "inv.void": "Anular",
+  "inv.voided": "Anulada",
+  "inv.voidAsk": "¿Por qué se anula esta factura? Conserva su número y muestra ANULADA al cliente.",
+  "conn.check": "Comprobar conexión",
+  "conn.checking": "Comprobando…",
+  "conn.reconnect": "Reconectar",
+  "conn.lastChecked": "Última comprobación {time}",
+  "conn.newSecrets": "Introduce la nueva contraseña o clave. La anterior se reemplaza.",
 };
 
 const fr: Dictionary = {
@@ -823,6 +846,17 @@ const fr: Dictionary = {
   "bill.aiHint": "{calls} appels à l'IA, estimés à {rate} chacun. Les étapes IA s'arrêtent quand le budget est épuisé ; le reste continue.",
   "ex.aiCost": "IA : {calls} appels, environ {cost}",
   "ex.safety": "Remarques du contrôle de sécurité",
+  "ex.confirmDone": "C'est bien arrivé — continuer",
+  "ex.confirmDoneAsk": "Ne continuez que si vous avez vérifié que l'étape incertaine a BIEN eu lieu (par exemple, le client a reçu l'e-mail). Elle ne sera pas répétée. Continuer ?",
+  "ex.uncertainHelp": "Vérifiez si l'étape a eu lieu, puis choisissez : la relancer si ce n'est pas le cas, ou continuer si c'est fait.",
+  "inv.void": "Annuler",
+  "inv.voided": "Annulée",
+  "inv.voidAsk": "Pourquoi annuler cette facture ? Elle garde son numéro et affiche ANNULÉE au client.",
+  "conn.check": "Vérifier la connexion",
+  "conn.checking": "Vérification…",
+  "conn.reconnect": "Reconnecter",
+  "conn.lastChecked": "Dernière vérification {time}",
+  "conn.newSecrets": "Saisissez le nouveau mot de passe ou la nouvelle clé. L'ancien est remplacé.",
 };
 
 const de: Dictionary = {
@@ -1078,6 +1112,17 @@ const de: Dictionary = {
   "bill.aiHint": "{calls} KI-Aufrufe, geschätzt je {rate}. KI-Schritte pausieren, wenn das Budget aufgebraucht ist; alles andere läuft weiter.",
   "ex.aiCost": "KI: {calls} Aufrufe, etwa {cost}",
   "ex.safety": "Hinweise der Sicherheitsprüfung",
+  "ex.confirmDone": "Ist passiert — weiter",
+  "ex.confirmDoneAsk": "Nur fortfahren, wenn Sie geprüft haben, dass der unsichere Schritt WIRKLICH passiert ist (z. B. die Kundin hat die E-Mail erhalten). Er wird nicht wiederholt. Fortfahren?",
+  "ex.uncertainHelp": "Prüfen Sie, ob der Schritt passiert ist, und wählen Sie dann: wiederholen, falls nicht, oder fortfahren, falls doch.",
+  "inv.void": "Stornieren",
+  "inv.voided": "Storniert",
+  "inv.voidAsk": "Warum wird diese Rechnung storniert? Sie behält ihre Nummer und zeigt dem Kunden STORNIERT.",
+  "conn.check": "Verbindung prüfen",
+  "conn.checking": "Wird geprüft…",
+  "conn.reconnect": "Neu verbinden",
+  "conn.lastChecked": "Zuletzt geprüft {time}",
+  "conn.newSecrets": "Geben Sie das neue Passwort oder den neuen Schlüssel ein. Der alte wird ersetzt.",
 };
 
 const tr: Dictionary = {
@@ -1333,6 +1378,17 @@ const tr: Dictionary = {
   "bill.aiHint": "{calls} yapay zekâ çağrısı, her biri tahmini {rate}. Bütçe bitince yapay zekâ adımları durur; geri kalan her şey çalışmaya devam eder.",
   "ex.aiCost": "Yapay zekâ: {calls} çağrı, yaklaşık {cost}",
   "ex.safety": "Güvenlik kontrolü notları",
+  "ex.confirmDone": "Gerçekleşti — devam et",
+  "ex.confirmDoneAsk": "Yalnızca belirsiz adımın GERÇEKTEN gerçekleştiğini kontrol ettiyseniz devam edin (örneğin müşteri e-postayı aldı). Tekrarlanmayacak. Devam edilsin mi?",
+  "ex.uncertainHelp": "Adımın gerçekleşip gerçekleşmediğini kontrol edin, sonra seçin: olmadıysa yeniden deneyin, olduysa devam edin.",
+  "inv.void": "İptal et",
+  "inv.voided": "İptal edildi",
+  "inv.voidAsk": "Bu fatura neden iptal ediliyor? Numarasını korur ve müşteriye İPTAL olarak görünür.",
+  "conn.check": "Bağlantıyı kontrol et",
+  "conn.checking": "Kontrol ediliyor…",
+  "conn.reconnect": "Yeniden bağlan",
+  "conn.lastChecked": "Son kontrol {time}",
+  "conn.newSecrets": "Yeni şifreyi veya anahtarı girin. Eskisi değiştirilir.",
 };
 
 export const LANGUAGES = {

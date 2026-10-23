@@ -36,6 +36,22 @@ def _create_invoice(ctx, inputs):
     }
 
 
+def _void_invoice(ctx, inputs):
+    ref = str(inputs["order_ref"]).strip()
+    invoice = invoices.get_by_ref(ctx.session, ctx.workspace_id, ref)
+    if invoice is None:
+        # Nothing was invoiced for this order, so there is nothing to undo
+        return {"voided": False, "found": False}
+    voided = invoices.void(ctx.session, invoice, inputs.get("reason") or "Order cancelled or refunded")
+    workspace = ctx.session.get(Workspace, ctx.workspace_id)
+    return {
+        "voided": voided,
+        "found": True,
+        "invoice_number": invoices.display_number(workspace, invoice),
+        "customer_email": invoice.customer_email,
+    }
+
+
 def _simulate_invoice(ctx, inputs):
     # Test runs check the order can be invoiced, without numbering or saving
     try:
@@ -71,6 +87,21 @@ register(Action(
     side_effect=True,
     idempotent=True,
     simulate=_simulate_invoice,
+))
+
+
+register(Action(
+    name="void_invoice",
+    description="Void the invoice for an order (refund or cancellation). It keeps its number; voiding twice is harmless.",
+    handler=_void_invoice,
+    inputs={
+        "order_ref": InputSpec("any", description="The order id the invoice was made for, e.g. {{trigger.id}}"),
+        "reason": InputSpec("string", required=False, description="Shown on the invoice, e.g. Refunded"),
+    },
+    outputs={"voided": "boolean", "found": "boolean", "invoice_number": "text", "customer_email": "email"},
+    side_effect=True,
+    idempotent=True,
+    simulate=lambda ctx, inputs: {"voided": True, "found": True, "invoice_number": "INV-TEST", "dry_run": True},
 ))
 
 

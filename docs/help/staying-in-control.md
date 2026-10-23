@@ -54,4 +54,14 @@ Each plan includes a monthly AI budget, estimated from the number of AI calls. *
 Open **Run history** and click the run to see each step's input, output and error.
 
 - **Failed:** fix the cause (e.g. reconnect an app), then press **Retry from failed step**. Steps that already worked are not repeated.
-- **Needs attention:** AutoFlow is not sure whether a step (like sending an email) happened. Check first, for example in your sent folder, then press **I checked — retry** only if it did not happen.
+- **Needs attention:** AutoFlow is not sure whether a step (like sending an email) happened. Check first, for example in your sent folder. Then choose:
+  - **I checked — retry** if it did **not** happen. The step runs again.
+  - **It did happen — continue** if it did. The step is recorded as done by you, and the workflow carries on without repeating it.
+
+## Undoing an invoice
+
+Refunded or cancelled orders shouldn't leave an invoice standing. On **Invoices**, press **Void** and give a reason. The invoice keeps its number, so your numbering has no gaps, and the customer's link shows **VOID**. Workflows can do the same with the **void invoice** step, for example when your store sends a refund webhook. Voiding twice changes nothing.
+
+## Connected apps health
+
+On **Connected apps**, **Check connection** makes a harmless read-only call to the app (for example, logging in to your mail server) and tells you whether it works. If an app stops working, during a check or a run, you get an alert and a **Reconnect** button appears: sign in again, or enter the new password or key.

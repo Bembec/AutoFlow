@@ -48,6 +48,7 @@ def _connection_out(connection):
         "last_error": connection.last_error,
         "created_at": connection.created_at,
         "last_used_at": connection.last_used_at,
+        "last_checked_at": connection.last_checked_at,
     }
 
 
@@ -107,6 +108,16 @@ def update_connection_secrets(
     audit.for_member(membership, session, "connection.secrets_updated", target=connection.name)
 
     return _connection_out(connection)
+
+
+@workspace_router.post("/connections/{connection_id}/check")
+def check_connection(connection_id: int, membership: MemberAccess, session: Session):
+    """Test the stored credentials with a read-only call."""
+    from autoflow.integrations import health
+
+    connection = _get_connection(session, membership, connection_id)
+    result = health.check(session, connection)
+    return {**result, "status": connection.status, "last_checked_at": connection.last_checked_at}
 
 
 @workspace_router.delete("/connections/{connection_id}", status_code=204)

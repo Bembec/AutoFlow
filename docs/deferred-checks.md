@@ -32,6 +32,7 @@ cd frontend && npm run build         # production build
 | V31 | Look through the website pages on desktop and phone; try the "type a task" demo → Build this for real → sign up → the builder opens with your task | **manual**, browser | to do |
 | V30 | Time a fresh sign-up through the checklist to a published workflow (target: under 5 minutes) on desktop and phone | **manual**, browser | to do |
 | V29 | Visual check of the new look on desktop and phone: icons, skeleton loading, run detail with "Technical details", keyboard Tab through the menu (focus ring + "Skip to content") | **manual**, browser | to do |
+| V34 | Run the 1,000-order duplicate test on PostgreSQL (staging): `DATABASE_URL=postgresql+psycopg://... AUTOFLOW_SOAK_RUNS=1000 pytest tests/test_duplicate_soak.py`; SQLite result is in docs/evidence/duplicate-soak.md | **cloud**, PostgreSQL | to do |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
 | V22 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (15 cases; uses AI credits) | **manual**, any machine with an AI key | 9 of 15 cases checked so far |

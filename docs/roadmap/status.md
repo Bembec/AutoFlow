@@ -75,9 +75,9 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | Test strategy | ◐ | 220 tests; connector contract tests against sandboxes to do |
 | Staging, demo workspace, feature flags | ◐ | Local and production configs, CI and Docker; the rest to do |
 | Recovery targets | ◐ | Runbook exists; targets set once hosting is chosen |
-| Compensation (undo) | ☐ | e.g. void invoice, send correction |
+| Compensation (undo) | ☑ | V34: void invoice (app and workflow step), confirm-done for uncertain steps |
 | Test mode with sample data | ☑ | |
 | Run timeline with cost | ☑ | V29 timeline + V33 AI calls and estimated cost per run |
-| Connection health and one-click reconnect | ◐ | Status, last error and token refresh; expiry warnings and reconnect to do |
+| Connection health and one-click reconnect | ◐ | V34: read-only checks, alerts on breakage, one-click reconnect; rate-limit tracking to do |
 | WCAG 2.2 AA and plain-language errors | ◐ | V29 pass; formal audit to do |
-| Gate evidence: zero duplicates in 1,000 test runs | ☐ | Buildable now as an automated soak test |
+| Gate evidence: zero duplicates in 1,000 test runs | ☑ | V34: 1,000 orders / 1,167 runs, 0 duplicates (docs/evidence/duplicate-soak.md, SQLite); repeat on PostgreSQL in staging |

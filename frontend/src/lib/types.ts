@@ -168,6 +168,9 @@ export interface InvoiceSummary {
   currency: string;
   issued_at: string;
   url: string;
+  id: number;
+  voided_at: string | null;
+  void_reason: string | null;
 }
 
 export interface NotificationSettings {
@@ -233,6 +236,7 @@ export interface Connection {
   last_error: string | null;
   created_at: string;
   last_used_at: string | null;
+  last_checked_at?: string | null;
 }
 
 export interface Member {

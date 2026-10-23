@@ -366,6 +366,8 @@ class Connection(Base):
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
     last_used_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # Last health check (V34)
+    last_checked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
 
 class WebhookEndpoint(Base):
@@ -470,6 +472,9 @@ class Invoice(Base):
     # Unguessable id for the customer's view link
     public_token: Mapped[str] = mapped_column(String(64), unique=True)
     issued_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
+    # Compensation (V34): a voided invoice stays on record but is no longer due
+    voided_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    void_reason: Mapped[str | None] = mapped_column(Text)
 
 
 class CheckoutRecord(Base):

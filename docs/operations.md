@@ -95,6 +95,24 @@ Point an uptime checker at `/health` and `/ready`, and ship logs to your log pla
 - **Blocked phishing** is logged as the `outbound.blocked` audit event. Check these events when reviewing a report.
 - **The AI budget** is estimated as AI calls x `AUTOFLOW_AI_COST_PER_CALL_USD` (default 0.01) against `ai_budget_usd_month` in `plans.json`. Tune both from real provider bills.
 
+## Reliability evidence
+
+- `backend/tests/test_duplicate_soak.py` pushes many shop orders through the order → invoice template in queue mode while forcing the usual causes of duplicates:
+  - repeated webhooks;
+  - redeliveries;
+  - double approvals;
+  - mail-server failures;
+  - worker crashes mid-send.
+
+  It then counts the real effects (invoices, emails, billable events). CI runs 60 orders.
+- For the MVP gate, run 1,000 and keep the report:
+  `AUTOFLOW_SOAK_RUNS=1000 AUTOFLOW_SOAK_REPORT=../docs/evidence/duplicate-soak.md pytest tests/test_duplicate_soak.py`
+  This takes about 6 minutes on SQLite. Repeat it on PostgreSQL in staging before the gate.
+- **Compensation tools:**
+  - void an invoice: `POST /workspaces/{id}/invoices/{invoice_id}/void`, or the `void_invoice` step;
+  - confirm that an uncertain step happened: `POST /executions/{id}/confirm-done`. It never re-runs the step; `retry` covers the opposite case.
+- **Connection health:** `POST /connections/{id}/check` runs a read-only login or fetch. A connection that breaks, during a check or a run, alerts the owner once. Network errors don't mark a connection broken.
+
 ## Customer data requests
 
 - **Export:** the workspace owner downloads a full JSON export from `GET /workspaces/{id}/export`. Secrets are never included.

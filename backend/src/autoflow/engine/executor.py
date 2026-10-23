@@ -477,6 +477,33 @@ def retry(session, execution, confirm_not_completed=False):
     return _continue(session, execution)
 
 
+def confirm_completed(session, execution):
+    """A person checked that the uncertain step DID happen: keep it, move on.
+
+    The other half of needs_attention (retry covers "it did not happen").
+    The step is recorded as done by a person and is never run again.
+    """
+
+    if execution.status != "needs_attention":
+        raise ExecutionConflict(
+            f"Only runs that need attention can be confirmed (status: {execution.status})."
+        )
+
+    for record in execution.steps:
+        if record.status == "failed":
+            record.status = "succeeded"
+            record.output = {"confirmed_by_person": True}
+            record.error = None
+            record.finished_at = utc_now()
+
+    execution.status = "queued"
+    execution.error = None
+    execution.finished_at = None
+    session.commit()
+
+    return _continue(session, execution)
+
+
 def _continue(session, execution):
     """Run now (inline mode) or hand the execution to the workers (queue mode)."""
 

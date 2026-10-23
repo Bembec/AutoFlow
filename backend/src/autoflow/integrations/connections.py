@@ -201,7 +201,10 @@ def _refresh(session, connection, provider, secrets):
 
 
 def _mark_error(session, connection, message):
+    from autoflow.integrations import health
+
     connection.status = "error"
     connection.last_error = message
+    health.notify_broken(session, connection)
     session.commit()
     raise ReconnectNeeded(f"Connection {connection.name!r} needs reconnecting: {message}")

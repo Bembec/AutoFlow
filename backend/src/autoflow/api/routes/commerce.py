@@ -7,7 +7,8 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from autoflow.api.deps import AdminAccess, Session, ViewerAccess
+from autoflow import audit
+from autoflow.api.deps import AdminAccess, MemberAccess, Session, ViewerAccess
 from autoflow.commerce import invoices
 from autoflow.engine.limits import get_workspace
 from autoflow.storage.models import Invoice
@@ -63,9 +64,27 @@ def list_invoices(membership: ViewerAccess, session: Session):
             "currency": invoice.currency,
             "issued_at": invoice.issued_at,
             "url": invoices.invoice_url(invoice),
+            "id": invoice.id,
+            "voided_at": invoice.voided_at,
+            "void_reason": invoice.void_reason,
         }
         for invoice in rows
     ]
+
+
+class VoidRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=500)
+
+
+@router.post("/workspaces/{workspace_id}/invoices/{invoice_id}/void")
+def void_invoice(invoice_id: int, request: VoidRequest, membership: MemberAccess, session: Session):
+    invoice = session.get(Invoice, invoice_id)
+    if invoice is None or invoice.workspace_id != membership.workspace_id:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    if invoices.void(session, invoice, request.reason):
+        audit.for_member(membership, session, "invoice.voided", target=f"invoice:{invoice.id}",
+                         details={"reason": request.reason})
+    return {"id": invoice.id, "voided_at": invoice.voided_at, "void_reason": invoice.void_reason}
 
 
 @router.get("/invoices/{token}", response_class=HTMLResponse, include_in_schema=False)
@@ -86,6 +105,11 @@ def public_invoice(token: str, session: Session):
     address = e(workspace.business_address).replace("\n", "<br>")
     tax_id = f"<p>Tax ID: {e(workspace.tax_id)}</p>" if workspace.tax_id else ""
     number = e(invoices.display_number(workspace, invoice))
+    void_banner = (
+        f'<p class=void>VOID: this invoice was cancelled on {invoice.voided_at:%d %B %Y}'
+        f'{" (" + e(invoice.void_reason) + ")" if invoice.void_reason else ""}. Nothing is due.</p>'
+        if invoice.voided_at else ""
+    )
 
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,6 +120,7 @@ header{{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}}
 h1{{margin:0 0 4px}} table{{width:100%;border-collapse:collapse;margin-top:24px}}
 th,td{{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}} .n{{text-align:right}}
 tfoot td{{border:none}} .total td{{font-weight:700;font-size:1.1em}} p{{margin:2px 0;color:#475569}}
+.void{{margin-top:16px;padding:12px;border:2px solid #b91c1c;color:#b91c1c;font-weight:700}}
 @media print{{button{{display:none}}}}
 </style></head><body>
 <header>
@@ -103,6 +128,7 @@ tfoot td{{border:none}} .total td{{font-weight:700;font-size:1.1em}} p{{margin:2
        <p>Issued {invoice.issued_at:%d %B %Y}</p></div>
   <div><strong>{seller}</strong><p>{address}</p>{tax_id}</div>
 </header>
+{void_banner}
 <p style="margin-top:24px"><strong>Billed to:</strong> {e(invoice.customer_name)} {e(invoice.customer_email)}</p>
 <table>
   <thead><tr><th>Item</th><th class=n>Qty</th><th class=n>Unit price</th><th class=n>Amount</th></tr></thead>

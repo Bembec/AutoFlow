@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from autoflow import config
+from autoflow.storage.db import utc_now
 from autoflow.storage.models import Invoice, Workspace
 
 
@@ -64,6 +65,22 @@ def issue(session, workspace_id, order, attempts=3):
                 return existing, False
 
     raise RuntimeError("Could not allocate an invoice number; try again.")
+
+
+def void(session, invoice, reason):
+    """Compensation for an invoice that should not stand (refund, cancelled order).
+
+    The invoice keeps its number (numbering stays gapless for bookkeeping)
+    but is marked void. Voiding twice changes nothing. Returns True if
+    this call voided it.
+    """
+
+    if invoice.voided_at is not None:
+        return False
+    invoice.voided_at = utc_now()
+    invoice.void_reason = reason
+    session.commit()
+    return True
 
 
 def get_public(session, token):
