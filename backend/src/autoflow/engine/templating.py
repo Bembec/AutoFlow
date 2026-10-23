@@ -99,9 +99,10 @@ def evaluate_condition(condition, context):
         case "contains":
             return right is not None and str(right).lower() in str(left or "").lower()
         case "exists":
-            return left not in (None, "")
+            # An empty list or object has no value either (e.g. no proposals)
+            return left not in (None, "") and left != [] and left != {}
         case "not_exists":
-            return left in (None, "")
+            return left in (None, "") or left == [] or left == {}
         case "not_contains":
             return right is None or str(right).lower() not in str(left or "").lower()
         case "gt" | "gte" | "lt" | "lte":

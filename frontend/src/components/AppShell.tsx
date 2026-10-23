@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  Bot,
   CheckCircle2,
   CreditCard,
   FileText,
@@ -21,17 +22,19 @@ import { useState } from "react";
 
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { Logo } from "@/components/Logo";
+import { type FeatureName, useFeatures } from "@/lib/features";
 import { LANGUAGES, type Language, type MessageKey, useI18n } from "@/lib/i18n";
 import { SessionProvider, useSession } from "@/lib/session";
 import { useApi } from "@/lib/useApi";
 import type { Dashboard } from "@/lib/types";
 
-const NAV: { href: string; label: MessageKey; icon: LucideIcon }[] = [
+const NAV: { href: string; label: MessageKey; icon: LucideIcon; feature?: FeatureName }[] = [
   { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
   { href: "/workflows", label: "nav.workflows", icon: Workflow },
   { href: "/executions", label: "nav.runs", icon: History },
   { href: "/insights", label: "nav.insights", icon: BarChart3 },
   { href: "/approvals", label: "nav.approvals", icon: CheckCircle2 },
+  { href: "/assistants", label: "nav.assistants", icon: Bot, feature: "ai_assistants" },
   { href: "/invoices", label: "nav.invoices", icon: FileText },
   { href: "/connections", label: "nav.connections", icon: Plug },
   { href: "/billing", label: "nav.billing", icon: CreditCard },
@@ -46,6 +49,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { data: dashboard } = useApi<Dashboard>(`${base}/dashboard`);
   const { t, language, setLanguage } = useI18n();
+  const feature = useFeatures();
 
   const languagePicker = (
     <select
@@ -62,7 +66,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   const nav = (
     <nav aria-label={t("nav.menu")} className="flex flex-col gap-0.5">
-      {NAV.map((item) => {
+      {NAV.filter((item) => !item.feature || feature(item.feature, false)).map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         return (

@@ -32,6 +32,7 @@ cd frontend && npm run build         # production build
 | V31 | Look through the website pages on desktop and phone; try the "type a task" demo → Build this for real → sign up → the builder opens with your task | **manual**, browser | to do |
 | V30 | Time a fresh sign-up through the checklist to a published workflow (target: under 5 minutes) on desktop and phone | **manual**, browser | to do |
 | V29 | Visual check of the new look on desktop and phone: icons, skeleton loading, run detail with "Technical details", keyboard Tab through the menu (focus ring + "Skip to content") | **manual**, browser | to do |
+| V43 | Try the three assistant roles with a real AI key: does the Support inbox assistant write good replies and propose sensible tags; does the Order watcher stay quiet on ordinary orders? | **manual**, needs an AI key | to do |
 | V39 | Connect a real MCP server (any public Streamable HTTP server with a token): Show tools, Check connection, one `mcp_read` test run and one approved `mcp_call_tool` | **manual**, needs an MCP server | to do |
 | V34 | Run the 1,000-order duplicate test on PostgreSQL (staging): `DATABASE_URL=postgresql+psycopg://... AUTOFLOW_SOAK_RUNS=1000 pytest tests/test_duplicate_soak.py`; SQLite result is in docs/evidence/duplicate-soak.md | **cloud**, PostgreSQL | to do |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |

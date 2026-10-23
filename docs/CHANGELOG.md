@@ -1,5 +1,21 @@
 # Changelog
 
+## V43: AI assistants, part 2: ready-made roles
+- **AI assistants page** (`/assistants`, a new menu item shown only when `ai_assistants` is on):
+  - **Your assistants:** each one shows whether it's live, how many it handled this week, how many are waiting for approval (with a link) and failures, plus Open and Pause/Resume.
+  - **Ready-made roles:** each shows what it can look up, what it can propose and what it needs, with **Set up this assistant** (installs the role and opens its test run).
+- **Three roles** (templates in category "Assistant"):
+  - **Support inbox assistant:** checks the checkout, drafts a reply, and proposes a tag or note; the reply is a normal approved email.
+  - **Order watcher:** proposes "vip", "gift" or "check-address" tags.
+  - **Refund request helper:** proposes voiding the invoice plus an order note.
+- API: `GET /workspaces/{id}/assistants` returns the roles and the active assistants with their 7-day stats.
+- Fix: the condition "has a value" now treats an empty list or object as empty. So "no proposals" skips the approval step instead of asking you to approve nothing.
+- 17 new interface texts in all five languages. The help article "AI assistants" is updated.
+- Phase 2's "AI agents for set roles" item is now done.
+- Checks:
+  - backend: 304 passed;
+  - frontend: type check, lint and build all clean.
+
 ## V42: AI assistants, part 1 (behind the `ai_assistants` flag)
 - **`ai_agent` step:** an assistant for one job, described in plain words.
   - It reads its input and may call **read-only tools** you choose: checkout status, exchange rates, `http_get`, `mcp_read`.

@@ -17,6 +17,7 @@ from autoflow import __version__, config
 from autoflow.api import schemas
 from autoflow.api.middleware import http_middleware
 from autoflow.api.routes import (
+    assistants,
     auth,
     billing,
     commerce,
@@ -105,6 +106,7 @@ def create_app():
     app.include_router(insights.router)
     app.include_router(safety.router)
     app.include_router(help.router)
+    app.include_router(assistants.router)
     app.include_router(billing.router)
     app.include_router(data.router)
     app.include_router(commerce.router)

@@ -4,6 +4,16 @@
 
 An AI assistant handles one job for you, such as reading support emails and flagging orders that need a person. It works in two steps.
 
+## Ready-made roles
+
+Open **AI assistants** in the menu. Each role shows what it can look up and what it can propose. Press **Set up this assistant**, test it with the sample message, then publish it.
+
+- **Support inbox assistant:** reads customer emails, checks the order, drafts a friendly reply and proposes a "needs-human" tag or an order note. You approve the actions and the reply.
+- **Order watcher:** looks at each paid order and proposes tags such as "vip", "gift" or "check-address" for your team.
+- **Refund request helper:** reads refund requests and proposes voiding the order's invoice, with an order note explaining why.
+
+Once an assistant is set up, the page shows how many messages it handled this week, what's waiting for your approval and anything that needs attention. You can pause or resume it there.
+
 ## 1. The assistant thinks and proposes
 
 The **AI assistant** step reads its input (for example an incoming email) and follows the job you describe in plain words. It may:
@@ -15,7 +25,7 @@ It never changes anything itself.
 
 ## 2. You approve, then it acts
 
-The **Carry out the proposals** step always waits for your approval. In **Approvals** you see each proposed action and why the assistant suggests it. Only after you approve does AutoFlow carry them out.
+The **Carry out the proposals** step always waits for your approval. If the assistant proposes nothing, there is nothing to approve and the step is skipped. In **Approvals** you see each proposed action and why the assistant suggests it. Only after you approve does AutoFlow carry them out.
 
 ## The guardrails
 
