@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { StepEditor } from "@/components/StepEditor";
+import { VersionChanges } from "@/components/VersionChanges";
 import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, Field, JsonBlock, Loading, StatusBadge, Tabs, formatTime, inputClass } from "@/components/ui";
 import { api, getToken } from "@/lib/api";
@@ -36,6 +37,8 @@ export default function WorkflowPage() {
   const requested = searchParams.get("tab");
   const [tab, setTab] = useState<Tab>(TABS.includes(requested as Tab) ? (requested as Tab) : "run");
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
+  // Version whose differences from the live one are shown in the Versions tab
+  const [comparing, setComparing] = useState<number | null>(null);
   const [lastRun, setLastRun] = useState<Execution | null>(null);
 
   const draft = workflow?.versions.find((v) => v.state === "draft");
@@ -122,6 +125,16 @@ export default function WorkflowPage() {
       </div>
 
       <ErrorNote message={action.error} />
+      {draft && published && (
+        <Card className="mb-6">
+          <details open>
+            <summary className="cursor-pointer font-semibold">{t("diff.title")}</summary>
+            <div className="mt-3">
+              <VersionChanges key={`${draft.number}-${workflow.updated_at}`} workflowId={workflow.id} />
+            </div>
+          </details>
+        </Card>
+      )}
 
       <div className="mt-4 grid gap-6 xl:grid-cols-5">
         <div className="space-y-4 xl:col-span-3">
@@ -215,17 +228,39 @@ export default function WorkflowPage() {
             <Card>
               <ul className="divide-y divide-slate-100">
                 {[...workflow.versions].reverse().map((version) => (
-                  <li key={version.number} className="flex items-center justify-between gap-2 py-2.5 text-sm">
+                  <li key={version.number} className="py-2.5 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                     <span>
                       v{version.number} <StatusBadge status={version.state} />
                       <span className="ml-2 text-xs text-slate-500">
                         {formatTime(version.published_at ?? version.created_at)}
                       </span>
                     </span>
-                    {editable && version.state === "archived" && (
-                      <Button variant="secondary" onClick={() => workflowAction("publish", { version: version.number })}>
-                        Roll back to this
-                      </Button>
+                    <span className="flex flex-wrap gap-2">
+                      {published && version.state !== "published" && (
+                        <Button
+                          variant="ghost"
+                          className="px-2 py-1 text-xs"
+                          aria-expanded={comparing === version.number}
+                          onClick={() => setComparing(comparing === version.number ? null : version.number)}
+                        >
+                          {comparing === version.number ? t("diff.hide") : t("diff.compare")}
+                        </Button>
+                      )}
+                      {editable && version.state === "archived" && (
+                        <Button variant="secondary" onClick={() => workflowAction("publish", { version: version.number })}>
+                          Roll back to this
+                        </Button>
+                      )}
+                    </span>
+                    </div>
+                    {published && comparing === version.number && (
+                      <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                        {version.state === "archived" && (
+                          <p className="mb-2 text-xs font-medium text-slate-500">{t("diff.rollback", { n: version.number })}</p>
+                        )}
+                        <VersionChanges workflowId={workflow.id} before={published.number} after={version.number} />
+                      </div>
                     )}
                   </li>
                 ))}

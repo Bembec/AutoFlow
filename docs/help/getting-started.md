@@ -29,6 +29,8 @@ Under **Connected apps**, add what the workflow needs (for example your Gmail, o
 
 Press **Publish**. From now on the live version runs. Edits you make later stay in a draft until you publish again, and you can roll back to an earlier version at any time under **Versions**.
 
+Before you publish an edit, **What changes when you publish** (under the workflow name) lists every difference from the live version in plain words: new, removed and changed steps, with before → after for each setting. Under **Versions**, **Compare with live** shows the same for any older version, so you know exactly what a rollback would change.
+
 ## 7. Approve what matters
 
 Emails to customers always wait in **Approvals** until you approve them. Read the message, then approve or reject it.

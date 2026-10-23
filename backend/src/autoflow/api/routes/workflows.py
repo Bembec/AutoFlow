@@ -9,7 +9,7 @@ from autoflow import audit, documents
 from autoflow.ai import builder, providers
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
-from autoflow.engine import executor, limits
+from autoflow.engine import diff, executor, limits
 from autoflow.engine import service as engine
 from autoflow.engine.actions import describe_actions
 from autoflow.engine.definition import WorkflowDefinition
@@ -196,9 +196,43 @@ def publish_workflow(
     request: schemas.PublishRequest | None = None,
 ):
     version = request.version if request else None
+    before = _errors(lambda: engine.get_workflow(session, membership.workspace_id, workflow_id))
+    live = engine.version_in_state(before, "published")
+    target = (
+        next((v for v in before.versions if v.number == version), None) if version
+        else engine.version_in_state(before, "draft")
+    )
+    # What this publish changes, recorded for the activity log
+    changes = diff.compare(live.definition, target.definition) if live and target else []
+
     workflow = _errors(lambda: engine.publish(session, membership.workspace_id, workflow_id, version))
-    audit.for_member(membership, session, "workflow.published", target=workflow.name, details={"version": version})
+    audit.for_member(membership, session, "workflow.published", target=workflow.name, details={
+        "version": version,
+        "changes": len(changes),
+        "steps_changed": sorted({c["step_id"] for c in changes if "step_id" in c}),
+    })
     return workflow
+
+
+@workspace_router.get("/workflows/{workflow_id}/compare")
+def compare_versions(
+    workflow_id: int,
+    membership: ViewerAccess,
+    session: Session,
+    before: int | None = None,
+    after: int | None = None,
+):
+    """What changes between two versions (default: the live version → the draft)."""
+    workflow = _errors(lambda: engine.get_workflow(session, membership.workspace_id, workflow_id))
+    by_number = {v.number: v for v in workflow.versions}
+
+    old = by_number.get(before) if before else engine.version_in_state(workflow, "published")
+    new = by_number.get(after) if after else engine.version_in_state(workflow, "draft")
+    if (before and old is None) or (after and new is None):
+        raise HTTPException(status_code=404, detail="Version not found")
+    if old is None or new is None:
+        return {"before": old.number if old else None, "after": new.number if new else None, "changes": []}
+    return {"before": old.number, "after": new.number, "changes": diff.compare(old.definition, new.definition)}
 
 
 @workspace_router.post("/workflows/{workflow_id}/pause", response_model=schemas.WorkflowOut)

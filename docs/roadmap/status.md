@@ -80,4 +80,5 @@ The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ par
 | Run timeline with cost | ☑ | V29 timeline + V33 AI calls and estimated cost per run |
 | Connection health and one-click reconnect | ◐ | V34: read-only checks, alerts on breakage, one-click reconnect; rate-limit tracking to do |
 | WCAG 2.2 AA and plain-language errors | ◐ | V29 pass; formal audit to do |
+| Phase 2: workflow versioning with diff and rollback | ☑ | V38: compare any two versions; "what changes when you publish"; publish audit records the changes |
 | Gate evidence: zero duplicates in 1,000 test runs | ☑ | V34: 1,000 orders / 1,167 runs, 0 duplicates (docs/evidence/duplicate-soak.md, SQLite); repeat on PostgreSQL in staging |

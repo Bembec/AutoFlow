@@ -1,5 +1,19 @@
 # Changelog
 
+## V38: Compare workflow versions
+- **What changes when you publish:** a panel under the workflow name, shown whenever a draft is waiting, lists every difference from the live version in plain words:
+  - new, removed and changed steps;
+  - moved steps;
+  - before → after for each setting (name, what it does, each input, conditions, loops, retries, time limit, approval, review threshold);
+  - trigger changes.
+- **Compare with live** in the Versions tab, for the draft or any older version, including "what rolling back to vN would change".
+- API: `GET /workspaces/{id}/workflows/{wid}/compare?before=&after=` (default: live → draft). Steps are matched by id, so an edited step shows as changed, not as removed and added.
+- The activity log records what each publish changed: the number of changes and the step ids.
+- 20 new interface texts in all five languages. The help article "Getting started" is updated.
+- Checks:
+  - backend: 266 passed;
+  - frontend: type check, lint and build all clean.
+
 ## V37: Bigger template library
 - **Eight new e-commerce templates**, each tested with its own sample data:
   - **Shipping notification:** emails a tracking link, and skips orders without tracking.
