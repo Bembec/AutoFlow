@@ -8,6 +8,8 @@ import Link from "next/link";
 
 import { ErrorNote, Skeleton } from "@/components/ui";
 import type { TemplateInfo } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
+import { useSiteText } from "@/lib/site-i18n";
 import { useApi } from "@/lib/useApi";
 
 interface Plan {
@@ -20,8 +22,6 @@ interface Plan {
   description: string;
 }
 
-const count = (value: number | null, unit: string, plural = `${unit}s`) =>
-  value === null ? `Unlimited ${plural}` : `${value.toLocaleString("en")} ${value === 1 ? unit : plural}`;
 
 function CardSkeletons({ cards }: { cards: number }) {
   return (
@@ -40,6 +40,9 @@ function CardSkeletons({ cards }: { cards: number }) {
 
 export function PlansGrid() {
   const { data: plans, error } = useApi<Plan[]>("/plans");
+  const text = useSiteText();
+  const { language } = useI18n();
+  const number = (value: number) => value.toLocaleString(language);
 
   return (
     <>
@@ -54,18 +57,24 @@ export function PlansGrid() {
               key={plan.name}
               className={`flex flex-col rounded-2xl border p-6 ${featured ? "border-brand-500 ring-1 ring-brand-500" : "border-slate-200"}`}
             >
-              {featured && <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700">Good place to start</p>}
+              {featured && <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700">{text("Good place to start")}</p>}
               <h2 className="font-semibold">{plan.label}</h2>
-              <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
+              <p className="mt-1 text-sm text-slate-500">{text(plan.description)}</p>
               <p className="mt-4 text-3xl font-semibold">
-                {custom ? "Custom" : `$${plan.price_usd_month}`}
-                {!custom && <span className="text-sm font-normal text-slate-500"> / month</span>}
+                {custom ? text("Custom") : `$${plan.price_usd_month}`}
+                {!custom && <span className="text-sm font-normal text-slate-500"> {text("/ month")}</span>}
               </p>
               <ul className="mt-5 flex-1 space-y-2 text-sm text-slate-700">
                 {[
-                  `${count(plan.included_tasks, "task")} a month`,
-                  count(plan.max_workflows, "workflow"),
-                  count(plan.max_seats, "team seat"),
+                  plan.included_tasks === null
+                    ? text("Unlimited tasks a month")
+                    : text("{n} tasks a month", { n: number(plan.included_tasks) }),
+                  plan.max_workflows === null
+                    ? text("Unlimited workflows")
+                    : text("{n} workflows", { n: number(plan.max_workflows) }),
+                  plan.max_seats === null
+                    ? text("Unlimited team seats")
+                    : plan.max_seats === 1 ? text("1 team seat") : text("{n} team seats", { n: number(plan.max_seats) }),
                 ].map((line) => (
                   <li key={line} className="flex gap-2">
                     <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-emerald-600" />
@@ -79,7 +88,7 @@ export function PlansGrid() {
                   featured ? "bg-brand-600 text-white hover:bg-brand-500" : "border border-slate-300 text-slate-800 hover:bg-slate-50"
                 }`}
               >
-                {custom ? "Talk to us" : plan.price_usd_month === 0 ? "Start free" : `Choose ${plan.label}`}
+                {custom ? text("Talk to us") : plan.price_usd_month === 0 ? text("Start free") : text("Choose {plan}", { plan: plan.label })}
               </Link>
             </div>
           );
@@ -91,6 +100,7 @@ export function PlansGrid() {
 
 export function TemplateGallery() {
   const { data: templates, error } = useApi<TemplateInfo[]>("/templates");
+  const text = useSiteText();
   const categories = [...new Set(templates?.map((template) => template.category))];
 
   return (
@@ -111,19 +121,19 @@ export function TemplateGallery() {
                 <article key={template.slug} className="flex flex-col rounded-2xl border border-slate-200 p-6">
                   <h3 className="font-semibold">{template.name}</h3>
                   {template.feature && (
-                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-brand-700">Early access</p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-brand-700">{text("Early access")}</p>
                   )}
                   <p className="mt-2 flex-1 text-sm text-slate-600">{template.description}</p>
                   {template.requires.length > 0 && (
                     <details className="mt-4 text-sm">
-                      <summary className="cursor-pointer text-slate-500 hover:text-slate-800">What it needs</summary>
+                      <summary className="cursor-pointer text-slate-500 hover:text-slate-800">{text("What it needs")}</summary>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-600">
                         {template.requires.map((item) => <li key={item}>{item}</li>)}
                       </ul>
                     </details>
                   )}
                   <Link href="/register" className="mt-5 text-sm font-medium text-brand-700 hover:text-brand-900">
-                    Use this template →
+                    {text("Use this template →")}
                   </Link>
                 </article>
               ))}

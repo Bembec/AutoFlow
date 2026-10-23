@@ -13,6 +13,7 @@ import {
   Users,
   Webhook,
 } from "lucide-react";
+import { S } from "@/lib/site-i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -116,23 +117,23 @@ export default function SecurityPage() {
   return (
     <>
       <SiteHero eyebrow="Security" title="Built to be trusted with your store">
-        <p>Automation touches your customers and your money. Here is how we keep both safe.</p>
+        <p><S t={"Automation touches your customers and your money. Here is how we keep both safe."} /></p>
         <p className="mt-3 text-base">
-          Received spam or phishing sent through us? <Link href="/report-abuse" className="font-medium text-brand-700 underline">Report it</Link>.
+          <S t={"Received spam or phishing sent through us?"} /> <Link href="/report-abuse" className="font-medium text-brand-700 underline"><S t={"Report it"} /></Link>.
         </p>
       </SiteHero>
       <div className="mx-auto max-w-6xl space-y-14 px-4 pb-20 sm:px-6">
         {SECTIONS.map((section) => (
           <section key={section.title}>
-            <h2 className="mb-5 text-xl font-semibold">{section.title}</h2>
+            <h2 className="mb-5 text-xl font-semibold"><S t={section.title} /></h2>
             <div className="grid gap-4 md:grid-cols-3">
               {section.items.map(({ icon: Icon, title, text }) => (
                 <div key={title} className="rounded-2xl border border-slate-200 p-6">
                   <span className="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                     <Icon aria-hidden className="size-5" />
                   </span>
-                  <h3 className="mt-4 font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{text}</p>
+                  <h3 className="mt-4 font-semibold"><S t={title} /></h3>
+                  <p className="mt-2 text-sm text-slate-600"><S t={text} /></p>
                 </div>
               ))}
             </div>

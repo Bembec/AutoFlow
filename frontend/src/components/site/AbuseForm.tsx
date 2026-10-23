@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useSiteText } from "@/lib/site-i18n";
 import { useAction } from "@/lib/useApi";
 
 const CATEGORIES = [
@@ -15,6 +16,7 @@ const CATEGORIES = [
 ];
 
 export function AbuseForm() {
+  const text = useSiteText();
   // Emails sent through AutoFlow link here with ?workspace=<id>
   const linked = useSearchParams().get("workspace") ?? "";
   const [category, setCategory] = useState("phishing");
@@ -28,7 +30,7 @@ export function AbuseForm() {
     return (
       <div role="status" className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900">
         <CheckCircle2 aria-hidden className="mt-0.5 size-5 shrink-0" />
-        <p>Thank you. Our team reviews every report and can stop a workspace from sending while we look into it.</p>
+        <p>{text("Thank you. Our team reviews every report and can stop a workspace from sending while we look into it.")}</p>
       </div>
     );
   }
@@ -51,12 +53,12 @@ export function AbuseForm() {
         if (done !== undefined) setSent(true);
       }}
     >
-      <Field label="What happened?">
+      <Field label={text("What happened?")}>
         <select className={inputClass} value={category} onChange={(event) => setCategory(event.target.value)}>
-          {CATEGORIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          {CATEGORIES.map((item) => <option key={item.value} value={item.value}>{text(item.label)}</option>)}
         </select>
       </Field>
-      <Field label="Details" hint="Paste the message or describe it. Include the sender address and date if you can.">
+      <Field label={text("Details")} hint={text("Paste the message or describe it. Include the sender address and date if you can.")}>
         <textarea
           className={`${inputClass} min-h-32`}
           value={message}
@@ -67,15 +69,15 @@ export function AbuseForm() {
         />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Your email (optional)" hint="Only used if we need to ask you something.">
+        <Field label={text("Your email (optional)")} hint={text("Only used if we need to ask you something.")}>
           <input className={inputClass} type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
-        <Field label="Workspace number (optional)" hint="From the email's X-AutoFlow-Workspace header.">
+        <Field label={text("Workspace number (optional)")} hint={text("From the email's X-AutoFlow-Workspace header.")}>
           <input className={inputClass} inputMode="numeric" value={workspace} onChange={(event) => setWorkspace(event.target.value)} />
         </Field>
       </div>
       <ErrorNote message={action.error} />
-      <Button type="submit" disabled={action.busy}>{action.busy ? "Sending…" : "Send report"}</Button>
+      <Button type="submit" disabled={action.busy}>{action.busy ? text("Sending…") : text("Send report")}</Button>
     </form>
   );
 }

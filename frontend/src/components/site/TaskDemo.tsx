@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { savePendingTask } from "@/lib/pendingTask";
+import { useSiteText } from "@/lib/site-i18n";
 
 interface PreviewStep {
   icon: LucideIcon;
@@ -84,7 +85,10 @@ function preview(task: string) {
 }
 
 export function TaskDemo() {
+  const text = useSiteText();
   const [task, setTask] = useState(EXAMPLES[0]);
+  // The matching runs on English keywords: example chips keep their English
+  // meaning even when shown translated
   const [shown, setShown] = useState(EXAMPLES[0]);
   const steps = preview(shown);
 
@@ -97,19 +101,19 @@ export function TaskDemo() {
         }}
       >
         <label htmlFor="demo-task" className="text-sm font-medium text-slate-700">
-          What should happen?
+          {text("What should happen?")}
         </label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <input
             id="demo-task"
-            value={task}
+            value={task === EXAMPLES[0] ? text(task) : task}
             onChange={(event) => setTask(event.target.value)}
             maxLength={300}
             className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
           <button type="submit" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-500">
             <Sparkles aria-hidden className="size-4" />
-            Show me
+            {text("Show me")}
           </button>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -118,12 +122,12 @@ export function TaskDemo() {
               key={example}
               type="button"
               onClick={() => {
-                setTask(example);
+                setTask(text(example));
                 setShown(example);
               }}
               className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-200"
             >
-              {example}
+              {text(example)}
             </button>
           ))}
         </div>
@@ -137,11 +141,11 @@ export function TaskDemo() {
               <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${index === 0 ? "bg-brand-600 text-white" : "bg-white text-brand-600 ring-1 ring-slate-200"}`}>
                 <Icon aria-hidden className="size-4" />
               </span>
-              <span className="flex-1 text-sm text-slate-800">{step.text}</span>
+              <span className="flex-1 text-sm text-slate-800">{text(step.text)}</span>
               {step.approval && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-600/20">
                   <ShieldCheck aria-hidden className="size-3" />
-                  You approve
+                  {text("You approve")}
                 </span>
               )}
             </li>
@@ -150,13 +154,13 @@ export function TaskDemo() {
       </ol>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-        <p className="text-xs text-slate-500">A preview. After sign-up, the AI drafts the real workflow from your words.</p>
+        <p className="text-xs text-slate-500">{text("A preview. After sign-up, the AI drafts the real workflow from your words.")}</p>
         <Link
           href="/register"
           onClick={() => savePendingTask(task)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:text-brand-900"
         >
-          Build this for real
+          {text("Build this for real")}
           <ArrowRight aria-hidden className="size-4" />
         </Link>
       </div>

@@ -1,4 +1,5 @@
 import { Bot, Database, Globe, type LucideIcon, Mail, MessageSquare, ShoppingBag, Store, Table, Webhook } from "lucide-react";
+import { S } from "@/lib/site-i18n";
 import type { Metadata } from "next";
 
 import { SiteCta, SiteHero } from "@/components/site/SiteChrome";
@@ -48,12 +49,12 @@ export default function IntegrationsPage() {
   return (
     <>
       <SiteHero eyebrow="Integrations" title="Connects to the tools you already use">
-        <p>Credentials are encrypted and never shown again. Disconnect any app at any time.</p>
+        <p><S t={"Credentials are encrypted and never shown again. Disconnect any app at any time."} /></p>
       </SiteHero>
       <div className="mx-auto max-w-6xl space-y-12 px-4 pb-20 sm:px-6">
         {GROUPS.map((group) => (
           <section key={group.title}>
-            <h2 className="mb-4 text-xl font-semibold">{group.title}</h2>
+            <h2 className="mb-4 text-xl font-semibold"><S t={group.title} /></h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {group.items.map(({ icon: Icon, name, text }) => (
                 <div key={name} className="flex gap-4 rounded-2xl border border-slate-200 p-5">
@@ -61,8 +62,8 @@ export default function IntegrationsPage() {
                     <Icon aria-hidden className="size-5" />
                   </span>
                   <div>
-                    <h3 className="font-semibold">{name}</h3>
-                    <p className="mt-1 text-sm text-slate-600">{text}</p>
+                    <h3 className="font-semibold"><S t={name} /></h3>
+                    <p className="mt-1 text-sm text-slate-600"><S t={text} /></p>
                   </div>
                 </div>
               ))}

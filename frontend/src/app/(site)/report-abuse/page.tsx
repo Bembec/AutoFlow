@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { S } from "@/lib/site-i18n";
 import { Suspense } from "react";
 
 import { AbuseForm } from "@/components/site/AbuseForm";
@@ -13,8 +14,7 @@ export default function ReportAbusePage() {
     <>
       <SiteHero eyebrow="Trust and safety" title="Report spam or phishing">
         <p>
-          Got an email sent through our platform that looks like spam or phishing? Tell us. Every report is reviewed, and
-          a workspace that breaks the rules can be stopped from sending.
+          <S t={"Got an email sent through our platform that looks like spam or phishing? Tell us. Every report is reviewed, and a workspace that breaks the rules can be stopped from sending."} />
         </p>
       </SiteHero>
       <div className="mx-auto max-w-2xl px-4 pb-20 sm:px-6">

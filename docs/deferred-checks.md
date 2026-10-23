@@ -41,7 +41,7 @@ cd frontend && npm run build         # production build
 | V22/V35 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (60 cases, about 60–180 AI calls; gate: first-time pass rate ≥ 80%) | **manual**, any machine with an AI key | 9 of the original 15 checked; the 45 new cases not yet run |
 | V20+ | Real Gmail IMAP/SMTP round-trip with an app password (send yourself a PDF invoice; check the run and the sheet row) | **manual**, needs your Gmail | to do |
 | V27 | Turn on two-factor login with a real authenticator app on your phone; sign out and back in with the code; try one recovery code | **manual**, phone | to do |
-| V26 | Native-speaker review of the Spanish, French, German and Turkish interface texts (`frontend/src/lib/i18n.tsx`) | **manual**, people | to do |
+| V26/V46 | Native-speaker review of the Spanish, French, German and Turkish texts: app (`frontend/src/lib/i18n.tsx`) and website (`frontend/src/lib/site-i18n.tsx`) | **manual**, people | to do |
 | V25 | Real WooCommerce store: add the order webhook (ping accepted), place a test order → invoice + approval; REST note/status | **manual**, needs a WooCommerce site | to do |
 | V19+ | Real Shopify test store: order paid and checkout webhooks → invoice and reminder flows | **manual**, needs a Shopify dev store | to do |
 | V16 | `docker compose up --build` full-stack smoke test | **manual**, Docker machine | to do |

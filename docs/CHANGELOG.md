@@ -1,5 +1,23 @@
 # Changelog
 
+## V46: The website in five languages
+- **Every page of the public website** is now in English, Spanish, French, German and Turkish:
+  - home, including the "type a task" demo;
+  - pricing, including plan limits and the FAQ;
+  - templates, integrations and security;
+  - report abuse;
+  - the header and footer.
+- **Language picker** in the site header. It shares the app's saved choice, and the browser's language is used otherwise.
+- **How it works:**
+  - pages are still pre-built in English, for speed and search engines, and switch to the visitor's language on load;
+  - `lib/site-i18n.tsx` holds 185 translated sentences keyed by their English text, and pages render `<S t="…" />`;
+  - anything not yet translated simply stays English;
+  - a coverage check confirms that every visible string has a translation.
+- The demo's example chips are shown translated but still pick the right preview.
+- Template names and descriptions come from the server and stay English for now.
+- A native-speaker review is listed in deferred checks, together with the app texts.
+- Checks: frontend type check, lint and build all clean, with pages pre-rendered. No backend changes.
+
 ## V45: AI quality checks (production evaluations)
 - **Sampling of live AI results:** after a live AI step succeeds (any `ai_*` step or `ai_agent`), a share of results is kept for a person to judge.
   - The default is 5%, adjustable from 0 to 20% by an admin.
