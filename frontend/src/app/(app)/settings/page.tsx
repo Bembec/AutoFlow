@@ -376,7 +376,7 @@ function NotificationsForm({
   const named = (provider: string) => connections.filter((c) => c.provider === provider);
 
   return (
-    <Card>
+    <Card id="notifications">
       <h2 className="font-semibold"><T k="set.notifications" /></h2>
       <p className="mt-1 text-sm text-slate-500">
         Hear about it when something needs you, instead of checking the app. Sent by the background worker.

@@ -267,3 +267,39 @@ export interface Onboarding {
   total: number;
   complete: boolean;
 }
+
+export interface Suggestion {
+  id: string;
+  kind: "fix" | "setup" | "automate";
+  /** Translation key under sug.<key>.title / .reason */
+  key: string;
+  vars: Record<string, string | number>;
+  title: string;
+  reason: string;
+  link: string | null;
+  template: string | null;
+}
+
+export interface Insights {
+  time_value: { per_hour: number | null; currency: string };
+  last_30_days: {
+    live_runs: number;
+    succeeded: number;
+    failed: number;
+    success_rate: number | null;
+    minutes_saved: number;
+    money_saved: number | null;
+  };
+  weekly_minutes_saved: number[];
+  per_workflow: {
+    id: number;
+    name: string;
+    status: string;
+    runs_30d: number;
+    succeeded_30d: number;
+    failed_30d: number;
+    minutes_saved_30d: number;
+    money_saved_30d: number | null;
+  }[];
+  suggestions: Suggestion[];
+}

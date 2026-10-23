@@ -4,10 +4,11 @@ import { History } from "lucide-react";
 import Link from "next/link";
 
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { SuggestionList } from "@/components/Suggestions";
 import { Card, EmptyState, ErrorNote, LinkButton, Loading, PageHeader, StatusBadge, formatMinutes, formatTime } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { useI18n } from "@/lib/i18n";
-import type { Dashboard } from "@/lib/types";
+import type { Dashboard, Insights } from "@/lib/types";
 import { useApi } from "@/lib/useApi";
 
 function Stat({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
@@ -40,6 +41,25 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
   );
 }
 
+/** The single most useful next step from Insights. */
+function NextSuggestion() {
+  const { base } = useSession();
+  const { t } = useI18n();
+  const { data } = useApi<Insights>(`${base}/insights`);
+  const first = data?.suggestions[0];
+  if (!first) return null;
+
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="font-semibold">{t("ins.next")}</h2>
+        <Link href="/insights" className="text-sm text-brand-600 hover:underline">{t("ins.seeAll")}</Link>
+      </div>
+      <SuggestionList suggestions={[first]} />
+    </section>
+  );
+}
+
 export default function DashboardPage() {
   const { base, workspace } = useSession();
   const { data, error, loading } = useApi<Dashboard>(`${base}/dashboard`);
@@ -59,6 +79,7 @@ export default function DashboardPage() {
         actions={<LinkButton href="/workflows/new">{t("dash.newWorkflow")}</LinkButton>}
       />
       <OnboardingChecklist workflowId={data.per_workflow[0]?.id} />
+      {data.workflows.total > 0 && <NextSuggestion />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label={t("dash.timeSaved")} value={formatMinutes(data.minutes_saved_30d)} hint={t("dash.timeSavedHint")} />

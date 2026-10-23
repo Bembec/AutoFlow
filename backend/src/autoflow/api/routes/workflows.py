@@ -94,6 +94,7 @@ def create_from_template(
         template["definition"],
         template["description"],
         user_id=membership.user_id,
+        source_template=request.template,
     ))
 
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## V32: Insights and automation suggestions
+- **Insights page** (`/insights`, new menu item):
+  - time saved, value saved, live runs and success rate over the last 30 days;
+  - an 8-week "time saved per week" chart;
+  - a per-workflow table.
+- **Value of your time:** admins set what an hour is worth and choose a currency (any 3-letter code; no country is assumed). Savings are then shown as money.
+- **Suggestions ("process discovery")** use explainable rules over the workspace's own data, ranked fixes first, then setup, then new automations:
+  - a workflow that often fails (at least 20% of 5+ live runs);
+  - a workflow set up but never published (after one day);
+  - a live webhook that the store has never called;
+  - no alerts set up while workflows are live;
+  - invoices without business details;
+  - the next template that fits the store: order → invoice, abandoned carts (Shopify), review replies, and supplier invoices once email is connected.
+
+  Each suggestion says why it's shown. Templates install in one click, and every text is translated.
+- The dashboard shows the top suggestion once a workflow exists.
+- Workflows now remember which template they came from (`source_template`). Migration 0012 adds that and the time-value settings.
+- API: `GET /workspaces/{id}/insights`, and `PUT /workspaces/{id}/insights/time-value` (admins only).
+- 42 new interface texts in all five languages.
+- Checks:
+  - backend: 220 passed, including 4 new insights tests;
+  - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
+  - frontend: type check, lint and build all clean.
+
 ## V31: Public website pages
 - **Shared site layout** (`app/(site)/`) with a sticky header and footer. The mobile menu works without JavaScript.
 - **Home page** (`/`):

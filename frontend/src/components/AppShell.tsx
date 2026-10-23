@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BarChart3,
   CheckCircle2,
   CreditCard,
   FileText,
@@ -28,6 +29,7 @@ const NAV: { href: string; label: MessageKey; icon: LucideIcon }[] = [
   { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard },
   { href: "/workflows", label: "nav.workflows", icon: Workflow },
   { href: "/executions", label: "nav.runs", icon: History },
+  { href: "/insights", label: "nav.insights", icon: BarChart3 },
   { href: "/approvals", label: "nav.approvals", icon: CheckCircle2 },
   { href: "/invoices", label: "nav.invoices", icon: FileText },
   { href: "/connections", label: "nav.connections", icon: Plug },

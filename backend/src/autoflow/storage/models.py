@@ -9,7 +9,7 @@ read or change another business's data.
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, ForeignKey, Index, String, Text, UniqueConstraint, false, text, true
+from sqlalchemy import JSON, Float, ForeignKey, Index, String, Text, UniqueConstraint, false, text, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from autoflow.storage.db import Base, UTCDateTime, utc_now
@@ -72,6 +72,11 @@ class Workspace(Base):
     notify_slack_connection: Mapped[str | None] = mapped_column(String(100))
     notify_on_approval: Mapped[bool] = mapped_column(default=True, server_default=true())
     notify_on_failure: Mapped[bool] = mapped_column(default=True, server_default=true())
+
+    # --- insights (V32) ---
+    # What an hour of the owner's time is worth, to show money saved
+    time_value_per_hour: Mapped[float | None] = mapped_column(Float)
+    time_value_currency: Mapped[str] = mapped_column(String(3), default="USD", server_default="USD")
 
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="workspace", cascade="all, delete-orphan"
@@ -203,6 +208,8 @@ class Workflow(Base):
     status: Mapped[str] = mapped_column(String(20), default="active")
     # Owner's estimate of manual work one successful run replaces
     minutes_saved_per_run: Mapped[int] = mapped_column(default=5, server_default=text("5"))
+    # Slug of the template it was installed from (None = built by hand or by AI)
+    source_template: Mapped[str | None] = mapped_column(String(100))
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )

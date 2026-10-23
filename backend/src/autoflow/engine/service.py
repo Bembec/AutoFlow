@@ -60,7 +60,8 @@ def version_in_state(workflow, state):
 
 
 def create_workflow(
-    session, workspace_id, name, definition, description="", user_id=None, minutes_saved_per_run=5
+    session, workspace_id, name, definition, description="", user_id=None, minutes_saved_per_run=5,
+    source_template=None,
 ):
     try:
         billing.check_can_create_workflow(session, workspace_id)
@@ -73,6 +74,7 @@ def create_workflow(
         description=description,
         created_by_user_id=user_id,
         minutes_saved_per_run=minutes_saved_per_run,
+        source_template=source_template,
     )
     workflow.versions.append(
         WorkflowVersion(number=1, state="draft", definition=_definition_json(definition))
