@@ -22,10 +22,10 @@ def staff(client, signup, monkeypatch):
 def test_flags_default_then_environment_then_workspace(monkeypatch):
     workspace = Workspace(name="x", slug="x")
     assert features.enabled("ai_builder", workspace) is True
-    assert features.enabled("smarter_logic", workspace) is False
+    assert all(features.all_flags(workspace).values())  # everything is on by default
 
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=on, ai_builder=off, nonsense=on")
-    assert features.all_flags(workspace)["smarter_logic"] is True
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off, ai_builder=off, nonsense=on")
+    assert features.all_flags(workspace)["smarter_logic"] is False
     assert features.all_flags(workspace)["ai_builder"] is False
 
     features.set_overrides(workspace, {"ai_builder": True})

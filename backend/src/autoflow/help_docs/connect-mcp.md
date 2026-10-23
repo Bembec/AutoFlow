@@ -1,7 +1,5 @@
 # Use tools from MCP servers
 
-> MCP tools appear when **MCP tools** is switched on for your workspace. During the early rollout, ask support to switch it on.
-
 MCP (Model Context Protocol) is the standard way AI services offer their tools to other apps. A product catalogue service, for example, might offer "search products". AutoFlow can use those tools as workflow steps.
 
 ## Connect a server

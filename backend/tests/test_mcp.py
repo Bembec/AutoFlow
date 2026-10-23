@@ -162,7 +162,8 @@ def test_tools_that_change_things_always_wait_for_approval(ws, server):
                                                       "inputs": {"connection": "catalog", "tool": "create_discount"}}]})
 
 
-def test_mcp_needs_the_feature(client, signup, server):
+def test_mcp_needs_the_feature(client, signup, server, monkeypatch):
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "mcp_tools=off")
     headers, workspace_id = signup(email="plain@example.com")
     base = f"/workspaces/{workspace_id}"
     refused = client.post(f"{base}/connections", json={

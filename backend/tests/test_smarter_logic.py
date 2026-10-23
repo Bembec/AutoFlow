@@ -95,7 +95,8 @@ def test_definitions_are_checked():
         }]})
 
 
-def test_the_feature_flag_guards_saving(client, signup):
+def test_the_feature_flag_guards_saving(client, signup, monkeypatch):
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off")
     headers, workspace_id = signup()
     smart = {"name": "Smart", "definition": {"steps": [{
         "id": "s", "action": "log_activity", "inputs": {"message": "big"},

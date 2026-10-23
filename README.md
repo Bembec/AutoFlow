@@ -1,5 +1,7 @@
 # AutoFlow AI
 
+> **Picking up the work?** Start with [docs/RESUME-HERE.md](docs/RESUME-HERE.md) (where we stopped and what to do next) and [docs/DECISIONS-NEEDED.md](docs/DECISIONS-NEEDED.md) (the owner's open decisions).
+
 AutoFlow (working name) lets a small or mid-sized business describe a process in plain words and get a working, AI-powered automation, with no developers needed.
 
 > “Tell it what you want done. AutoFlow builds the workflow, connects your apps, and runs it for you.”

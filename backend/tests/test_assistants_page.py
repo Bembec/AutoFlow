@@ -54,7 +54,8 @@ def test_roles_are_listed_with_what_they_can_do(ws):
     assert roles["assistant-refund-helper"]["proposes"] == ["void_invoice", "shopify_set_order_note"]
 
 
-def test_the_page_needs_the_feature(client, signup):
+def test_the_page_needs_the_feature(client, signup, monkeypatch):
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "ai_assistants=off")
     headers, workspace_id = signup(email="plain@example.com")
     assert client.get(f"/workspaces/{workspace_id}/assistants", headers=headers).status_code == 403
 

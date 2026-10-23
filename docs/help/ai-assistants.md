@@ -1,7 +1,5 @@
 # AI assistants
 
-> AI assistants appear when **AI assistants** is switched on for your workspace. During the early rollout, ask support to switch it on.
-
 An AI assistant handles one job for you, such as reading support emails and flagging orders that need a person. It works in two steps.
 
 ## Ready-made roles

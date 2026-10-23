@@ -133,4 +133,6 @@ def test_keys_switch_and_revocation(shop, client, signup):
     assert rpc(client, auth, "ping").status_code == 401
 
     plain_headers, plain_id = signup(email="plain@example.com")
+    with session_scope() as session:
+        session.execute(update(Workspace).where(Workspace.id == plain_id).values(feature_flags={"mcp_server": False}))
     assert client.post(f"/workspaces/{plain_id}/api-keys", json={"name": "x"}, headers=plain_headers).status_code == 403

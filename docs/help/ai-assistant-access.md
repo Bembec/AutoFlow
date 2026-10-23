@@ -1,7 +1,5 @@
 # Let other AI assistants use AutoFlow (MCP)
 
-> This appears when **access for AI assistants** is switched on for your workspace. During the early rollout, ask support to switch it on.
-
 If you already use an AI assistant that supports MCP (for example Claude), it can run your AutoFlow workflows for you ("tag order 1001 as VIP") and tell you how runs went.
 
 ## Set it up

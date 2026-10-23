@@ -175,5 +175,5 @@ Every started checkout is listed in Airtable with email, cart value and recovery
 
 Every support email becomes a row in a Google Sheet with its topic, so you see what customers ask most.
 
-> **Early access** templates use comparisons or loops. They appear in your workspace once **smarter logic** is switched on (see "Conditions and loops").
+> Templates marked **early access** use comparisons or loops (see "Conditions and loops"). They're available in every workspace.
 

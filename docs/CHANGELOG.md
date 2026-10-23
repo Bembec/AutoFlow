@@ -1,5 +1,19 @@
 # Changelog
 
+## V48: Everything active, and a resume point
+- **All features are on by default:** conditions and loops, MCP tools, AI assistants and AI assistant access (the MCP server) join the others. Each can still be switched off per environment or per workspace. The tests that check "refused while off" now switch the feature off explicitly.
+- The help articles no longer say "ask support to switch it on". The website's "Early access" badge is removed.
+- **`docs/RESUME-HERE.md`:**
+  - where work stopped and what is built;
+  - exactly where to begin (the V49 tidy-up list);
+  - how to run everything;
+  - the working rules.
+- **`docs/DECISIONS-NEEDED.md`:** every open decision, with options, the roadmap's recommendation, what it unblocks and where it plugs in.
+- The README points to both files.
+- Checks:
+  - backend: 324 passed;
+  - frontend: type check, lint and build all clean.
+
 ## V47: Eight more e-commerce templates
 - **New templates:**
   - **Cancelled order → void invoice** (Shopify).

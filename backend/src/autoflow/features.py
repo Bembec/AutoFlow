@@ -9,8 +9,10 @@ A flag's value is decided in this order:
    what production doesn't have yet);
 3. the default below.
 
-New, unfinished work ships behind a flag that is off by default, so it can
-be merged and tested in staging without customers seeing it.
+Every feature is on by default since V48. New, unfinished work should ship
+behind a flag that is off by default, so it can be merged and tested in
+staging without customers seeing it; any flag can be switched off per
+environment or per workspace.
 """
 
 import os
@@ -28,10 +30,10 @@ FLAGS = {
     "insights_suggestions": Flag(True, "Suggestions for what to automate or fix next on Insights."),
     "connection_checks": Flag(True, "The Check connection button on Connected apps."),
     "help_assistant": Flag(True, "Ask the help assistant (answers only from the help articles)."),
-    "smarter_logic": Flag(False, "Comparisons, AND/OR conditions and for-each loops (in development)."),
-    "mcp_tools": Flag(False, "Connect MCP servers and use their tools in workflows (in development)."),
-    "mcp_server": Flag(False, "Let outside AI assistants run opted-in workflows through MCP (in development)."),
-    "ai_assistants": Flag(False, "AI assistants that look things up and propose actions for approval (in development)."),
+    "smarter_logic": Flag(True, "Comparisons, AND/OR conditions and for-each loops."),
+    "mcp_tools": Flag(True, "Connect MCP servers and use their tools in workflows."),
+    "mcp_server": Flag(True, "Let outside AI assistants run opted-in workflows through MCP."),
+    "ai_assistants": Flag(True, "AI assistants that look things up and propose actions for approval."),
 }
 
 ON = {"1", "true", "on", "yes"}

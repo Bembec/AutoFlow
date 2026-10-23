@@ -81,7 +81,8 @@ def test_every_new_template_test_runs_with_its_sample_data(ws, slug):
     assert tested["status"] == "succeeded", (slug, tested["error"], [s["error"] for s in tested["steps"]])
 
 
-def test_smart_templates_need_the_feature(client, signup):
+def test_smart_templates_need_the_feature(client, signup, monkeypatch):
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off")
     headers, workspace_id = signup(email="plain@example.com")
     refused = client.post(f"/workspaces/{workspace_id}/workflows/from-template",
                           json={"template": "order-lines-to-sheet"}, headers=headers)

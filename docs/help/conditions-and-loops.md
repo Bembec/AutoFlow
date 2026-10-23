@@ -1,7 +1,5 @@
 # Conditions and loops
 
-> These options appear when **smarter logic** is switched on for your workspace. During the early rollout, ask support to switch it on.
-
 ## Only run a step if…
 
 Open a step in the editor and expand **Only run if…**. Pick a value, a comparison and what to compare it with:

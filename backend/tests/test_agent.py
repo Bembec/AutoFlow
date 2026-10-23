@@ -165,7 +165,8 @@ def test_configuration_errors_are_clear(ws):
     assert failed["status"] == "failed" and "not available to the assistant: smtp_send_email" in failed["error"]
 
 
-def test_assistants_need_the_feature(client, signup):
+def test_assistants_need_the_feature(client, signup, monkeypatch):
+    monkeypatch.setenv("AUTOFLOW_FEATURES", "ai_assistants=off")
     headers, workspace_id = signup(email="plain@example.com")
     saved = client.post(f"/workspaces/{workspace_id}/workflows", json={"name": "A", "definition": {"steps": [ASSISTANT]}},
                         headers=headers)
