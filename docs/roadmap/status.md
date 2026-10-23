@@ -41,7 +41,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 
 ## Next, in order
 
-1. **Decide the remaining open questions**: launch country, brand name, build vs. buy integrations, funding route. (Niche decided: e-commerce.)
+1. **Decide the remaining open questions**: launch country, brand name, build vs. buy integrations, funding route, and (added October 2026) positioning, Shopify route, Gmail access, Free plan. (Niche decided: e-commerce.)
 2. ~~Three niche automations~~: done in V19 (they use Shopify webhooks; a Shopify Admin API connector can come later, e.g. to post review replies or tag orders).
 3. ~~Visual step editing~~: done in V18 (form editor with drag-to-reorder, next to the canvas).
 4. ~~Background execution queue and `delay` steps~~: done in V17.
@@ -54,3 +54,30 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 11. ~~Time/cost-saved dashboard and process discovery~~: done in V32 (Insights page, explainable suggestions).
 12. **Smarter workflow logic** (V33): comparisons, AND/OR conditions, for-each loops, AI decision steps.
 13. **Bigger template library** (V34) and **AI assistants** for set roles (V35).
+
+## Phase 1 additions from the October 2026 review
+
+The roadmap was updated to version 2.0 on 2026-10-23. Legend: ☑ built, ◐ partly built, ☐ to do.
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Platform verifications (Google CASA, Shopify review, WhatsApp, Microsoft) | ☐ | Depend on the Gmail-access and Shopify-route decisions |
+| Sending limits | ☑ | Daily email, run and AI limits per workspace (V13) |
+| New-account restrictions, outbound content checks, abuse reports | ☐ | Buildable now |
+| Email from the customer's own mailbox | ☑ | Each workspace's own SMTP connection |
+| Acceptable-use policy enforced in product | ☐ | Needs the policy text (legal) |
+| AI-provider data terms on trust page | ☐ | Needs provider choice and legal review |
+| Pinned models + 200-request test set as release gate | ◐ | Fixed model IDs, fallback provider, 15-case eval |
+| AI cost meter and hard cap | ◐ | Daily AI-call cap and usage log; no money meter yet |
+| Label AI-generated messages | ☐ | Scope to check with counsel |
+| Untrusted input handling | ☑ | Prompt-injection guard, limited tools, review queue |
+| Definition of done, item status with owners | ◐ | This file tracks status; owners to add |
+| Test strategy | ◐ | 220 tests; connector contract tests against sandboxes to do |
+| Staging, demo workspace, feature flags | ◐ | Local and production configs, CI and Docker; the rest to do |
+| Recovery targets | ◐ | Runbook exists; targets set once hosting is chosen |
+| Compensation (undo) | ☐ | e.g. void invoice, send correction |
+| Test mode with sample data | ☑ | |
+| Run timeline with cost | ◐ | Plain-language timeline (V29); cost per run to do |
+| Connection health and one-click reconnect | ◐ | Status, last error and token refresh; expiry warnings and reconnect to do |
+| WCAG 2.2 AA and plain-language errors | ◐ | V29 pass; formal audit to do |
+| Gate evidence: zero duplicates in 1,000 test runs | ☐ | Buildable now as an automated soak test |
