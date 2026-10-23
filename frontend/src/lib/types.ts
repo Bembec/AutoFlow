@@ -165,6 +165,8 @@ export interface TemplateInfo {
   category: string;
   /** What must be set up for the template to work live */
   requires: string[];
+  /** Feature flag the template needs (null = always available) */
+  feature?: string | null;
 }
 
 export interface InvoiceSummary {

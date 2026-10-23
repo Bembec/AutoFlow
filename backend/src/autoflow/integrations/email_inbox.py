@@ -9,13 +9,14 @@ run for each new message.
 - Attachments (PDF, images, text) are read into text for AI steps.
 
 Trigger data:
-    {"from", "to", "subject", "date", "message_id", "text",
+    {"from", "from_address", "to", "subject", "date", "message_id", "text",
      "attachments": [{"filename", "content_type", "size", "text", "method"}],
      "attachments_text": "all attachment text, joined"}
 """
 
 import email
 import email.policy
+import email.utils
 import hashlib
 import imaplib
 import logging
@@ -72,6 +73,8 @@ def parse_message(raw, allow_ai=True, before_ai=None):
 
     return {
         "from": str(message.get("From") or ""),
+        # Just the address ("Grace <grace@example.com>" -> "grace@example.com"), for replies
+        "from_address": email.utils.parseaddr(str(message.get("From") or ""))[1],
         "to": str(message.get("To") or ""),
         "subject": str(message.get("Subject") or ""),
         "date": str(message.get("Date") or ""),

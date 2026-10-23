@@ -60,3 +60,48 @@ The same as Order → invoice, but for WooCommerce shops. It invoices orders onc
 
 - If the AI is unsure about a value, the run pauses in **Approvals** so you can check and correct it before the row is added.
 - You can also upload invoices by hand. Change the trigger to "I upload a document" in **Edit**, then use **Run with a file…**.
+
+## Shipping notification
+
+When your store marks an order as shipped, the customer gets an email with the carrier and tracking link, after your approval. Orders shipped without a tracking number get no email.
+
+**Needs:** a "fulfillment created" webhook from your store and the "mailbox" email connection.
+
+## Refund → void invoice
+
+When an order is refunded, its invoice is **voided**: the number is kept and the customer's link shows VOID. The customer then gets an email that the refund is on its way, after your approval. If the store sends the same refund twice, nothing happens the second time.
+
+**Needs:** a "refund created" webhook (with the order id) and the **Order → invoice** workflow, which made the invoice.
+
+## Weekly sales summary
+
+Every Monday at 9:00 (UTC), AutoFlow fetches last week's orders from your shop's API and emails you a short summary: revenue, best sellers, anything unusual.
+
+**Needs:** an API connection named "shop-api" and your own address in the last step.
+
+## Low-stock alert (early access)
+
+Every morning, AutoFlow checks your stock levels and emails you the products with fewer than 5 left. On days when everything is stocked, nothing is sent.
+
+## Order lines → stock sheet (early access)
+
+For every paid order, AutoFlow adds one row per product to a Google Sheet: order, product, quantity and price. Each line is written once, even if the store resends the order.
+
+## Big-order thank-you (early access)
+
+When an order over 150 is paid, the customer gets a personal thank-you from you, after your approval. Change the amount in the step's **Only run if…** condition.
+
+## Support inbox assistant
+
+When a customer emails your support address, AI sorts the message (return, delivery, complaint, product question) and drafts a friendly reply. You approve every reply before it is sent. The assistant never promises refunds, discounts or dates.
+
+**Needs:** an incoming email connection named "support-inbox" and the "mailbox" email connection.
+
+## WooCommerce "we're packing it" note
+
+When a WooCommerce order starts processing, AutoFlow adds a note the customer can see, "Thanks, we're packing it now". WooCommerce emails it to them.
+
+**Needs:** a WooCommerce order webhook and a WooCommerce connection named "store".
+
+> **Early access** templates use comparisons or loops. They appear in your workspace once **smarter logic** is switched on (see "Conditions and loops").
+

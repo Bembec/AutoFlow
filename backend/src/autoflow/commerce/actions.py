@@ -101,7 +101,10 @@ register(Action(
     outputs={"voided": "boolean", "found": "boolean", "invoice_number": "text", "customer_email": "email"},
     side_effect=True,
     idempotent=True,
-    simulate=lambda ctx, inputs: {"voided": True, "found": True, "invoice_number": "INV-TEST", "dry_run": True},
+    simulate=lambda ctx, inputs: {
+        "voided": True, "found": True, "invoice_number": "INV-TEST",
+        "customer_email": "customer@example.com", "dry_run": True,
+    },
 ))
 
 

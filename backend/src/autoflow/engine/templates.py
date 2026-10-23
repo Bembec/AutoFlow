@@ -78,5 +78,9 @@ ENQUIRY_TRIAGE = {
 }
 
 from autoflow.engine.templates_ecommerce import ECOMMERCE_TEMPLATES  # noqa: E402
+from autoflow.engine.templates_ecommerce_more import MORE_ECOMMERCE_TEMPLATES  # noqa: E402
 
-TEMPLATES = {template["slug"]: template for template in (*ECOMMERCE_TEMPLATES, ENQUIRY_TRIAGE)}
+TEMPLATES = {
+    template["slug"]: template
+    for template in (*ECOMMERCE_TEMPLATES, *MORE_ECOMMERCE_TEMPLATES, ENQUIRY_TRIAGE)
+}

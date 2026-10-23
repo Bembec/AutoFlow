@@ -12,6 +12,7 @@ from autoflow.api.deps import MemberAccess, Session, ViewerAccess
 from autoflow.engine import executor, limits
 from autoflow.engine import service as engine
 from autoflow.engine.actions import describe_actions
+from autoflow.engine.definition import WorkflowDefinition
 from autoflow.engine.templates import TEMPLATES
 
 
@@ -51,6 +52,8 @@ def list_templates():
             "description": t["description"],
             "category": t.get("category", "General"),
             "requires": t.get("requires", []),
+            # Needs this feature flag switched on (e.g. smarter_logic); None = always available
+            "feature": t.get("feature"),
         }
         for t in TEMPLATES.values()
     ]
@@ -102,6 +105,7 @@ def create_from_template(
 
     if template is None:
         raise HTTPException(status_code=404, detail="Template not found")
+    _require_features(session, membership, WorkflowDefinition.model_validate(template["definition"]))
 
     return _errors(lambda: engine.create_workflow(
         session,
@@ -136,8 +140,6 @@ def ai_draft(request: schemas.AIDraftRequest, membership: MemberAccess, session:
     workflow = None
 
     if request.save and draft.definition is not None:
-        from autoflow.engine.definition import WorkflowDefinition
-
         _require_features(session, membership, WorkflowDefinition.model_validate(draft.definition))
         workflow = _errors(lambda: engine.create_workflow(
             session,

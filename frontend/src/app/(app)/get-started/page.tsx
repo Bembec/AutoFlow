@@ -17,9 +17,9 @@ type Platform = "shopify" | "woocommerce" | "other";
 
 // Best first automation per platform, then the useful follow-ups
 const PICKS: Record<Platform, string[]> = {
-  shopify: ["shopify-order-to-invoice", "abandoned-cart-follow-up", "review-reply-assistant"],
-  woocommerce: ["woocommerce-order-to-invoice", "review-reply-assistant", "supplier-invoice-to-sheet"],
-  other: ["shopify-order-to-invoice", "supplier-invoice-to-sheet", "review-reply-assistant"],
+  shopify: ["shopify-order-to-invoice", "abandoned-cart-follow-up", "shipping-notification"],
+  woocommerce: ["woocommerce-order-to-invoice", "woocommerce-packing-note", "refund-void-invoice"],
+  other: ["shopify-order-to-invoice", "support-inbox-assistant", "supplier-invoice-to-sheet"],
 };
 
 export default function GetStartedPage() {

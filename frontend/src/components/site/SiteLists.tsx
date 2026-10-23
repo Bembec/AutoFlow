@@ -110,6 +110,9 @@ export function TemplateGallery() {
               .map((template) => (
                 <article key={template.slug} className="flex flex-col rounded-2xl border border-slate-200 p-6">
                   <h3 className="font-semibold">{template.name}</h3>
+                  {template.feature && (
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-brand-700">Early access</p>
+                  )}
                   <p className="mt-2 flex-1 text-sm text-slate-600">{template.description}</p>
                   {template.requires.length > 0 && (
                     <details className="mt-4 text-sm">

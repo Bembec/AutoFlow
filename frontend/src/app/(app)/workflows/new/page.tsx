@@ -7,7 +7,7 @@ import { WorkflowCanvas } from "@/components/WorkflowCanvas";
 import { Button, Card, ErrorNote, PageHeader, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import { useFeatures } from "@/lib/features";
+import { type FeatureName, useFeatures } from "@/lib/features";
 import { useI18n } from "@/lib/i18n";
 import { clearPendingTask, peekPendingTask } from "@/lib/pendingTask";
 import type { AIDraft, TemplateInfo, Workflow } from "@/lib/types";
@@ -130,7 +130,7 @@ export default function NewWorkflowPage() {
           <Card>
             <h2 className="font-semibold">{t("new.templates")}</h2>
             <ul className="mt-3 space-y-3">
-              {templates?.map((template) => (
+              {templates?.filter((template) => !template.feature || feature(template.feature as FeatureName, false)).map((template) => (
                 <li key={template.slug} className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-medium">

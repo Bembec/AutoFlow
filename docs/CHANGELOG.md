@@ -1,5 +1,27 @@
 # Changelog
 
+## V37: Bigger template library
+- **Eight new e-commerce templates**, each tested with its own sample data:
+  - **Shipping notification:** emails a tracking link, and skips orders without tracking.
+  - **Refund → void invoice:** voids the invoice once, then tells the customer, with no second email for a repeated refund.
+  - **Weekly sales summary:** a Monday report from the shop API, summarised by AI.
+  - **Low-stock alert** (early access): a daily email only when something is below 5.
+  - **Order lines → stock sheet** (early access): one row per product, written exactly once, using a loop.
+  - **Big-order thank-you** (early access): only for orders over 150, using a number comparison.
+  - **Support inbox assistant:** sorts customer emails and drafts replies for approval.
+  - **WooCommerce "we're packing it" note**.
+- **Feature-aware templates:** templates that need comparisons or loops carry `"feature": "smarter_logic"`.
+  - The app offers them only where the feature is on.
+  - Installing one elsewhere is refused.
+  - The public gallery labels them "Early access".
+- Incoming-email data now includes `from_address`, a bare address for replies.
+- In test runs, the `void_invoice` step returns a sample customer email, so follow-up emails test cleanly.
+- Get started now recommends shipping notifications (Shopify), the packing note and refunds (WooCommerce), and the support assistant (other platforms).
+- The help article "E-commerce templates" covers all of them.
+- Checks:
+  - backend: 264 passed, including 14 new template tests;
+  - frontend: type check, lint and build all clean.
+
 ## V36: Smarter logic (behind the `smarter_logic` flag)
 - **Comparisons:** "is more than", "is at least", "is less than" and "is at most" understand numbers written as text (`"47.60"`, `"1,200.50"`). A value that isn't a number makes the comparison false, never an error. "Doesn't contain" is added too.
 - **AND / OR:** `"when": {"all": [...]}` or `{"any": [...]}`, nestable, with up to 10 conditions per group. The step editor offers a list of conditions with "all of these" or "any of these".
