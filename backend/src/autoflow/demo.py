@@ -90,13 +90,22 @@ def seed(session, email=DEMO_EMAIL, password=DEMO_PASSWORD):
     """Create the demo workspace if it doesn't exist. Returns (workspace, created)."""
 
     user = accounts.get_user_by_email(session, email)
-    if user is None:
+    new_user = user is None
+    if new_user:
         user = accounts.register_user(session, email, "Demo Owner", password)
     workspace = _demo_workspace(session, user)
     if workspace is not None:
         return workspace, False
 
-    workspace = accounts.create_workspace(session, user, WORKSPACE_NAME)
+    if new_user:
+        # Use the account's own (first) workspace, so sign-in opens the demo shop
+        workspace = session.scalar(
+            select(Workspace).join(Membership, Membership.workspace_id == Workspace.id)
+            .where(Membership.user_id == user.id)
+        )
+        workspace.name = WORKSPACE_NAME
+    else:
+        workspace = accounts.create_workspace(session, user, WORKSPACE_NAME)
     workspace.trusted_at = utc_now()
     workspace.business_name = WORKSPACE_NAME + " Ltd"
     workspace.business_address = "1 Market Street\nSample Town"

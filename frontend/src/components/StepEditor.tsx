@@ -239,6 +239,11 @@ export function StepEditor({
         </Field>
       </Card>
 
+      <p className="text-sm text-slate-500">
+        {editable
+          ? "Click a step to change what it does, when it runs, or to repeat it for each item."
+          : "Click a step to see its settings."}
+      </p>
       <ol className="space-y-2">
         {definition.steps.map((step, index) => {
           const action = actions.find((a) => a.name === step.action);
@@ -257,10 +262,21 @@ export function StepEditor({
             >
               <div className="flex items-center gap-2 px-3 py-2">
                 {editable && <span className="cursor-grab select-none text-slate-400" title="Drag to reorder">⠿</span>}
-                <button className="min-w-0 flex-1 text-left" onClick={() => onSelectStep(open ? null : step.id)}>
-                  <span className="text-xs text-slate-400">{index + 1}.</span>{" "}
+                <button
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-left"
+                  aria-expanded={open}
+                  onClick={() => onSelectStep(open ? null : step.id)}
+                >
+                  <span className="text-xs text-slate-400">{index + 1}.</span>
                   <span className="font-medium">{step.name ?? step.id}</span>
-                  <span className="ml-2 text-xs text-slate-500">{step.action.replaceAll("_", " ")}</span>
+                  <span className="text-xs text-slate-500">{step.action.replaceAll("_", " ")}</span>
+                  {step.for_each && (
+                    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">for each item</span>
+                  )}
+                  {step.when && (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-800">only if…</span>
+                  )}
+                  <span className="ml-auto text-xs font-medium text-brand-600">{open ? "Close ▴" : editable ? "Edit ▾" : "View ▾"}</span>
                 </button>
                 {editable && (
                   <div className="flex gap-1 text-slate-500">

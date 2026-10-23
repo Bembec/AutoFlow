@@ -13,6 +13,10 @@
 - **Feature flag:** saving a workflow that uses these features (including from the AI builder) is refused unless `smarter_logic` is on for the workspace. The editor shows the new controls only then. Workflows that are already saved keep running.
 - The canvas describes loops and conditions in words (for example "for each in line_items · if total > 200"). The run timeline shows "Repeated for N items".
 - A new help article: "Conditions and loops".
+- Follow-up fix after user feedback ("couldn't see the edits"):
+  - the Edit tab now opens the first step;
+  - each step row shows "Edit ▾" and badges for loops and conditions, with a hint above the list;
+  - the demo account now opens straight into the demo shop.
 - Checks:
   - backend: 250 passed, including 8 new tests for comparisons, groups, validation, the flag, loops, resume and confirm;
   - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;

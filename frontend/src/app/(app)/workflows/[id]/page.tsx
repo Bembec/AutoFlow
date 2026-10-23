@@ -162,7 +162,16 @@ export default function WorkflowPage() {
 
         <div className="xl:col-span-2">
           <div className="mb-3">
-            <Tabs tabs={tabs} value={tab} onChange={setTab} label={workflow.name} />
+            <Tabs
+              tabs={tabs}
+              value={tab}
+              onChange={(next) => {
+                setTab(next);
+                // Start with the first step open so its settings are visible
+                if (next === "edit" && !selectedStep) setSelectedStep(definition.steps[0]?.id ?? null);
+              }}
+              label={workflow.name}
+            />
           </div>
 
           {tab === "run" && (
