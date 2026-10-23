@@ -9,7 +9,7 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
 
-from autoflow import approvals
+from autoflow import approvals, audit
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
 from autoflow.engine.limits import get_workspace
@@ -127,7 +127,7 @@ def approve(
     category = decision.category if decision else None
     output = decision.output if decision else None
 
-    return _decide(lambda: approvals.approve(
+    approval = _decide(lambda: approvals.approve(
         session,
         membership.workspace_id,
         approval_id,
@@ -135,6 +135,9 @@ def approve(
         user_id=membership.user_id,
         output=output,
     ))
+    audit.for_member(membership, session, "approval.approved", target=f"approval {approval_id}",
+                     details={"corrected": bool(category or output)})
+    return approval
 
 
 @router.post(
@@ -143,12 +146,14 @@ def approve(
     tags=["approvals"],
 )
 def reject(approval_id: int, membership: MemberAccess, session: Session):
-    return _decide(lambda: approvals.reject(
+    approval = _decide(lambda: approvals.reject(
         session,
         membership.workspace_id,
         approval_id,
         user_id=membership.user_id,
     ))
+    audit.for_member(membership, session, "approval.rejected", target=f"approval {approval_id}")
+    return approval
 
 
 def _decide(action):

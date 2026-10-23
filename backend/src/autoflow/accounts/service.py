@@ -68,14 +68,31 @@ def register_user(session, email, name, password):
     return user
 
 
-def authenticate(session, email, password):
-    """Return a new access token for valid credentials, else None."""
+class TwoFactorRequired(Exception):
+    """The password was right, but the account also needs a two-factor code."""
+
+
+def authenticate(session, email, password, code=None):
+    """Return a new access token for valid credentials, else None.
+
+    Accounts with two-factor login also need a valid authenticator or
+    recovery code: without one, TwoFactorRequired is raised; a wrong one
+    returns None like a wrong password.
+    """
+
+    from autoflow.accounts import two_factor
 
     user = get_user_by_email(session, email)
 
     # Same response for unknown email and wrong password
     if user is None or not verify_password(password, user.password_hash):
         return None
+
+    if user.totp_enabled:
+        if not code:
+            raise TwoFactorRequired()
+        if not two_factor.check_code(session, user, code):
+            return None
 
     token, token_hash = new_access_token()
     session.add(

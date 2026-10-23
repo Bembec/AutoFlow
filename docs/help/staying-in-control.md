@@ -14,6 +14,14 @@ To approve *every* action that changes something (saving, sending, posting), tur
 
 Under **Settings → Notifications**, choose an email address (sent through one of your email connections) and/or a Slack channel (add a **Slack** connection with an incoming-webhook URL). AutoFlow then tells you when something waits for your approval, or when a live run fails. Press **Send a test** to check it works.
 
+## Two-factor login
+
+Under **Settings → Two-factor login**, add AutoFlow to an authenticator app (Google Authenticator, Authy, 1Password…). After that, signing in also asks for the 6-digit code. Keep the 10 recovery codes somewhere safe; each one works once if you lose your phone. **Recent sign-ins** shows where your account was used.
+
+## Activity log
+
+Admins see **Settings → Activity log**: who added people, connected apps, published workflows, approved emails, exported data, and more.
+
 ## Test runs
 
 **Test run** uses example data and only *pretends* to send or save, so it's safe to press as often as you like.

@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 
-from autoflow import __version__
+from autoflow import __version__, audit
 from autoflow.accounts import service as accounts
 from autoflow.accounts.security import verify_password
 from autoflow.api.deps import CurrentUser, Session, require_role
@@ -88,6 +88,7 @@ def export_workspace(membership: OwnerAccess, session: Session):
     }
 
     filename = f"autoflow-{membership.workspace.slug}-{datetime.now(timezone.utc):%Y%m%d}.json"
+    audit.for_member(membership, session, "data.exported")
     return JSONResponse(
         jsonable_encoder(document),
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
@@ -108,6 +109,9 @@ def delete_workspace(request: DeleteWorkspace, membership: OwnerAccess, session:
         raise HTTPException(status_code=409, detail="Type the workspace name exactly to confirm.")
 
     _delete_workspace(session, membership.workspace_id)
+    # Account-level record: the workspace's own events are deleted with it
+    audit.record(session, "workspace.deleted", user_id=membership.user_id,
+                 target=request.confirm_name, details={"workspace_id": membership.workspace_id})
 
 
 @router.delete("/me", status_code=204)
@@ -141,5 +145,6 @@ def delete_account(request: DeleteAccount, user: CurrentUser, session: Session):
     for workspace_id in to_delete:
         _delete_workspace(session, workspace_id)
 
+    audit.record(session, "account.deleted", user_id=user.id, target=user.email)
     session.execute(delete(User).where(User.id == user.id))
     session.commit()

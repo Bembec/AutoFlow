@@ -33,6 +33,7 @@ cd frontend && npm run build         # production build
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
 | V22 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (15 cases; uses AI credits) | **manual**, any machine with an AI key | 9 of 15 cases checked so far |
 | V20+ | Real Gmail IMAP/SMTP round-trip with an app password (send yourself a PDF invoice; check the run and the sheet row) | **manual**, needs your Gmail | to do |
+| V27 | Turn on two-factor login with a real authenticator app on your phone; sign out and back in with the code; try one recovery code | **manual**, phone | to do |
 | V26 | Native-speaker review of the Spanish, French, German and Turkish interface texts (`frontend/src/lib/i18n.tsx`) | **manual**, people | to do |
 | V25 | Real WooCommerce store: add the order webhook (ping accepted), place a test order → invoice + approval; REST note/status | **manual**, needs a WooCommerce site | to do |
 | V19+ | Real Shopify test store: order paid and checkout webhooks → invoice and reminder flows | **manual**, needs a Shopify dev store | to do |

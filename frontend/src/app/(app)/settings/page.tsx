@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Button, Card, ErrorNote, Field, Loading, PageHeader, inputClass } from "@/components/ui";
+import { Button, Card, ErrorNote, Field, Loading, PageHeader, formatTime, inputClass } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import type { BusinessProfile, Connection, Member, NotificationSettings, Policies, Role } from "@/lib/types";
@@ -17,12 +17,14 @@ export default function SettingsPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-6">
           <EmergencyStop />
+          <TwoFactorCard />
           <NotificationsCard />
           <PoliciesCard />
         </div>
         <div className="space-y-6">
           <BusinessCard />
           <MembersCard />
+          <AuditCard />
           <NewWorkspaceCard />
         </div>
       </div>
@@ -197,6 +199,147 @@ function MembersCard() {
         </form>
       )}
       <ErrorNote message={action.error} />
+    </Card>
+  );
+}
+
+function TwoFactorCard() {
+  const { data, reload } = useApi<{ enabled: boolean; recovery_codes_left: number }>("/auth/2fa");
+  const { data: activity } = useApi<{ action: string; ip: string | null; created_at: string }[]>("/auth/activity");
+  const action = useAction();
+  const [setup, setSetup] = useState<{ secret: string; otpauth_uri: string } | null>(null);
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [recovery, setRecovery] = useState<string[] | null>(null);
+
+  if (!data) return null;
+
+  return (
+    <Card>
+      <h2 className="font-semibold">Two-factor login</h2>
+      <p className="mt-1 text-sm text-slate-500">
+        {data.enabled
+          ? `On. Sign-in also asks for a code from your authenticator app. ${data.recovery_codes_left} recovery codes left.`
+          : "Protect your account with a code from an authenticator app (Google Authenticator, Authy, 1Password…)."}
+      </p>
+
+      {recovery && (
+        <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
+          <p className="font-medium text-amber-900">Save these recovery codes now. Each works once if you lose your phone. They will not be shown again.</p>
+          <ul className="mt-2 grid grid-cols-2 gap-1 font-mono">{recovery.map((c) => <li key={c}>{c}</li>)}</ul>
+        </div>
+      )}
+
+      {!data.enabled && !setup && (
+        <Button
+          className="mt-3"
+          disabled={action.busy}
+          onClick={async () => {
+            const result = await action.run(() => api<{ secret: string; otpauth_uri: string }>("/auth/2fa/setup", { body: {} }));
+            if (result) setSetup(result);
+          }}
+        >
+          Set up two-factor login
+        </Button>
+      )}
+
+      {!data.enabled && setup && (
+        <form
+          className="mt-3 space-y-3"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const result = await action.run(() => api<{ recovery_codes: string[] }>("/auth/2fa/enable", { body: { code } }));
+            if (result) {
+              setRecovery(result.recovery_codes);
+              setSetup(null);
+              setCode("");
+              reload();
+            }
+          }}
+        >
+          <p className="text-sm">
+            1. In your authenticator app, add an account with this key (or{" "}
+            <a href={setup.otpauth_uri} className="text-indigo-600 underline">open it on this phone</a>):
+          </p>
+          <p className="break-all rounded bg-slate-100 px-2 py-1 font-mono text-sm">{setup.secret}</p>
+          <Field label="2. Enter the 6-digit code it shows">
+            <input className={`${inputClass} tracking-widest`} inputMode="numeric" autoComplete="one-time-code"
+              value={code} onChange={(e) => setCode(e.target.value)} required />
+          </Field>
+          <Button type="submit" disabled={action.busy}>Turn on</Button>
+        </form>
+      )}
+
+      {data.enabled && (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-slate-600">Turn off two-factor login</summary>
+          <form
+            className="mt-2 space-y-2"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const done = await action.run(() => api("/auth/2fa/disable", { body: { password, code } }));
+              if (done) {
+                setPassword("");
+                setCode("");
+                setRecovery(null);
+                reload();
+              }
+            }}
+          >
+            <input className={inputClass} type="password" placeholder="Password" autoComplete="current-password"
+              value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input className={inputClass} placeholder="Authenticator or recovery code" autoComplete="one-time-code"
+              value={code} onChange={(e) => setCode(e.target.value)} required />
+            <Button type="submit" variant="danger" disabled={action.busy}>Turn off</Button>
+          </form>
+        </details>
+      )}
+
+      <ErrorNote message={action.error} />
+
+      {activity && activity.length > 0 && (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-slate-600">Recent sign-ins</summary>
+          <ul className="mt-2 space-y-1 text-xs text-slate-600">
+            {activity.slice(0, 10).map((a, i) => (
+              <li key={i} className={a.action === "auth.login_failed" ? "text-red-700" : ""}>
+                {formatTime(a.created_at)} · {a.action.replace("auth.", "").replaceAll("_", " ")} · {a.ip ?? "—"}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </Card>
+  );
+}
+
+function AuditCard() {
+  const { base, can } = useSession();
+  const { data } = useApi<{ id: number; action: string; user: string | null; target: string | null; created_at: string }[]>(
+    can("admin") ? `${base}/audit` : null,
+  );
+
+  if (!can("admin") || !data) return null;
+
+  return (
+    <Card>
+      <h2 className="font-semibold">Activity log</h2>
+      <p className="mt-1 text-sm text-slate-500">Who changed what in this workspace.</p>
+      {data.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">Nothing recorded yet.</p>
+      ) : (
+        <ul className="mt-3 max-h-80 divide-y divide-slate-100 overflow-auto text-sm">
+          {data.map((event) => (
+            <li key={event.id} className="py-2">
+              <span className="font-medium">{event.action.replace(".", ": ").replaceAll("_", " ")}</span>
+              {event.target && <span className="text-slate-600"> · {event.target}</span>}
+              <span className="block text-xs text-slate-500">
+                {event.user ?? "system"} · {formatTime(event.created_at)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   );
 }

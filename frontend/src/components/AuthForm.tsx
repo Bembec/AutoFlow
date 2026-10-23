@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button, ErrorNote, Field, inputClass } from "@/components/ui";
-import { api, setToken } from "@/lib/api";
+import { ApiError, api, setToken } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAction } from "@/lib/useApi";
 
@@ -16,6 +16,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needsCode, setNeedsCode] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -24,9 +26,18 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       if (mode === "register") {
         await api("/auth/register", { body: { name, email, password } });
       }
-      const { access_token } = await api<{ access_token: string }>("/auth/login", {
-        body: { email, password },
-      });
+      let access_token: string;
+      try {
+        ({ access_token } = await api<{ access_token: string }>("/auth/login", {
+          body: { email, password, ...(needsCode ? { code } : {}) },
+        }));
+      } catch (failure) {
+        if (failure instanceof ApiError && failure.message === "two_factor_required") {
+          setNeedsCode(true);
+          return false;
+        }
+        throw failure;
+      }
       setToken(access_token);
       return true;
     });
@@ -72,6 +83,20 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             required
           />
         </Field>
+
+        {needsCode && (
+          <Field label={t("auth.code")} hint={t("auth.codeHint")}>
+            <input
+              className={`${inputClass} tracking-widest`}
+              inputMode="text"
+              autoComplete="one-time-code"
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+            />
+          </Field>
+        )}
 
         <ErrorNote message={error} />
 

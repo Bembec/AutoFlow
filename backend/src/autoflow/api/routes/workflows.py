@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Response, UploadFile
 from starlette.concurrency import run_in_threadpool
 
-from autoflow import documents
+from autoflow import audit, documents
 from autoflow.ai import builder, providers
 from autoflow.api import schemas
 from autoflow.api.deps import MemberAccess, Session, ViewerAccess
@@ -167,23 +167,31 @@ def publish_workflow(
     request: schemas.PublishRequest | None = None,
 ):
     version = request.version if request else None
-    return _errors(lambda: engine.publish(session, membership.workspace_id, workflow_id, version))
+    workflow = _errors(lambda: engine.publish(session, membership.workspace_id, workflow_id, version))
+    audit.for_member(membership, session, "workflow.published", target=workflow.name, details={"version": version})
+    return workflow
 
 
 @workspace_router.post("/workflows/{workflow_id}/pause", response_model=schemas.WorkflowOut)
 def pause_workflow(workflow_id: int, membership: MemberAccess, session: Session):
     """Emergency stop for one workflow: cancels its open runs."""
-    return _errors(lambda: engine.pause(session, membership.workspace_id, workflow_id))
+    workflow = _errors(lambda: engine.pause(session, membership.workspace_id, workflow_id))
+    audit.for_member(membership, session, "workflow.paused", target=workflow.name)
+    return workflow
 
 
 @workspace_router.post("/workflows/{workflow_id}/resume", response_model=schemas.WorkflowOut)
 def resume_workflow(workflow_id: int, membership: MemberAccess, session: Session):
-    return _errors(lambda: engine.resume(session, membership.workspace_id, workflow_id))
+    workflow = _errors(lambda: engine.resume(session, membership.workspace_id, workflow_id))
+    audit.for_member(membership, session, "workflow.resumed", target=workflow.name)
+    return workflow
 
 
 @workspace_router.post("/workflows/{workflow_id}/archive", response_model=schemas.WorkflowOut)
 def archive_workflow(workflow_id: int, membership: MemberAccess, session: Session):
-    return _errors(lambda: engine.archive(session, membership.workspace_id, workflow_id))
+    workflow = _errors(lambda: engine.archive(session, membership.workspace_id, workflow_id))
+    audit.for_member(membership, session, "workflow.archived", target=workflow.name)
+    return workflow
 
 
 @workspace_router.post(

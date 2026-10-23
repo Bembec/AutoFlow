@@ -28,6 +28,14 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now)
 
+    # --- two-factor login (V27) ---
+    totp_secret_encrypted: Mapped[str | None] = mapped_column(Text)
+    totp_enabled: Mapped[bool] = mapped_column(default=False, server_default=false())
+    # Last accepted 30-second step, so a code can never be used twice
+    totp_last_step: Mapped[int | None]
+    # SHA-256 hashes of unused one-time recovery codes
+    recovery_codes: Mapped[list[str] | None] = mapped_column(JSON)
+
     memberships: Mapped[list["Membership"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
@@ -486,3 +494,21 @@ class Notification(Base):
     sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime, index=True)
     attempts: Mapped[int] = mapped_column(default=0)
     last_error: Mapped[str | None] = mapped_column(Text)
+
+
+class AuditEvent(Base):
+    """Who did what, when. Kept for security reviews; never edited."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Null for account-level events (e.g. sign-in)
+    workspace_id: Mapped[int | None] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    action: Mapped[str] = mapped_column(String(60))
+    target: Mapped[str | None] = mapped_column(String(200))
+    details: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    ip: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utc_now, index=True)

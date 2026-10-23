@@ -5,6 +5,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
+from autoflow import audit
 from autoflow.api.deps import AdminAccess, MemberAccess, Session, ViewerAccess
 from autoflow.engine import service as engine
 from autoflow.integrations import catalog, connections, oauth, webhooks
@@ -88,6 +89,7 @@ def create_connection(request: ConnectionCreate, membership: AdminAccess, sessio
     except connections.ConnectionError_ as error:
         raise HTTPException(status_code=409, detail=str(error))
 
+    audit.for_member(membership, session, "connection.created", target=connection.name, details={"provider": connection.provider})
     return _connection_out(connection)
 
 
@@ -102,12 +104,16 @@ def update_connection_secrets(
     except connections.ConnectionError_ as error:
         raise HTTPException(status_code=409, detail=str(error))
 
+    audit.for_member(membership, session, "connection.secrets_updated", target=connection.name)
+
     return _connection_out(connection)
 
 
 @workspace_router.delete("/connections/{connection_id}", status_code=204)
 def revoke_connection(connection_id: int, membership: AdminAccess, session: Session):
-    connections.revoke(session, _get_connection(session, membership, connection_id))
+    connection = _get_connection(session, membership, connection_id)
+    connections.revoke(session, connection)
+    audit.for_member(membership, session, "connection.revoked", target=connection.name)
 
 
 @workspace_router.post("/connections/oauth/{provider}/start")
@@ -171,6 +177,7 @@ def enable_webhook(
     except engine.NotFound:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
+    audit.for_member(membership, session, "webhook.secret_set", target=f"workflow {workflow_id}", details={"scheme": endpoint.signature_scheme})
     return {
         "url": webhooks.url_for(endpoint),
         "signature_scheme": endpoint.signature_scheme,
@@ -182,6 +189,7 @@ def enable_webhook(
 @workspace_router.delete("/workflows/{workflow_id}/webhook", status_code=204)
 def disable_webhook(workflow_id: int, membership: MemberAccess, session: Session):
     webhooks.disable(session, membership.workspace_id, workflow_id)
+    audit.for_member(membership, session, "webhook.disabled", target=f"workflow {workflow_id}")
 
 
 @router.post("/hooks/{public_id}", status_code=202)

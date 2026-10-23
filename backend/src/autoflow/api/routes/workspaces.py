@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
 
-from autoflow import notifications
+from autoflow import audit, notifications
 from autoflow.accounts import service as accounts
 from autoflow.engine import limits
 from autoflow.engine import service as engine
@@ -61,6 +61,7 @@ def change_member_role(user_id: int, request: RoleChange, membership: AdminAcces
         raise HTTPException(status_code=409, detail=str(error))
 
     session.commit()
+    audit.for_member(membership, session, "member.role_changed", target=changed.user.email, details={"role": changed.role})
     return _member_out(changed)
 
 
@@ -72,6 +73,7 @@ def remove_member(user_id: int, membership: AdminAccess, session: Session):
         raise HTTPException(status_code=409, detail=str(error))
 
     session.commit()
+    audit.for_member(membership, session, "member.removed", target=f"user {user_id}")
 
 
 class NotificationSettings(BaseModel):
@@ -101,6 +103,7 @@ def update_notification_settings(request: NotificationSettings, membership: Admi
             continue
         setattr(workspace, field, value or None if isinstance(value, str) else value)
     session.commit()
+    audit.for_member(membership, session, "settings.notifications_changed")
     return {field: getattr(workspace, field) for field in NOTIFICATION_FIELDS}
 
 
@@ -156,6 +159,7 @@ def update_policies(request: PoliciesUpdate, membership: AdminAccess, session: S
         setattr(workspace, field, value)
 
     session.commit()
+    audit.for_member(membership, session, "settings.policies_changed", details=request.model_dump(exclude_none=True))
     return _policies_out(session, workspace)
 
 
@@ -166,12 +170,14 @@ def emergency_stop(membership: AdminAccess, session: Session, request: Emergency
     stopped = engine.emergency_stop(
         session, membership.workspace_id, request.reason if request else None
     )
+    audit.for_member(membership, session, "automation.emergency_stop", details={"reason": request.reason if request else None, "cancelled": stopped})
     return {"automation_paused": True, "executions_cancelled": stopped}
 
 
 @router.post("/workspaces/{workspace_id}/resume-automations")
 def resume_automations(membership: AdminAccess, session: Session):
     engine.resume_automations(session, membership.workspace_id)
+    audit.for_member(membership, session, "automation.resumed")
     return {"automation_paused": False}
 
 
@@ -189,4 +195,26 @@ def add_member(request: schemas.MemberCreate, membership: AdminAccess, session: 
         raise HTTPException(status_code=409, detail=str(error))
 
     session.commit()
+    audit.for_member(membership, session, "member.added", target=new_membership.user.email, details={"role": new_membership.role})
     return _member_out(new_membership)
+
+
+def _audit_out(event, emails):
+    return {
+        "id": event.id,
+        "action": event.action,
+        "user": emails.get(event.user_id),
+        "target": event.target,
+        "details": event.details,
+        "ip": event.ip,
+        "created_at": event.created_at,
+    }
+
+
+@router.get("/workspaces/{workspace_id}/audit")
+def audit_log(membership: AdminAccess, session: Session, before_id: int | None = None):
+    """Who did what in this workspace (newest first, 200 per page)."""
+
+    events = audit.list_events(session, membership.workspace_id, before_id=before_id)
+    emails = {m.user.id: m.user.email for m in accounts.list_workspace_members(session, membership.workspace_id)}
+    return [_audit_out(event, emails) for event in events]

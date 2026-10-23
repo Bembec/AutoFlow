@@ -1,5 +1,27 @@
 # Changelog
 
+## V27: Two-factor login and audit log
+- **Two-factor login** with any authenticator app (TOTP, RFC 6238, implemented with the standard library and checked against the RFC test vector):
+  - setup with a key or `otpauth://` link, confirmed with a code;
+  - 10 one-time recovery codes, stored only as hashes;
+  - codes can't be reused, and ±30 s clock drift is allowed;
+  - turning it off needs your password plus a code.
+
+  Sign-in asks for the code when needed (`two_factor_required`), translated in all five languages.
+- **Audit log** (`audit_events`, migration 0011) records:
+  - sign-ins, including failed ones, with the IP address;
+  - two-factor changes;
+  - members added, removed or given a new role;
+  - connections created, updated or revoked, and webhook secrets set or disabled;
+  - workflows published, paused, resumed or archived;
+  - emergency stop and resume, policy and notification changes;
+  - approvals and rejections;
+  - data exports, workspace and account deletion, and billing changes.
+
+  No secrets are logged. Admins see the workspace log (`GET /workspaces/{id}/audit`), and each user sees their own recent sign-ins (`GET /auth/activity`).
+- Web app: "Two-factor login" and "Activity log" cards in Settings.
+- Checks: backend 214 passed; frontend type check, lint and build clean.
+
 ## V26: Interface languages
 - Translation system (`frontend/src/lib/i18n.tsx`): one dictionary per language, with missing keys falling back to English, so pages can be translated step by step.
 - Languages: English, Spanish, French, German and Turkish. The browser language is detected automatically, and a picker in the menu changes it (remembered per device). The server render uses English, so there is no hydration mismatch.

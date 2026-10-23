@@ -1,11 +1,14 @@
 """Registration, login, logout and the current user."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
 
-from autoflow import config
+from autoflow import audit, config
 from autoflow.accounts import service as accounts
+from autoflow.accounts import two_factor
 from autoflow.api import schemas
 from autoflow.api.deps import CurrentUser, Session, get_token
+from autoflow.api.middleware import client_ip
 
 
 router = APIRouter(tags=["auth"])
@@ -29,13 +32,23 @@ def register(request: schemas.RegisterRequest, session: Session):
 
 
 @router.post("/auth/login", response_model=schemas.TokenResponse)
-def login(request: schemas.LoginRequest, session: Session):
-    token = accounts.authenticate(session, request.email, request.password)
+def login(request: schemas.LoginRequest, session: Session, http: Request):
+    ip = client_ip(http)
+    user = accounts.get_user_by_email(session, request.email)
+
+    try:
+        token = accounts.authenticate(session, request.email, request.password, request.code)
+    except accounts.TwoFactorRequired:
+        # The client shows the code field and sends the request again
+        raise HTTPException(status_code=401, detail="two_factor_required")
 
     if token is None:
+        if user is not None:
+            audit.record(session, "auth.login_failed", user_id=user.id, ip=ip)
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
     session.commit()
+    audit.record(session, "auth.login", user_id=user.id, ip=ip, details={"two_factor": user.totp_enabled})
     return {
         "access_token": token,
         "expires_in": config.ACCESS_TOKEN_TTL_HOURS * 3600,
@@ -68,3 +81,77 @@ def me(user: CurrentUser, session: Session):
             for membership in memberships
         ],
     }
+
+
+# --- two-factor login ---------------------------------------------------------
+
+class CodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=20)
+
+
+class DisableTwoFactor(BaseModel):
+    password: str
+    code: str = Field(min_length=6, max_length=20)
+
+
+@router.get("/auth/2fa")
+def two_factor_status(user: CurrentUser):
+    return {"enabled": user.totp_enabled, "recovery_codes_left": two_factor.recovery_codes_left(user)}
+
+
+@router.post("/auth/2fa/setup")
+def two_factor_setup(user: CurrentUser, session: Session):
+    """Start setup: add the secret to an authenticator app, then confirm with a code."""
+
+    try:
+        secret, uri = two_factor.start_setup(session, user)
+    except two_factor.TwoFactorError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+    session.commit()
+    return {"secret": secret, "otpauth_uri": uri}
+
+
+@router.post("/auth/2fa/enable")
+def two_factor_enable(request: CodeRequest, user: CurrentUser, session: Session):
+    try:
+        codes = two_factor.enable(session, user, request.code)
+    except two_factor.TwoFactorError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+    session.commit()
+    audit.record(session, "auth.2fa_enabled", user_id=user.id)
+    # Shown once: the user must store them somewhere safe
+    return {"enabled": True, "recovery_codes": codes}
+
+
+@router.post("/auth/2fa/disable")
+def two_factor_disable(request: DisableTwoFactor, user: CurrentUser, session: Session):
+    try:
+        two_factor.disable(session, user, request.password, request.code)
+    except two_factor.TwoFactorError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+    session.commit()
+    audit.record(session, "auth.2fa_disabled", user_id=user.id)
+    return {"enabled": False}
+
+
+@router.get("/auth/activity")
+def my_sign_ins(user: CurrentUser, session: Session):
+    """Recent sign-ins and security changes on your own account."""
+
+    from sqlalchemy import select
+
+    from autoflow.storage.models import AuditEvent
+
+    events = session.scalars(
+        select(AuditEvent)
+        .where(AuditEvent.user_id == user.id, AuditEvent.action.like("auth.%"))
+        .order_by(AuditEvent.id.desc())
+        .limit(50)
+    ).all()
+    return [
+        {"action": e.action, "ip": e.ip, "details": e.details, "created_at": e.created_at}
+        for e in events
+    ]

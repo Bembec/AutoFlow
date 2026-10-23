@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from autoflow import audit
 from autoflow.api.deps import CurrentUser, Session, ViewerAccess, require_role
 from autoflow.billing import plans
 from autoflow.billing import service as billing
@@ -54,6 +55,7 @@ def update_billing(request: BillingSettings, membership: OwnerAccess, session: S
 
     subscription.hard_cap = request.hard_cap
     session.commit()
+    audit.for_member(membership, session, "billing.hard_cap_changed", details={"hard_cap": request.hard_cap})
     return billing.summary(session, membership.workspace_id)
 
 
@@ -104,5 +106,8 @@ def staff_set_plan(
         billing.set_plan(session, workspace_id, request.plan)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error))
+
+    audit.record(session, "billing.plan_set_by_staff", workspace_id=workspace_id,
+                 user_id=staff.id, details={"plan": request.plan})
 
     return billing.summary(session, workspace_id)

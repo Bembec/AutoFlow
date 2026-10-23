@@ -34,6 +34,8 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    # Authenticator or recovery code, for accounts with two-factor login
+    code: str | None = Field(None, max_length=20)
 
 
 class TokenResponse(BaseModel):
