@@ -1,5 +1,5 @@
 """
-Tests AutoFlow's connection to Airtable without creating or changing records.
+Tests Luphina's connection to Airtable without creating or changing records.
 """
 
 import os

@@ -4,25 +4,25 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.engine import queue
-from autoflow.integrations import webhooks
-from autoflow.storage.db import engine as db_engine
-from autoflow.storage.db import session_scope, utc_now
-from autoflow.storage.models import StepExecution, WorkflowExecution
+from luphina.engine import queue
+from luphina.integrations import webhooks
+from luphina.storage.db import engine as db_engine
+from luphina.storage.db import session_scope, utc_now
+from luphina.storage.models import StepExecution, WorkflowExecution
 
 
 @pytest.fixture(autouse=True)
 def fakes():
     with (
-        patch("autoflow.engine.executor.sleep"),
-        patch("autoflow.engine.actions.send_email", return_value=True) as send,
+        patch("luphina.engine.executor.sleep"),
+        patch("luphina.engine.actions.send_email", return_value=True) as send,
     ):
         yield send
 
 
 @pytest.fixture
 def queue_mode(monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_EXECUTION_MODE", "queue")
+    monkeypatch.setenv("LUPHINA_EXECUTION_MODE", "queue")
 
 
 @pytest.fixture

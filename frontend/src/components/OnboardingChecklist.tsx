@@ -29,7 +29,7 @@ function stepLink(step: OnboardingStep, workflowId: number | undefined) {
 }
 
 // Hiding the checklist is a per-browser convenience, remembered per workspace
-const hiddenKey = (workspaceId: number) => `autoflow.onboarding.hidden.${workspaceId}`;
+const hiddenKey = (workspaceId: number) => `luphina.onboarding.hidden.${workspaceId}`;
 const listeners = new Set<() => void>();
 
 function readHidden(workspaceId: number) {

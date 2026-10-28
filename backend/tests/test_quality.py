@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow import quality
+from luphina import quality
 
 
 def ai_reply(confidence=0.95):
@@ -13,7 +13,7 @@ def ai_reply(confidence=0.95):
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -31,7 +31,7 @@ def ws(client, signup):
 
 def run(ws, mode="live", confidence=0.95):
     client, headers, base, workflow = ws
-    with patch("autoflow.ai.steps.providers.complete", side_effect=ai_reply(confidence)):
+    with patch("luphina.ai.steps.providers.complete", side_effect=ai_reply(confidence)):
         return client.post(f"{base}/workflows/{workflow['id']}/executions",
                            json={"mode": mode, "payload": {"text": "I want my money back"}}, headers=headers).json()
 
@@ -45,7 +45,7 @@ def test_sampling_is_stable_and_close_to_the_rate():
 
 def test_only_live_ai_results_without_a_human_review_are_sampled(ws):
     client, headers, base, _ = ws
-    with patch("autoflow.quality.picked", return_value=True):
+    with patch("luphina.quality.picked", return_value=True):
         live = run(ws)
         run(ws, mode="test")
         reviewed = run(ws, confidence=0.1)  # sent to a person already
@@ -61,7 +61,7 @@ def test_only_live_ai_results_without_a_human_review_are_sampled(ws):
 
 def test_reviews_feed_the_quality_summary(ws, client, signup):
     _, headers, base, _ = ws
-    with patch("autoflow.quality.picked", return_value=True):
+    with patch("luphina.quality.picked", return_value=True):
         for _ in range(3):
             run(ws)
     samples = client.get(f"{base}/quality/samples", headers=headers).json()
@@ -89,6 +89,6 @@ def test_admins_set_the_sampling_rate(ws):
         "sample_percent": 10}
     assert client.put(f"{base}/quality/settings", json={"sample_percent": 25}, headers=headers).status_code == 422
     client.put(f"{base}/quality/settings", json={"sample_percent": 0}, headers=headers)
-    with patch("autoflow.quality.picked", wraps=quality.picked):
+    with patch("luphina.quality.picked", wraps=quality.picked):
         run(ws)
     assert client.get(f"{base}/quality/samples", headers=headers).json() == []

@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.engine.templates_ecommerce import SAMPLE_REVIEW, SAMPLE_SHOPIFY_ORDER, SAMPLE_WOOCOMMERCE_ORDER
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Workspace
+from luphina.engine.templates_ecommerce import SAMPLE_REVIEW, SAMPLE_SHOPIFY_ORDER, SAMPLE_WOOCOMMERCE_ORDER
+from luphina.storage.db import session_scope
+from luphina.storage.models import Workspace
 
 NEW = [
     "first-order-welcome", "review-request-later", "orders-to-sheet", "woocommerce-orders-to-sheet",
@@ -19,8 +19,8 @@ AI_REPLY = {"category": "wholesale or bulk enquiry", "confidence": 0.9, "summary
 
 @pytest.fixture(autouse=True)
 def fakes():
-    with patch("autoflow.engine.executor.sleep"), \
-            patch("autoflow.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")):
+    with patch("luphina.engine.executor.sleep"), \
+            patch("luphina.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")):
         yield
 
 

@@ -1,7 +1,7 @@
 // A task typed into the website demo, carried through sign-up so the
 // builder can start from it. Session storage: it never leaves this tab.
 
-const KEY = "autoflow.pendingTask";
+const KEY = "luphina.pendingTask";
 
 export function savePendingTask(task: string) {
   try {

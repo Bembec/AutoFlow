@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow.engine.actions import ActionError
+from luphina.engine.actions import ActionError
 
 
 @pytest.fixture(autouse=True)
@@ -11,9 +11,9 @@ def engine_fakes():
     """No real waiting, exchange-rate calls or emails during engine tests."""
 
     with (
-        patch("autoflow.engine.executor.sleep"),
-        patch("autoflow.engine.actions.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")) as rate,
-        patch("autoflow.engine.actions.send_email", return_value=True) as send,
+        patch("luphina.engine.executor.sleep"),
+        patch("luphina.engine.actions.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")) as rate,
+        patch("luphina.engine.actions.send_email", return_value=True) as send,
     ):
         yield {"rate": rate, "send": send}
 
@@ -235,7 +235,7 @@ def test_failed_execution_retries_from_failed_step(ws, engine_fakes):
     assert "Exchange rate unavailable" in failed["error"]
 
     engine_fakes["rate"].return_value = (1.1, "2026-10-21")
-    with patch("autoflow.engine.actions.classify_with_ai") as classifier:
+    with patch("luphina.engine.actions.classify_with_ai") as classifier:
         classifier.return_value = None
         retried = client.post(f"{base}/executions/{failed['id']}/retry", headers=headers).json()
 

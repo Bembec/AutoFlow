@@ -4,10 +4,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
-from autoflow.engine.templates_ecommerce_four import SAMPLE_BIG_REFUND, SAMPLE_RISKY_ORDER
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Workspace
+from luphina.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
+from luphina.engine.templates_ecommerce_four import SAMPLE_BIG_REFUND, SAMPLE_RISKY_ORDER
+from luphina.storage.db import session_scope
+from luphina.storage.models import Workspace
 
 NEW = [
     "shopify-cancelled-void", "daily-order-digest", "big-refund-alert", "high-value-first-order-check",
@@ -21,10 +21,10 @@ AI_REPLY = {"category": "delivery question", "summary": "3 orders, 112 EUR.", "t
 def fakes():
     reply = MagicMock(status_code=200, ok=True, headers={"Content-Type": "application/json"})
     reply.json.return_value = {"orders": [{"name": "#1001", "total": "47.60"}]}
-    with patch("autoflow.engine.executor.sleep"), \
-            patch("autoflow.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")), \
-            patch("autoflow.integrations.actions.check_public_url"), \
-            patch("autoflow.integrations.actions.requests.request", return_value=reply):
+    with patch("luphina.engine.executor.sleep"), \
+            patch("luphina.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")), \
+            patch("luphina.integrations.actions.check_public_url"), \
+            patch("luphina.integrations.actions.requests.request", return_value=reply):
         yield
 
 

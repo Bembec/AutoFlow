@@ -3,8 +3,8 @@
 import os
 import tempfile
 
-# Must be set before any autoflow module is imported
-os.environ.setdefault("AUTOFLOW_DATA_DIR", tempfile.mkdtemp(prefix="autoflow-test-"))
+# Must be set before any luphina module is imported
+os.environ.setdefault("LUPHINA_DATA_DIR", tempfile.mkdtemp(prefix="luphina-test-"))
 os.environ["AI_CLASSIFICATION_ENABLED"] = "false"
 os.environ["EMAIL_SEND_ENABLED"] = "false"
 
@@ -24,9 +24,9 @@ from unittest.mock import patch  # noqa: E402
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
-from autoflow.api.app import create_app  # noqa: E402
-from autoflow.storage import initialize_storage  # noqa: E402
-from autoflow.storage.db import Base, engine  # noqa: E402
+from luphina.api.app import create_app  # noqa: E402
+from luphina.storage import initialize_storage  # noqa: E402
+from luphina.storage.db import Base, engine  # noqa: E402
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -39,7 +39,7 @@ def migrated_database():
 def clean_database():
     """Give every test empty tables and a fresh sign-in rate limit."""
 
-    from autoflow.api.middleware import auth_limiter
+    from luphina.api.middleware import auth_limiter
 
     with engine.begin() as connection:
         for table in reversed(Base.metadata.sorted_tables):
@@ -54,8 +54,8 @@ def no_external_calls():
     """Stop the workflow from calling real external services."""
 
     with (
-        patch("autoflow.pipeline.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")),
-        patch("autoflow.pipeline.sync_customers_to_airtable") as airtable,
+        patch("luphina.pipeline.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")),
+        patch("luphina.pipeline.sync_customers_to_airtable") as airtable,
     ):
         yield airtable
 
@@ -83,8 +83,8 @@ def signup(client):
 
         # Most tests are not about plan limits; billing tests pass plan="free"
         if plan != "free":
-            from autoflow.billing.service import set_plan
-            from autoflow.storage.db import session_scope
+            from luphina.billing.service import set_plan
+            from luphina.storage.db import session_scope
 
             with session_scope() as session:
                 set_plan(session, workspace_id, plan)

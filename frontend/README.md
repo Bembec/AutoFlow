@@ -1,4 +1,4 @@
-# AutoFlow web app
+# Luphina web app
 
 Next.js 16 (App Router, TypeScript, Tailwind CSS 4) with React Flow for the workflow canvas.
 
@@ -6,7 +6,7 @@ Next.js 16 (App Router, TypeScript, Tailwind CSS 4) with React Flow for the work
 
 ```bash
 # 1. API (in backend/)
-python -m autoflow.api            # http://127.0.0.1:8000
+python -m luphina.api            # http://127.0.0.1:8000
 
 # 2. Web app (in frontend/)
 npm install
@@ -14,9 +14,9 @@ npm run dev                       # http://localhost:3000
 ```
 
 The browser only talks to the web app. `next.config.ts` forwards `/api/*` and
-`/hooks/*` to the API (`AUTOFLOW_API_URL`, default `http://127.0.0.1:8000`),
+`/hooks/*` to the API (`LUPHINA_API_URL`, default `http://127.0.0.1:8000`),
 so the two share one origin and no CORS setup is needed. Set the API's
-`AUTOFLOW_PUBLIC_URL` to the web app's address so webhook and OAuth callback
+`LUPHINA_PUBLIC_URL` to the web app's address so webhook and OAuth callback
 URLs point here.
 
 ## Pages

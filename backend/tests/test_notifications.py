@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import select
 
-from autoflow import notifications
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Notification
+from luphina import notifications
+from luphina.storage.db import session_scope
+from luphina.storage.models import Notification
 
 
 SLACK = {"provider": "slack", "name": "team-slack", "secrets": {"webhook_url": "https://hooks.slack.com/services/T0/B0/xyz"}}
@@ -21,8 +21,8 @@ FAILING = {"id": "quote", "action": "exchange_rate_quote", "inputs": {"amount_eu
 @pytest.fixture(autouse=True)
 def fakes():
     with (
-        patch("autoflow.engine.executor.sleep"),
-        patch("autoflow.engine.actions.fetch_eur_to_usd", return_value=(None, None)),
+        patch("luphina.engine.executor.sleep"),
+        patch("luphina.engine.actions.fetch_eur_to_usd", return_value=(None, None)),
     ):
         yield
 
@@ -103,7 +103,7 @@ def test_worker_delivers_to_slack(ws):
     client, headers, base = ws
     client.post(f"{base}/notifications/test", headers=headers)
 
-    with patch("autoflow.notifications.requests.post") as post:
+    with patch("luphina.notifications.requests.post") as post:
         post.return_value = MagicMock(status_code=200)
         with session_scope() as session:
             assert notifications.deliver_pending(session) == 1
@@ -119,7 +119,7 @@ def test_failed_delivery_is_retried_then_given_up(ws):
     client, headers, base = ws
     client.post(f"{base}/notifications/test", headers=headers)
 
-    with patch("autoflow.notifications.requests.post") as post:
+    with patch("luphina.notifications.requests.post") as post:
         post.return_value = MagicMock(status_code=500)
         for _ in range(notifications.MAX_ATTEMPTS + 2):
             with session_scope() as session:
@@ -141,7 +141,7 @@ def test_email_notifications_use_the_workspace_mailbox(ws, monkeypatch):
     }, headers=headers)
     client.post(f"{base}/notifications/test", headers=headers)
 
-    with patch("autoflow.notifications.smtplib") as smtp:
+    with patch("luphina.notifications.smtplib") as smtp:
         with session_scope() as session:
             assert notifications.deliver_pending(session) == 1
 

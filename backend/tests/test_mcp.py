@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.integrations import mcp
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Workspace
+from luphina.integrations import mcp
+from luphina.storage.db import session_scope
+from luphina.storage.models import Workspace
 
 TOOLS = [
     {"name": "search_products", "description": "Find products", "annotations": {"readOnlyHint": True},
@@ -61,9 +61,9 @@ class FakeServer:
 @pytest.fixture
 def server():
     fake = FakeServer()
-    with patch("autoflow.integrations.mcp.requests.post", side_effect=fake.post), \
-            patch("autoflow.integrations.mcp.check_public_url"), \
-            patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.integrations.mcp.requests.post", side_effect=fake.post), \
+            patch("luphina.integrations.mcp.check_public_url"), \
+            patch("luphina.engine.executor.sleep"):
         yield fake
 
 
@@ -157,13 +157,13 @@ def test_tools_that_change_things_always_wait_for_approval(ws, server):
     assert done["status"] == "succeeded" and done["steps"][0]["output"]["text"] == "Code SPRING10 created"
 
     with pytest.raises(Exception, match="always requires human approval"):
-        from autoflow.engine.definition import WorkflowDefinition
+        from luphina.engine.definition import WorkflowDefinition
         WorkflowDefinition.model_validate({"steps": [{"id": "c", "action": "mcp_call_tool", "requires_approval": False,
                                                       "inputs": {"connection": "catalog", "tool": "create_discount"}}]})
 
 
 def test_mcp_needs_the_feature(client, signup, server, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "mcp_tools=off")
+    monkeypatch.setenv("LUPHINA_FEATURES", "mcp_tools=off")
     headers, workspace_id = signup(email="plain@example.com")
     base = f"/workspaces/{workspace_id}"
     refused = client.post(f"{base}/connections", json={

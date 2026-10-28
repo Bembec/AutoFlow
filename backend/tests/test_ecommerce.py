@@ -10,12 +10,12 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.commerce.orders import OrderError, parse_order
-from autoflow.engine import queue
-from autoflow.engine.templates_ecommerce import SAMPLE_REVIEW, SAMPLE_SHOPIFY_CHECKOUT, SAMPLE_SHOPIFY_ORDER
-from autoflow.storage.db import engine as db_engine
-from autoflow.storage.db import session_scope, utc_now
-from autoflow.storage.models import StepExecution, WorkflowExecution
+from luphina.commerce.orders import OrderError, parse_order
+from luphina.engine import queue
+from luphina.engine.templates_ecommerce import SAMPLE_REVIEW, SAMPLE_SHOPIFY_CHECKOUT, SAMPLE_SHOPIFY_ORDER
+from luphina.storage.db import engine as db_engine
+from luphina.storage.db import session_scope, utc_now
+from luphina.storage.models import StepExecution, WorkflowExecution
 
 
 SHOPIFY_SECRET = "shopify-app-secret-0123456789"
@@ -23,7 +23,7 @@ SHOPIFY_SECRET = "shopify-app-secret-0123456789"
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -254,7 +254,7 @@ def test_review_reply_drafts_and_waits_for_approval(ws):
         {"subject": "Sorry about the wait", "body": "Hi Alan, we are sorry...", "confidence": 0.9},
     ])
 
-    with patch("autoflow.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(next(replies)), "fake")):
+    with patch("luphina.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(next(replies)), "fake")):
         run = client.post(
             f"{base}/workflows/{workflow['id']}/executions",
             json={"mode": "live", "payload": SAMPLE_REVIEW},

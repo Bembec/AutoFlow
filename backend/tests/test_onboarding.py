@@ -5,7 +5,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 

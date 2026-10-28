@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from autoflow.commerce.orders import parse_order
-from autoflow.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER, SAMPLE_WOOCOMMERCE_ORDER
+from luphina.commerce.orders import parse_order
+from luphina.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER, SAMPLE_WOOCOMMERCE_ORDER
 
 
 SECRET = "woo-webhook-secret-0123456789"
@@ -16,7 +16,7 @@ SECRET = "woo-webhook-secret-0123456789"
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -175,8 +175,8 @@ def run_steps(ws, steps):
 
 def test_add_order_note(ws):
     with (
-        patch("autoflow.integrations.actions.check_public_url"),
-        patch("autoflow.integrations.actions.requests") as http,
+        patch("luphina.integrations.actions.check_public_url"),
+        patch("luphina.integrations.actions.requests") as http,
     ):
         http.post.return_value = ok({"id": 99})
         run = run_steps(ws, [{"id": "note", "action": "woocommerce_add_order_note",
@@ -195,7 +195,7 @@ def test_status_change_needs_approval_and_a_valid_status(ws):
 
     client, headers, base = ws
     approval = client.get(f"{base}/approvals", params={"kind": "step"}, headers=headers).json()[0]
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         client.post(f"{base}/approvals/{approval['id']}/approve", headers=headers)
 
     done, _ = execution(ws, run["id"])

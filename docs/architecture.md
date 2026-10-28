@@ -7,7 +7,7 @@ Browser ──▶ Web app (Next.js) ──/api, /hooks──▶ API (FastAPI) �
                                                   │  ▲
 Other apps ──signed webhooks──────────────────────┘  │
                                                      │
-Worker (python -m autoflow.worker) ── schedules ─────┘
+Worker (python -m luphina.worker) ── schedules ─────┘
                                                   │
                          AI providers (Gemini, Claude) · Apps (Airtable, Google, SMTP, REST)
 ```
@@ -26,17 +26,17 @@ HTTP middleware (request id, security headers, sign-in rate limit)
 
 | Package | Responsibility |
 | --- | --- |
-| `autoflow.api` | Routers, schemas, auth/role dependencies, middleware |
-| `autoflow.accounts` | Users, workspaces, memberships and roles, password hashing, access tokens |
-| `autoflow.engine` | Workflow definitions and validation, `{{ }}` templating, action registry, executor, versions, limits, templates |
-| `autoflow.ai` | Model router (Gemini/Claude with fallback), AI workflow builder, AI steps |
-| `autoflow.integrations` | Connections and their catalogue, OAuth2, webhooks, connector actions |
-| `autoflow.security` | Secrets vault (Fernet, rotation), prompt-injection guard, SSRF protection |
-| `autoflow.billing` | Plans, billable-task metering, plan limits, Stripe |
-| `autoflow.approvals` | Human decisions: classifications, emails, step gates, AI result reviews |
-| `autoflow.storage` | Models, repositories, Alembic migrations |
-| `autoflow.worker` | Scheduled workflows and housekeeping |
-| `autoflow.pipeline` | The original V1–V6 enquiry workflow (CLI and legacy endpoint) |
+| `luphina.api` | Routers, schemas, auth/role dependencies, middleware |
+| `luphina.accounts` | Users, workspaces, memberships and roles, password hashing, access tokens |
+| `luphina.engine` | Workflow definitions and validation, `{{ }}` templating, action registry, executor, versions, limits, templates |
+| `luphina.ai` | Model router (Gemini/Claude with fallback), AI workflow builder, AI steps |
+| `luphina.integrations` | Connections and their catalogue, OAuth2, webhooks, connector actions |
+| `luphina.security` | Secrets vault (Fernet, rotation), prompt-injection guard, SSRF protection |
+| `luphina.billing` | Plans, billable-task metering, plan limits, Stripe |
+| `luphina.approvals` | Human decisions: classifications, emails, step gates, AI result reviews |
+| `luphina.storage` | Models, repositories, Alembic migrations |
+| `luphina.worker` | Scheduled workflows and housekeeping |
+| `luphina.pipeline` | The original V1–V6 enquiry workflow (CLI and legacy endpoint) |
 
 ## Tenant isolation
 

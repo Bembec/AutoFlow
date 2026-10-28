@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
-// The browser talks to /api/*; Next.js forwards it to the AutoFlow API,
+// The browser talks to /api/*; Next.js forwards it to the Luphina API,
 // so the app and the API share one origin (no CORS setup needed).
-const apiUrl = process.env.AUTOFLOW_API_URL ?? "http://127.0.0.1:8000";
+const apiUrl = process.env.LUPHINA_API_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
   // Self-contained server for the Docker image (.next/standalone)

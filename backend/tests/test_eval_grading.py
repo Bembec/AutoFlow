@@ -2,7 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 
-from autoflow.ai.builder import DraftResult
+from luphina.ai.builder import DraftResult
 
 
 EVALS = Path(__file__).resolve().parents[1] / "evals"
@@ -24,8 +24,8 @@ def test_eval_cases_file_is_well_formed():
     assert all(c["request"] for c in cases)
 
     # Every case refers to real actions and triggers, and only known grading rules
-    from autoflow.engine.actions import REGISTRY
-    import autoflow.ai.steps, autoflow.commerce.actions, autoflow.integrations.actions  # noqa: F401 - register actions
+    from luphina.engine.actions import REGISTRY
+    import luphina.ai.steps, luphina.commerce.actions, luphina.integrations.actions  # noqa: F401 - register actions
 
     known_keys = {"id", "request", "source", "trigger", "must_include", "must_exclude", "any_of",
                   "expect_unsupported", "expect_questions_or_unsupported", "forbid_disabled_approval"}

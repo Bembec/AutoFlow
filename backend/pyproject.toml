@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autoflow"
-version = "0.49.0"
+name = "luphina"
+version = "0.49.1"
 description = "AI-powered business workflow automation — backend and workflow engine."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,13 +30,13 @@ dependencies = [
 dev = ["pytest"]
 
 [project.scripts]
-autoflow = "autoflow.pipeline:run"
+luphina = "luphina.pipeline:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-autoflow = ["storage/migrations/*.mako", "storage/migrations/*.py", "storage/migrations/versions/*.py", "billing/*.json", "help_docs/*.md"]
+luphina = ["storage/migrations/*.mako", "storage/migrations/*.py", "storage/migrations/versions/*.py", "billing/*.json", "help_docs/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

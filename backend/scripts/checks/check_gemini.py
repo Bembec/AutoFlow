@@ -1,6 +1,6 @@
 """
 Tests the Gemini API connection using one fake customer enquiry.
-This file does not modify the main AutoFlow workflow.
+This file does not modify the main Luphina workflow.
 """
 
 import os

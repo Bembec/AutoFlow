@@ -1,6 +1,6 @@
 # Luphina brand guide
 
-The product built in this repository is called **Luphina** (spelled exactly L-u-p-h-i-n-a). It was developed under the working name AutoFlow, which is still used for internal names (see *What keeps the old name*). The owner's brand brief is version 1.0, dated 28 October 2026, and is kept privately.
+The product built in this repository is called **Luphina** (spelled exactly L-u-p-h-i-n-a). The same name is used for the internal technical names too (see *Technical names*). The owner's brand brief is version 1.0, dated 28 October 2026, and is kept privately.
 
 ## Message hierarchy
 
@@ -68,19 +68,19 @@ Success, warning and error colours stay green, amber and red, separate from the 
 | Installed-app icons | `frontend/src/app/manifest.ts` |
 | Product name in translated text | `frontend/src/lib/i18n.tsx`, `frontend/src/lib/site-i18n.tsx` (5 languages) |
 | Help articles | `docs/help/*.md` (then `python backend/scripts/sync_help.py`) |
-| Name in emails, notifications, authenticator apps, the AI prompts and the MCP server | `backend/src/autoflow/` (`notifications.py`, `accounts/two_factor.py`, `ai/builder.py`, `help_assistant.py`, `api/routes/mcp_server.py`) |
+| Name in emails, notifications, authenticator apps, the AI prompts and the MCP server | `backend/src/luphina/` (`notifications.py`, `accounts/two_factor.py`, `ai/builder.py`, `help_assistant.py`, `api/routes/mcp_server.py`) |
 
-## What keeps the old name, on purpose
+## Technical names
 
-Renaming these would break existing installs, integrations or deployments, and the brief asks for approval first:
-- the Python package `autoflow`;
-- `AUTOFLOW_*` environment settings;
-- the `X-AutoFlow-Signature`, `X-AutoFlow-Timestamp` and `X-AutoFlow-Workspace` headers that webhook senders and email filters rely on;
-- database and Docker names;
-- the GitHub repository name;
-- browser storage keys.
+Since V49.1 the internal names use the brand as well:
+- the Python package `luphina` (`python -m luphina.api`);
+- settings `LUPHINA_*`;
+- webhook and email headers `X-Luphina-Signature`, `X-Luphina-Timestamp` and `X-Luphina-Workspace`;
+- the webhook signature type `luphina`;
+- the SQLite file `luphina.db` and Docker and database names;
+- browser storage keys `luphina.*`. The old saved sign-in and language are carried over automatically.
 
-A later, planned migration can rename them with a transition period.
+The GitHub repository and the folder on your computer are renamed separately (see `docs/RESUME-HERE.md`).
 
 ## Open brand items
 

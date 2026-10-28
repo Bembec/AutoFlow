@@ -2,7 +2,7 @@
 
 Progress against this plan: [status.md](status.md).
 
-This is a public summary. The full plan (`AutoFlow-Full-Product-Roadmap.docx`, version 2.0 of 23 October 2026, which merges the Roadmap Review and Addendum) is private: keep it locally in this folder, where git ignores it. Version 1 is kept beside it as `AutoFlow-Full-Product-Roadmap-v1-2026-10-09.docx`.
+This is a public summary. The full plan (`Luphina-Full-Product-Roadmap.docx`, version 2.0 of 23 October 2026, which merges the Roadmap Review and Addendum) is private: keep it locally in this folder, where git ignores it. Version 1 is kept beside it as `Luphina-Full-Product-Roadmap-v1-2026-10-09.docx`.
 
 ## Summary
 

@@ -1786,7 +1786,7 @@ export const LANGUAGES = {
 
 export type Language = keyof typeof LANGUAGES;
 
-const STORAGE_KEY = "autoflow.language";
+const STORAGE_KEY = "luphina.language";
 const listeners = new Set<() => void>();
 
 function isLanguage(value: string | null | undefined): value is Language {
@@ -1795,7 +1795,8 @@ function isLanguage(value: string | null | undefined): value is Language {
 
 function readLanguage(): Language {
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    // "autoflow.language": the choice saved before the rename to Luphina
+    const stored = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem("autoflow.language");
     if (isLanguage(stored)) return stored;
   } catch {
     // storage unavailable: use the browser language

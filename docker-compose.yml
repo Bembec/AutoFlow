@@ -1,4 +1,4 @@
-# AutoFlow stack: PostgreSQL, migrations, API, worker and web app.
+# Luphina stack: PostgreSQL, migrations, API, worker and web app.
 #
 #   cp deploy/compose.env.example deploy/compose.env   # then fill it in
 #   docker compose up --build
@@ -9,7 +9,7 @@ x-backend: &backend
   build: ./backend
   env_file: deploy/compose.env
   environment:
-    DATABASE_URL: postgresql+psycopg://autoflow:${POSTGRES_PASSWORD:-autoflow}@db:5432/autoflow
+    DATABASE_URL: postgresql+psycopg://luphina:${POSTGRES_PASSWORD:-luphina}@db:5432/luphina
   depends_on:
     db:
       condition: service_healthy
@@ -18,13 +18,13 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: autoflow
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autoflow}
-      POSTGRES_DB: autoflow
+      POSTGRES_USER: luphina
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-luphina}
+      POSTGRES_DB: luphina
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autoflow"]
+      test: ["CMD-SHELL", "pg_isready -U luphina"]
       interval: 5s
       retries: 10
 
@@ -47,7 +47,7 @@ services:
 
   worker:
     <<: *backend
-    command: ["python", "-m", "autoflow.worker"]
+    command: ["python", "-m", "luphina.worker"]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -57,7 +57,7 @@ services:
     build:
       context: ./frontend
       args:
-        AUTOFLOW_API_URL: http://api:8000
+        LUPHINA_API_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:

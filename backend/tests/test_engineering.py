@@ -3,16 +3,16 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import func, select
 
-from autoflow import demo, features
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Approval, Invoice, WorkflowExecution, Workspace
+from luphina import demo, features
+from luphina.storage.db import session_scope
+from luphina.storage.models import Approval, Invoice, WorkflowExecution, Workspace
 
-STAFF = "staff@autoflow.example"
+STAFF = "staff@luphina.example"
 
 
 @pytest.fixture
 def staff(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_STAFF_EMAILS", STAFF)
+    monkeypatch.setenv("LUPHINA_STAFF_EMAILS", STAFF)
     headers, _ = signup(email=STAFF)
     return headers
 
@@ -24,7 +24,7 @@ def test_flags_default_then_environment_then_workspace(monkeypatch):
     assert features.enabled("ai_builder", workspace) is True
     assert all(features.all_flags(workspace).values())  # everything is on by default
 
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off, ai_builder=off, nonsense=on")
+    monkeypatch.setenv("LUPHINA_FEATURES", "smarter_logic=off, ai_builder=off, nonsense=on")
     assert features.all_flags(workspace)["smarter_logic"] is False
     assert features.all_flags(workspace)["ai_builder"] is False
 
@@ -64,7 +64,7 @@ def test_staff_switch_features_and_the_server_enforces_them(client, signup, staf
 # --- demo workspace ----------------------------------------------------------------
 
 def test_demo_workspace_is_complete_safe_and_created_once(client):
-    with patch("autoflow.integrations.actions.smtplib") as smtp, session_scope() as session:
+    with patch("luphina.integrations.actions.smtplib") as smtp, session_scope() as session:
         workspace, created = demo.seed(session)
         again, created_again = demo.seed(session)
         workspace_id = workspace.id

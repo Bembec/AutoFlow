@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ApiError, api, setToken } from "@/lib/api";
 import type { Me, WorkspaceWithRole } from "@/lib/types";
 
-const WORKSPACE_KEY = "autoflow.workspace";
+const WORKSPACE_KEY = "luphina.workspace";
 
 interface Session {
   me: Me;

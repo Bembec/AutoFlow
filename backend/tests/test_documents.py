@@ -4,9 +4,9 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow import documents, worker
-from autoflow.integrations import email_inbox
-from autoflow.storage.db import session_scope
+from luphina import documents, worker
+from luphina.integrations import email_inbox
+from luphina.storage.db import session_scope
 
 
 def make_pdf(text):
@@ -36,7 +36,7 @@ INVOICE_TEXT = "Beans Wholesale Invoice SUP-1 Total 144.00 EUR"
 
 
 def fake_ocr(text="SCANNED: Invoice SUP-9 Total 99.00"):
-    return patch("autoflow.documents.providers.transcribe", return_value=(text, "fake"))
+    return patch("luphina.documents.providers.transcribe", return_value=(text, "fake"))
 
 
 # --- reading documents -------------------------------------------------------------
@@ -94,7 +94,7 @@ def ws(client, signup):
 
 def extract_reply(**data):
     payload = json.dumps({"data": data, "confidence": 0.95})
-    return patch("autoflow.ai.steps.providers.complete", return_value=(payload, "fake"))
+    return patch("luphina.ai.steps.providers.complete", return_value=(payload, "fake"))
 
 
 def test_upload_runs_the_supplier_template_in_test_mode(ws):
@@ -244,7 +244,7 @@ def test_inbox_poll_starts_one_run_per_message(ws):
     email_workflow(ws)
     imap = FakeIMAP({b"1": make_email("First", "<1@x>"), b"2": make_email("Second", "<2@x>")})
 
-    with patch("autoflow.integrations.email_inbox._connect", return_value=imap):
+    with patch("luphina.integrations.email_inbox._connect", return_value=imap):
         with session_scope() as session:
             first = worker.run_email_triggers(session)
         with session_scope() as session:
@@ -262,7 +262,7 @@ def test_a_message_is_never_processed_twice(ws):
     imap = FakeIMAP({b"1": make_email("Only once", "<once@x>")})
     imap.uid = _store_fails(imap.uid)  # marking as read keeps failing
 
-    with patch("autoflow.integrations.email_inbox._connect", return_value=imap):
+    with patch("luphina.integrations.email_inbox._connect", return_value=imap):
         for _ in range(3):
             with session_scope() as session:
                 worker.run_email_triggers(session)
@@ -284,7 +284,7 @@ def test_missing_mail_connection_skips_quietly(ws):
     connection = client.get(f"{base}/connections", headers=headers).json()[0]
     client.delete(f"{base}/connections/{connection['id']}", headers=headers)
 
-    with patch("autoflow.integrations.email_inbox._connect") as connect:
+    with patch("luphina.integrations.email_inbox._connect") as connect:
         with session_scope() as session:
             assert worker.run_email_triggers(session) == 0
 

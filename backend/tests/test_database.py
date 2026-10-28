@@ -1,7 +1,7 @@
-from autoflow.accounts.service import ensure_local_workspace
-from autoflow.storage import customers as customer_store
-from autoflow.storage import workflow_runs as run_store
-from autoflow.storage.db import session_scope
+from luphina.accounts.service import ensure_local_workspace
+from luphina.storage import customers as customer_store
+from luphina.storage import workflow_runs as run_store
+from luphina.storage.db import session_scope
 
 
 def make_customer(email, category="Sales"):

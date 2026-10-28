@@ -6,14 +6,14 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow.billing import plans, stripe
+from luphina.billing import plans, stripe
 
 
 @pytest.fixture(autouse=True)
 def fakes():
     with (
-        patch("autoflow.engine.executor.sleep"),
-        patch("autoflow.engine.actions.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")) as rate,
+        patch("luphina.engine.executor.sleep"),
+        patch("luphina.engine.actions.fetch_eur_to_usd", return_value=(1.1, "2026-10-21")) as rate,
     ):
         yield rate
 
@@ -26,7 +26,7 @@ def small_plans(monkeypatch, tmp_path):
     custom["free"]["included_tasks"] = 2
     path = tmp_path / "plans.json"
     path.write_text(json.dumps(custom))
-    monkeypatch.setenv("AUTOFLOW_PLANS_FILE", str(path))
+    monkeypatch.setenv("LUPHINA_PLANS_FILE", str(path))
     plans.all_plans.cache_clear()
     yield
     plans.all_plans.cache_clear()
@@ -159,8 +159,8 @@ def test_plan_changes_are_staff_only(free_ws, signup, monkeypatch):
 
     assert client.put(f"/admin/workspaces/{workspace_id}/plan", json={"plan": "business"}, headers=headers).status_code == 403
 
-    monkeypatch.setenv("AUTOFLOW_STAFF_EMAILS", "staff@autoflow.example")
-    staff_headers, _ = signup("staff@autoflow.example")
+    monkeypatch.setenv("LUPHINA_STAFF_EMAILS", "staff@luphina.example")
+    staff_headers, _ = signup("staff@luphina.example")
     response = client.put(f"/admin/workspaces/{workspace_id}/plan", json={"plan": "growth"}, headers=staff_headers)
 
     assert response.status_code == 200
@@ -174,7 +174,7 @@ def test_checkout_needs_stripe_and_owner(free_ws, monkeypatch):
 
     monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_x")
     monkeypatch.setenv("STRIPE_PRICE_STARTER", "price_starter")
-    with patch("autoflow.billing.stripe.requests.post") as post:
+    with patch("luphina.billing.stripe.requests.post") as post:
         post.return_value.status_code = 200
         post.return_value.json.return_value = {"url": "https://checkout.stripe.example/s/1"}
         response = client.post(f"{base}/billing/checkout", json={"plan": "starter"}, headers=headers)

@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parents[2] / "docs" / "help"
-TARGET = Path(__file__).resolve().parents[1] / "src" / "autoflow" / "help_docs"
+TARGET = Path(__file__).resolve().parents[1] / "src" / "luphina" / "help_docs"
 
 
 def main():

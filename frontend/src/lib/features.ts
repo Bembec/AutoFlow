@@ -1,7 +1,7 @@
 "use client";
 
 // Feature flags for the current workspace (decided by the server, see
-// backend autoflow/features.py). The server also enforces them; the app
+// backend luphina/features.py). The server also enforces them; the app
 // only hides what is switched off.
 
 import { useSession } from "@/lib/session";

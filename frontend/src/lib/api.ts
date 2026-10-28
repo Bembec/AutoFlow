@@ -1,9 +1,11 @@
-// Small typed client for the AutoFlow API. Requests go to /api/*, which
+// Small typed client for the Luphina API. Requests go to /api/*, which
 // next.config.ts forwards to the backend.
 
 import { type MessageKey, translateNow } from "./i18n";
 
-const TOKEN_KEY = "autoflow.token";
+const TOKEN_KEY = "luphina.token";
+// Sign-ins saved before the rename to Luphina still work until the next sign-in or sign-out
+const LEGACY_TOKEN_KEY = "autoflow.token";
 
 export class ApiError extends Error {
   constructor(
@@ -16,7 +18,7 @@ export class ApiError extends Error {
 
 export function getToken(): string | null {
   try {
-    return window.localStorage.getItem(TOKEN_KEY);
+    return window.localStorage.getItem(TOKEN_KEY) ?? window.localStorage.getItem(LEGACY_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -26,6 +28,7 @@ export function setToken(token: string | null) {
   try {
     if (token) window.localStorage.setItem(TOKEN_KEY, token);
     else window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(LEGACY_TOKEN_KEY);
   } catch {
     // Storage unavailable (private mode): the session lasts for this page only
   }

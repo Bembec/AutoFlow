@@ -3,8 +3,8 @@
 **Read this first when work starts again**, whether it's you, Claude or another developer. It says where the work stopped and exactly where to begin.
 
 - **Last updated:** 2026-10-28
-- **Version:** 0.49.0 (V49: the product is now **Luphina**)
-- **Repository:** github.com/Bembec/AutoFlow (`main`)
+- **Version:** 0.49.1 (V49: the product is now **Luphina**; V49.1: technical names too)
+- **Repository:** github.com/Bembec/Luphina (`main`)
 
 ## Where we stopped
 
@@ -22,7 +22,7 @@ The decisions only you can make are in **[DECISIONS-NEEDED.md](DECISIONS-NEEDED.
 | Engine | Draft, test and live runs; versions, compare and rollback; retries; no duplicate actions (proved with 1,000 orders); queue and worker; delays; undo for invoices; "it did happen, continue" |
 | Logic | Conditions, comparisons, AND/OR, for-each loops |
 | AI | AI builder from plain words; extract, classify, summarise, draft and translate steps; AI assistants (look up, propose, you approve); quality sampling and review; help assistant |
-| Integrations | Shopify, WooCommerce, email (SMTP/IMAP), Google Sheets, Airtable, Slack alerts, any REST API, webhooks; MCP tools (client) and AutoFlow as an MCP server; connection health checks |
+| Integrations | Shopify, WooCommerce, email (SMTP/IMAP), Google Sheets, Airtable, Slack alerts, any REST API, webhooks; MCP tools (client) and Luphina as an MCP server; connection health checks |
 | Shop features | 36 templates (32 for e-commerce, 3 assistant roles, 1 general), invoices with voiding, abandoned-cart tracking, insights with time and money saved, suggestions |
 | Safety | Approvals, emergency stop, daily limits, monthly AI budget, phishing check on outgoing email, new-account limits, abuse reports, staff suspension, prompt-injection guard |
 | Business | Plans and billing (Stripe-ready), usage alerts, onboarding checklist, demo workspace |
@@ -30,7 +30,17 @@ The decisions only you can make are in **[DECISIONS-NEEDED.md](DECISIONS-NEEDED.
 | Brand | Luphina: logo, palette, fonts and wording from the owner's brand brief (`docs/brand/README.md`) |
 | App languages | English, Spanish, French, German, Turkish |
 
-**All features are on by default since V48.** Any of them can be switched off per environment (`AUTOFLOW_FEATURES="name=off"`) or per workspace (staff API). See `docs/operations.md`.
+**All features are on by default since V48.** Any of them can be switched off per environment (`LUPHINA_FEATURES="name=off"`) or per workspace (staff API). See `docs/operations.md`.
+
+## Two renames only the owner can do
+
+1. **GitHub repository** (needs your GitHub login):
+   - On github.com, open the repository → **Settings** → **Repository name** → `Luphina` → **Rename**. GitHub keeps redirecting the old address.
+   - Then tell Claude, or run `git remote set-url origin https://github.com/Bembec/Luphina.git`.
+2. **The folder on your computer** (`NEXUS LAB/AutoFlow/AutoFlow`, optional). Do it only with Claude Code closed:
+   - Rename the folders.
+   - In `backend`, delete `.venv` and recreate it (`python -m venv .venv`, then `.venv/Scripts/python -m pip install -e .[dev]`). The old one points at the old path.
+   - Claude's memory for this project is stored per folder path. Copy `C:/Users/Michael/.claude/projects/C--Users-Michael-Desktop-NEXUS-LAB-AutoFlow-AutoFlow/memory` to the folder Claude Code creates for the new path, so nothing is forgotten.
 
 ## Where to begin next
 
@@ -61,9 +71,9 @@ Phone install, real stores, real Gmail, real AI key, a real MCP client, a Postgr
 ```bash
 # Backend (Python 3.13+), from backend/
 .venv/Scripts/python -m pytest -q -p no:logging      # tests (about 3-6 minutes)
-.venv/Scripts/python -m autoflow.api                  # API on http://127.0.0.1:8000
-.venv/Scripts/python -m autoflow.worker               # background worker (delays, queue)
-PYTHONPATH=src .venv/Scripts/python -m autoflow.demo  # demo shop: demo@autoflow.example / demo-password-2026
+.venv/Scripts/python -m luphina.api                  # API on http://127.0.0.1:8000
+.venv/Scripts/python -m luphina.worker               # background worker (delays, queue)
+PYTHONPATH=src .venv/Scripts/python -m luphina.demo  # demo shop: demo@luphina.example / demo-password-2026
 
 # Frontend, from frontend/
 npm run typecheck && npm run lint && npm run build
@@ -83,7 +93,7 @@ cd .next/standalone && PORT=3000 HOSTNAME=127.0.0.1 node server.js   # http://lo
 4. Keep everything country-neutral until the launch country is decided.
 5. The repository is public. Never commit `backend/.env`, secrets or the private roadmap `.docx` files; `.gitignore` covers them.
 6. TrustLayer and GreyGuard are not linked to the product. Never mention them.
-7. The product name is **Luphina** (exact spelling). Internal names keep `autoflow` / `AUTOFLOW_*` / `X-AutoFlow-*` until a planned rename.
+7. The product name is **Luphina** (exact spelling), everywhere: package `luphina`, settings `LUPHINA_*`, headers `X-Luphina-*`.
 
 ## Where everything is written down
 

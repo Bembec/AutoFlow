@@ -1,5 +1,5 @@
-from autoflow.classification.ai_classifier import classify_with_ai
-from autoflow.pipeline import classify_with_rules
+from luphina.classification.ai_classifier import classify_with_ai
+from luphina.pipeline import classify_with_rules
 
 
 def test_rules_classification():

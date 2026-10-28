@@ -2,9 +2,9 @@ from datetime import timedelta
 
 from sqlalchemy import update
 
-from autoflow.accounts.security import hash_password, verify_password
-from autoflow.storage.db import engine, utc_now
-from autoflow.storage.models import AccessToken
+from luphina.accounts.security import hash_password, verify_password
+from luphina.storage.db import engine, utc_now
+from luphina.storage.models import AccessToken
 
 
 def test_password_hashing():

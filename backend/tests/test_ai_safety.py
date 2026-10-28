@@ -3,15 +3,15 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow.integrations import webhooks
-from autoflow.security import prompt_guard
+from luphina.integrations import webhooks
+from luphina.security import prompt_guard
 
 
 @pytest.fixture(autouse=True)
 def no_sleep():
     with (
-        patch("autoflow.engine.executor.sleep"),
-        patch("autoflow.engine.actions.send_email", return_value=True),
+        patch("luphina.engine.executor.sleep"),
+        patch("luphina.engine.actions.send_email", return_value=True),
     ):
         yield
 
@@ -27,7 +27,7 @@ def ai_replies(*replies):
 
     answers = iter(replies)
     return patch(
-        "autoflow.ai.steps.providers.complete",
+        "luphina.ai.steps.providers.complete",
         side_effect=lambda system, prompt: (json.dumps(next(answers)), "fake"),
     )
 

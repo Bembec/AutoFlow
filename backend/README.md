@@ -1,6 +1,6 @@
-# AutoFlow backend
+# Luphina backend
 
-Python package `autoflow`: a multi-tenant API plus the customer-enquiry workflow.
+Python package `luphina`: a multi-tenant API plus the customer-enquiry workflow.
 
 The workflow:
 
@@ -16,9 +16,9 @@ The workflow:
 
 | Task | Command |
 | --- | --- |
-| Run the workflow (local workspace) | `python -m autoflow` (or `autoflow`) |
-| Start the API server | `python -m autoflow.api`, then open http://127.0.0.1:8000/docs |
-| Start the background worker (schedules) | `python -m autoflow.worker` |
+| Run the workflow (local workspace) | `python -m luphina` (or `luphina`) |
+| Start the API server | `python -m luphina.api`, then open http://127.0.0.1:8000/docs |
+| Start the background worker (schedules) | `python -m luphina.worker` |
 | Run the tests | `pytest` |
 | Apply database migrations | `alembic upgrade head` (also runs automatically on start) |
 | Create a migration after changing `storage/models.py` | `alembic revision --autogenerate -m "describe change"` |
@@ -116,14 +116,14 @@ A workflow is **data**: a trigger plus ordered steps, each calling a registered 
 | Business | 299 | 100,000 | unlimited | 20 |
 | Enterprise | custom | custom | unlimited | unlimited |
 
-These are the roadmap's starting proposals, defined in `billing/plans.json`; override them with `AUTOFLOW_PLANS_FILE`.
+These are the roadmap's starting proposals, defined in `billing/plans.json`; override them with `LUPHINA_PLANS_FILE`.
 
 - **Hard cap:** reaching the included tasks pauses *billable* steps. Free plans always have the cap; owners on paid plans can turn it off.
 - **Alerts:** the billing summary warns at 80% and 100% of included tasks, when the projected usage will exceed the plan, and when a payment has failed.
 - **Stripe:**
   - `POST …/billing/checkout {"plan"}` returns a Checkout URL, and `POST …/billing/portal` returns the customer-portal URL (cards, invoices, downgrades, cancellation).
   - `POST /billing/stripe-webhook` verifies `Stripe-Signature`, applies each event once, and handles checkout, subscription create/update/delete (plan from the price id), `invoice.payment_failed` (→ `past_due`, plan kept during the grace period) and `invoice.paid`.
-- **Manual billing (pilots):** staff listed in `AUTOFLOW_STAFF_EMAILS` can set a plan with `PUT /admin/workspaces/{id}/plan`. Customers cannot change their own plan except through payment.
+- **Manual billing (pilots):** staff listed in `LUPHINA_STAFF_EMAILS` can set a plan with `PUT /admin/workspaces/{id}/plan`. Customers cannot change their own plan except through payment.
 
 ## AI steps and safety controls (V13)
 
@@ -146,14 +146,14 @@ Policies cover daily limits on executions (1000), AI calls (200) and live emails
 
 ## Background execution and delays (V17)
 
-- `AUTOFLOW_EXECUTION_MODE=queue`: starting a workflow (API, webhook or schedule) only queues it; `python -m autoflow.worker` processes runs, as many workers as you like. `inline` (default) runs inside the request.
-- Workers claim executions with an atomic conditional update, so no execution runs twice. Running executions send heartbeats. If a worker dies, its runs are re-queued after 15 minutes (`AUTOFLOW_STALE_EXECUTION_MINUTES`) and resumed; an interrupted non-idempotent step becomes `needs_attention` instead of repeating.
+- `LUPHINA_EXECUTION_MODE=queue`: starting a workflow (API, webhook or schedule) only queues it; `python -m luphina.worker` processes runs, as many workers as you like. `inline` (default) runs inside the request.
+- Workers claim executions with an atomic conditional update, so no execution runs twice. Running executions send heartbeats. If a worker dies, its runs are re-queued after 15 minutes (`LUPHINA_STALE_EXECUTION_MINUTES`) and resumed; an interrupted non-idempotent step becomes `needs_attention` instead of repeating.
 - `delay` step: `{"action": "delay", "inputs": {"days": 2}}` (minutes/hours/days, up to 30 days). The execution waits as `queued` with `run_after` set, and a worker resumes it then. Test runs skip delays.
 - In queue mode, approvals and retries hand the run back to the workers instead of running inside the API request.
 
 ## Integrations (V12)
 
-**Connections** hold a workspace's own credentials for an app. Secrets are encrypted with Fernet (`AUTOFLOW_SECRET_KEYS`, rotatable), only decrypted when a step needs them, and never returned by the API (only masked, e.g. `pat…3456`). Only admins can manage connections.
+**Connections** hold a workspace's own credentials for an app. Secrets are encrypted with Fernet (`LUPHINA_SECRET_KEYS`, rotatable), only decrypted when a step needs them, and never returned by the API (only masked, e.g. `pat…3456`). Only admins can manage connections.
 
 | App | Provider | Auth | Actions |
 | --- | --- | --- | --- |
@@ -169,7 +169,7 @@ Policies cover daily limits on executions (1000), AI calls (200) and live emails
 **Webhooks** let other apps start a published workflow whose trigger is `webhook`:
 
 - `POST …/workflows/{wf}/webhook` returns a URL and a secret, shown once. Use `{"signature_scheme": "shopify", "secret": "<app secret>"}` for Shopify.
-- The sender signs every request: `X-AutoFlow-Timestamp` plus `X-AutoFlow-Signature: sha256=HMAC(secret, "<ts>.<body>")`, with a 5-minute replay window. Shopify uses its `X-Shopify-Hmac-Sha256` header instead.
+- The sender signs every request: `X-Luphina-Timestamp` plus `X-Luphina-Signature: sha256=HMAC(secret, "<ts>.<body>")`, with a 5-minute replay window. Shopify uses its `X-Shopify-Hmac-Sha256` header instead.
 - Duplicate deliveries (`Idempotency-Key`, `X-Shopify-Webhook-Id`, `X-Request-Id`) return the first execution instead of starting another.
 
 | Method | Path | Role |
@@ -199,7 +199,7 @@ Policies cover daily limits on executions (1000), AI calls (200) and live emails
   The reply also lists the AI's `assumptions`, plus any `unsupported` apps it could not build with.
 - **Validation:** every draft goes through the same validator as hand-written workflows. The AI gets up to 2 repair attempts with the validator's errors. It never invents actions, and it cannot switch off mandatory approvals.
 - **Drafting only:** with `"save": true` a valid draft is stored as a **draft** workflow. A person still test-runs and publishes it.
-- **Model router (`autoflow.ai.providers`):** providers are tried in `AI_PROVIDER_ORDER` (Gemini, then Claude `claude-opus-5-5` with server-side refusal fallbacks). A provider without a key is skipped, and when one fails the next is used. If none is configured, the endpoint returns `503`.
+- **Model router (`luphina.ai.providers`):** providers are tried in `AI_PROVIDER_ORDER` (Gemini, then Claude `claude-opus-5-5` with server-side refusal fallbacks). A provider without a key is skipped, and when one fails the next is used. If none is configured, the endpoint returns `503`.
 
 ### Human approval rules (V8)
 
@@ -213,5 +213,5 @@ Policies cover daily limits on executions (1000), AI calls (200) and live emails
 ## Configuration
 
 All settings live in `backend/.env` (see `.env.example`). The database defaults
-to SQLite at `data/output/autoflow.db`; set `DATABASE_URL` for PostgreSQL.
-Generated files go to `data/output/`, or to `AUTOFLOW_DATA_DIR` if set.
+to SQLite at `data/output/luphina.db`; set `DATABASE_URL` for PostgreSQL.
+Generated files go to `data/output/`, or to `LUPHINA_DATA_DIR` if set.

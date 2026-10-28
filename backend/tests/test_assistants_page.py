@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.engine.templates_assistants import SAMPLE_SUPPORT_EMAIL
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Workspace
+from luphina.engine.templates_assistants import SAMPLE_SUPPORT_EMAIL
+from luphina.storage.db import session_scope
+from luphina.storage.models import Workspace
 
 ROLES = ["assistant-support-inbox", "assistant-order-watcher", "assistant-refund-helper"]
 
@@ -18,7 +18,7 @@ def final(answer="Thanks for writing! Your order is being packed.", proposals=()
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -55,7 +55,7 @@ def test_roles_are_listed_with_what_they_can_do(ws):
 
 
 def test_the_page_needs_the_feature(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "ai_assistants=off")
+    monkeypatch.setenv("LUPHINA_FEATURES", "ai_assistants=off")
     headers, workspace_id = signup(email="plain@example.com")
     assert client.get(f"/workspaces/{workspace_id}/assistants", headers=headers).status_code == 403
 
@@ -65,7 +65,7 @@ def test_every_role_test_runs(ws, slug):
     proposal = {"tool": "shopify_tag_order", "inputs": {"order_id": 1, "tags": "vip"}, "why": "big order"}
     if slug == "assistant-refund-helper":
         proposal = {"tool": "void_invoice", "inputs": {"order_ref": "820982911946154508"}, "why": "broken mug"}
-    with patch("autoflow.ai.agent.providers.complete", side_effect=final(proposals=[proposal])):
+    with patch("luphina.ai.agent.providers.complete", side_effect=final(proposals=[proposal])):
         done = run(ws, install(ws, slug, publish=False))
     assert done["status"] == "succeeded", done["error"]
     steps = {s["step_id"]: s for s in done["steps"]}
@@ -73,7 +73,7 @@ def test_every_role_test_runs(ws, slug):
 
 
 def test_no_proposals_means_nothing_to_approve(ws):
-    with patch("autoflow.ai.agent.providers.complete", side_effect=final("An ordinary order.")):
+    with patch("luphina.ai.agent.providers.complete", side_effect=final("An ordinary order.")):
         done = run(ws, install(ws, "assistant-order-watcher"), mode="live")
     assert done["status"] == "succeeded"
     assert {s["step_id"]: s["status"] for s in done["steps"]}["act"] == "skipped"
@@ -83,7 +83,7 @@ def test_active_assistants_report_their_week(ws):
     client, headers, base = ws
     support = install(ws, "assistant-support-inbox")
     proposal = {"tool": "shopify_tag_order", "inputs": {"order_id": 1001, "tags": "needs-human"}, "why": "late order"}
-    with patch("autoflow.ai.agent.providers.complete", side_effect=final(proposals=[proposal])):
+    with patch("luphina.ai.agent.providers.complete", side_effect=final(proposals=[proposal])):
         waiting = run(ws, support, mode="live", payload=SAMPLE_SUPPORT_EMAIL)
     assert waiting["status"] == "waiting_approval"
 

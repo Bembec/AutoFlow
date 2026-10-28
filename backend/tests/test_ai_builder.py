@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow.ai import providers
-from autoflow.ai.builder import extract_json
+from luphina.ai import providers
+from luphina.ai.builder import extract_json
 
 
 VALID_DRAFT = {
@@ -50,7 +50,7 @@ def replies(*texts):
 
     answers = iter(texts)
     return patch(
-        "autoflow.ai.builder.providers.complete",
+        "luphina.ai.builder.providers.complete",
         side_effect=lambda system, prompt: (next(answers), "fake"),
     )
 

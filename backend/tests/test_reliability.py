@@ -4,15 +4,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import select, update
 
-from autoflow.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
-from autoflow.storage.db import engine as db_engine
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Notification, StepExecution, WorkflowExecution, Workspace
+from luphina.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
+from luphina.storage.db import engine as db_engine
+from luphina.storage.db import session_scope
+from luphina.storage.models import Notification, StepExecution, WorkflowExecution, Workspace
 
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -83,7 +83,7 @@ def test_confirm_done_continues_without_repeating_the_step(ws):
         {"id": "send", "action": "send_email", "inputs": {"to": "a@b.co", "subject": "s", "body": "b"}},
         {"id": "after", "action": "log_activity", "inputs": {"message": "after the email"}},
     ])
-    with patch("autoflow.engine.actions.send_email", return_value=True) as send:
+    with patch("luphina.engine.actions.send_email", return_value=True) as send:
         execution = start(ws, workflow)
         # The worker died while sending: the step is "running", outcome unknown
         with db_engine.begin() as connection:
@@ -92,7 +92,7 @@ def test_confirm_done_continues_without_repeating_the_step(ws):
                                .values(status="running", attempts=1))
             connection.execute(update(WorkflowExecution).where(WorkflowExecution.id == execution["id"])
                                .values(status="running"))
-        from autoflow.engine import executor
+        from luphina.engine import executor
         with session_scope() as session:
             executor.execute(session, session.get(WorkflowExecution, execution["id"]))
         assert client.get(f"{base}/executions/{execution['id']}", headers=headers).json()["status"] == "needs_attention"
@@ -130,7 +130,7 @@ def test_check_marks_bad_credentials_and_alerts_once(ws):
     connection = add_smtp(ws)
     enable_alerts(ws)
 
-    with patch("autoflow.integrations.health.smtplib.SMTP_SSL") as smtp:
+    with patch("luphina.integrations.health.smtplib.SMTP_SSL") as smtp:
         smtp.return_value.__enter__.return_value.login.side_effect = smtplib.SMTPAuthenticationError(535, b"bad")
         first = client.post(f"{base}/connections/{connection['id']}/check", headers=headers).json()
         client.post(f"{base}/connections/{connection['id']}/check", headers=headers)
@@ -144,7 +144,7 @@ def test_check_marks_bad_credentials_and_alerts_once(ws):
     # Fixing the password and checking again brings it back
     client.put(f"{base}/connections/{connection['id']}/secrets", json={"secrets": {"password": "new-password-567"}},
                headers=headers)
-    with patch("autoflow.integrations.health.smtplib.SMTP_SSL"):
+    with patch("luphina.integrations.health.smtplib.SMTP_SSL"):
         fixed = client.post(f"{base}/connections/{connection['id']}/check", headers=headers).json()
     assert fixed == {**fixed, "ok": True, "status": "active"}
 
@@ -152,7 +152,7 @@ def test_check_marks_bad_credentials_and_alerts_once(ws):
 def test_network_trouble_does_not_mark_a_connection_broken(ws):
     client, headers, base, _ = ws
     connection = add_smtp(ws)
-    with patch("autoflow.integrations.health.smtplib.SMTP_SSL", side_effect=OSError("timed out")):
+    with patch("luphina.integrations.health.smtplib.SMTP_SSL", side_effect=OSError("timed out")):
         result = client.post(f"{base}/connections/{connection['id']}/check", headers=headers).json()
     assert result["ok"] is False and result["status"] == "active"
     assert "Could not reach" in result["message"]
@@ -168,7 +168,7 @@ def test_api_connections_are_checked_with_read_only_calls(ws):
         "provider": "slack", "name": "team", "secrets": {"webhook_url": "https://hooks.slack.com/services/T0/B0/xyz"},
     }, headers=headers).json()
 
-    with patch("autoflow.integrations.health.requests.get", return_value=MagicMock(status_code=401)) as get:
+    with patch("luphina.integrations.health.requests.get", return_value=MagicMock(status_code=401)) as get:
         result = client.post(f"{base}/connections/{shop['id']}/check", headers=headers).json()
     assert get.call_args.args[0] == "https://mug-shop.myshopify.com/admin/api/2025-07/shop.json"
     assert result["ok"] is False and "Shopify rejected" in result["message"]

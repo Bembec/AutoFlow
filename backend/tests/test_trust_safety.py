@@ -4,12 +4,12 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import select, update
 
-from autoflow.engine import limits
-from autoflow.security import outbound
-from autoflow.storage.db import session_scope, utc_now
-from autoflow.storage.models import AuditEvent, Workspace
+from luphina.engine import limits
+from luphina.security import outbound
+from luphina.storage.db import session_scope, utc_now
+from luphina.storage.models import AuditEvent, Workspace
 
-STAFF = "staff@autoflow.example"
+STAFF = "staff@luphina.example"
 PHISHING = "Your account will be locked. Please verify your password at http://login-check.example/now"
 
 
@@ -27,7 +27,7 @@ def ws(client, signup):
 
 @pytest.fixture
 def staff(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_STAFF_EMAILS", STAFF)
+    monkeypatch.setenv("LUPHINA_STAFF_EMAILS", STAFF)
     headers, _ = signup(email=STAFF)
     return headers
 
@@ -91,14 +91,14 @@ def test_sent_email_carries_abuse_headers(ws, monkeypatch):
     run(ws, workflow, "live")
     approval = client.get(f"{base}/approvals", headers=headers).json()[0]
 
-    with patch("autoflow.integrations.actions.smtplib") as smtp:
+    with patch("luphina.integrations.actions.smtplib") as smtp:
         client.post(f"{base}/approvals/{approval['id']}/approve", headers=headers)
 
     done = client.get(f"{base}/executions", headers=headers).json()[0]
     detail = client.get(f"{base}/executions/{done['id']}", headers=headers).json()
     assert done["status"] == "succeeded", (detail["error"], [s["error"] for s in detail["steps"]])
     message = smtp.SMTP_SSL.return_value.__enter__.return_value.send_message.call_args.args[0]
-    assert message["X-AutoFlow-Workspace"] == str(workspace_id)
+    assert message["X-Luphina-Workspace"] == str(workspace_id)
     assert message["X-Report-Abuse"].endswith(f"/report-abuse?workspace={workspace_id}")
 
 
@@ -137,7 +137,7 @@ def test_new_account_email_limit_says_why(ws):
 # --- AI budget ----------------------------------------------------------------
 
 def test_monthly_ai_budget_is_a_hard_cap(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_AI_COST_PER_CALL_USD", "0.5")
+    monkeypatch.setenv("LUPHINA_AI_COST_PER_CALL_USD", "0.5")
     headers, workspace_id = signup(plan="free")  # budget $2 = 4 calls
 
     with session_scope() as session:

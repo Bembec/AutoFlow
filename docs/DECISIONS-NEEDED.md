@@ -23,10 +23,10 @@ These are the choices only you can make. The product is built so that each one i
 | ☐ | **Shopify route** | A Shopify App Store app (billing through Shopify), or an independent platform (today's build) | Decide early: it changes billing, app review and sign-up | Shopify app review, Shopify billing |
 | ☐ | **Gmail access** | Pay for Google's security assessment (CASA) to use Gmail sign-in; narrower scopes; or keep today's mailbox connection (IMAP/SMTP app password) | Today's build avoids the restricted Gmail scopes | A one-click "Sign in with Gmail" |
 | ☐ | **Free plan** | Keep it; limit its AI use; or replace it with a trial | Decide with real cost numbers from the pilots | Final pricing page and plan limits |
-| ☐ | **Plan prices and AI budgets** | Today's proposals: Free $0, Starter $29, Growth $99, Business $299, Enterprise custom; AI budgets $2 / $15 / $50 / $150 / unlimited | Test with the first paying customers | `backend/src/autoflow/billing/plans.json`, no code change needed |
+| ☐ | **Plan prices and AI budgets** | Today's proposals: Free $0, Starter $29, Growth $99, Business $299, Enterprise custom; AI budgets $2 / $15 / $50 / $150 / unlimited | Test with the first paying customers | `backend/src/luphina/billing/plans.json`, no code change needed |
 | ☐ | **AI credit packs** | Price and size of extra AI credit packs | After you know real AI costs | A "buy more AI" option |
-| ☐ | **AI providers and their data terms** | Which AI companies to use (today: Gemini first, Claude as fallback) and their no-training, retention and region terms | Choose providers that don't train on your customers' data, and publish the terms | The trust page, sub-processor list, `AUTOFLOW_AI_COST_PER_CALL_USD` |
-| ☐ | **Feature defaults** | Everything is on by default since V48 | Keep, or switch some off until pilots go well | `AUTOFLOW_FEATURES` setting, no code change |
+| ☐ | **AI providers and their data terms** | Which AI companies to use (today: Gemini first, Claude as fallback) and their no-training, retention and region terms | Choose providers that don't train on your customers' data, and publish the terms | The trust page, sub-processor list, `LUPHINA_AI_COST_PER_CALL_USD` |
+| ☐ | **Feature defaults** | Everything is on by default since V48 | Keep, or switch some off until pilots go well | `LUPHINA_FEATURES` setting, no code change |
 
 ## Company and growth
 

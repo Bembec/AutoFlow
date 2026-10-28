@@ -171,7 +171,7 @@ email_previews.txt
 .mypy_cache/
 .dmypy.json
 dmypy.json
-autoflow.db
+luphina.db
 
 # Pyre type checker
 .pyre/
@@ -218,7 +218,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# --- AutoFlow ---
+# --- Luphina ---
 # Generated workflow output (database, logs, CSV results, email previews)
 backend/data/output/*
 !backend/data/output/.gitkeep
@@ -238,6 +238,7 @@ Thumbs.db
 
 # Private planning documents (kept locally, never published)
 docs/roadmap/*.docx
+docs/roadmap/**/*.docx
 
 # docker compose settings (copy of deploy/compose.env.example)
 deploy/compose.env

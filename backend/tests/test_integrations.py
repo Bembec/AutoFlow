@@ -8,13 +8,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from autoflow.integrations import webhooks
-from autoflow.security import net, vault
+from luphina.integrations import webhooks
+from luphina.security import net, vault
 
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -76,23 +76,23 @@ def test_vault_round_trip_and_mask():
 def test_vault_key_rotation(monkeypatch):
     old_key, new_key = vault.generate_key(), vault.generate_key()
 
-    monkeypatch.setenv("AUTOFLOW_SECRET_KEYS", old_key)
+    monkeypatch.setenv("LUPHINA_SECRET_KEYS", old_key)
     vault._fernet.cache_clear()
     token = vault.encrypt_json({"a": 1})
 
     # New primary key first; the old key still decrypts
-    monkeypatch.setenv("AUTOFLOW_SECRET_KEYS", f"{new_key},{old_key}")
+    monkeypatch.setenv("LUPHINA_SECRET_KEYS", f"{new_key},{old_key}")
     vault._fernet.cache_clear()
     assert vault.decrypt_json(token) == {"a": 1}
     rotated = vault.rotate(token)
 
-    monkeypatch.setenv("AUTOFLOW_SECRET_KEYS", new_key)
+    monkeypatch.setenv("LUPHINA_SECRET_KEYS", new_key)
     vault._fernet.cache_clear()
     assert vault.decrypt_json(rotated) == {"a": 1}
     with pytest.raises(vault.VaultError):
         vault.decrypt_json(token)
 
-    monkeypatch.delenv("AUTOFLOW_SECRET_KEYS")
+    monkeypatch.delenv("LUPHINA_SECRET_KEYS")
     vault._fernet.cache_clear()
 
 
@@ -154,7 +154,7 @@ def test_airtable_upsert_uses_the_workspace_connection(ws):
                    "fields": {"Email": "{{trigger.email}}", "Name": "{{trigger.name}}"}},
     }])
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         http.get.return_value = fake_response(200, {"records": []})
         http.post.return_value = fake_response(200, {"id": "rec123"})
         execution = run_live(ws, workflow["id"], {"email": "ada@example.com", "name": "Ada"})
@@ -179,7 +179,7 @@ def test_connections_do_not_leak_between_workspaces(ws, signup):
         "inputs": {"connection": "crm", "table": "Customers", "fields": {"Email": "x@y.co"}},
     }])
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         execution = run_live(other, workflow["id"])
 
     assert execution["status"] == "failed"
@@ -197,7 +197,7 @@ def test_connections_do_not_leak_between_workspaces(ws, signup):
 def test_http_actions_refuse_internal_addresses(ws, url):
     workflow = create_workflow(ws, [{"id": "get", "action": "http_get", "inputs": {"url": url}, "retry": {"max_attempts": 3}}])
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         execution = run_live(ws, workflow["id"])
 
     assert execution["status"] == "failed"
@@ -209,11 +209,11 @@ def test_public_url_check_resolves_dns():
     public = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 443))]
     private = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("192.168.1.10", 443))]
 
-    with patch("autoflow.security.net.socket.getaddrinfo", return_value=public):
+    with patch("luphina.security.net.socket.getaddrinfo", return_value=public):
         assert net.check_public_url("https://api.example.com/x")
 
     # A public-looking name that resolves inside the network is refused
-    with patch("autoflow.security.net.socket.getaddrinfo", return_value=private):
+    with patch("luphina.security.net.socket.getaddrinfo", return_value=private):
         with pytest.raises(net.UnsafeURL):
             net.check_public_url("https://sneaky.example.com/x")
 
@@ -230,8 +230,8 @@ def test_http_get_with_api_key_connection(ws):
     }])
 
     with (
-        patch("autoflow.integrations.actions.check_public_url"),
-        patch("autoflow.integrations.actions.requests") as http,
+        patch("luphina.integrations.actions.check_public_url"),
+        patch("luphina.integrations.actions.requests") as http,
     ):
         http.request.return_value = fake_response(200, {"orders": [1, 2]})
         execution = run_live(ws, workflow["id"])
@@ -259,7 +259,7 @@ def test_smtp_send_needs_approval_and_respects_switch(ws, monkeypatch):
     assert execution["status"] == "waiting_approval"
 
     approval = client.get(f"{base}/approvals", params={"kind": "step"}, headers=headers).json()[0]
-    with patch("autoflow.integrations.actions.smtplib") as smtp:
+    with patch("luphina.integrations.actions.smtplib") as smtp:
         client.post(f"{base}/approvals/{approval['id']}/approve", headers=headers)
 
     done = client.get(f"{base}/executions/{execution['id']}", headers=headers).json()
@@ -283,7 +283,7 @@ def connect_google(ws, expires_in=3600):
 
     from urllib.parse import unquote
 
-    with patch("autoflow.integrations.oauth.requests") as http:
+    with patch("luphina.integrations.oauth.requests") as http:
         http.post.return_value = fake_response(200, {
             "access_token": "access-1", "refresh_token": "refresh-1", "expires_in": expires_in,
         })
@@ -332,8 +332,8 @@ def test_expired_token_is_refreshed_before_use(ws, google_oauth):
     }])
 
     with (
-        patch("autoflow.integrations.connections.requests") as refresh_http,
-        patch("autoflow.integrations.actions.requests") as sheets_http,
+        patch("luphina.integrations.connections.requests") as refresh_http,
+        patch("luphina.integrations.actions.requests") as sheets_http,
     ):
         refresh_http.post.return_value = fake_response(200, {"access_token": "access-2", "expires_in": 3600})
         sheets_http.post.return_value = fake_response(200, {"updates": {"updatedRange": "Sheet1!A2:B2"}})
@@ -353,7 +353,7 @@ def test_revoked_refresh_token_marks_connection_for_reconnect(ws, google_oauth):
         "inputs": {"connection": "sheets", "spreadsheet_id": "s", "values": [1]},
     }])
 
-    with patch("autoflow.integrations.connections.requests") as refresh_http:
+    with patch("luphina.integrations.connections.requests") as refresh_http:
         refresh_http.post.return_value = fake_response(400, {"error": "invalid_grant"})
         execution = run_live(ws, workflow["id"])
 

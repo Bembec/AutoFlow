@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from autoflow.accounts import two_factor
+from luphina.accounts import two_factor
 
 
 # --- TOTP algorithm -------------------------------------------------------------------

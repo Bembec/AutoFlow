@@ -16,8 +16,8 @@ Expected: exactly one invoice per order, at most one email per order
 (exactly one except case 5, where the crash happened before the send),
 and one billable event per email actually sent.
 
-CI runs AUTOFLOW_SOAK_RUNS=60 by default. For the MVP gate run 1,000:
-    AUTOFLOW_SOAK_RUNS=1000 AUTOFLOW_SOAK_REPORT=../docs/evidence/duplicate-soak.md pytest tests/test_duplicate_soak.py
+CI runs LUPHINA_SOAK_RUNS=60 by default. For the MVP gate run 1,000:
+    LUPHINA_SOAK_RUNS=1000 LUPHINA_SOAK_REPORT=../docs/evidence/duplicate-soak.md pytest tests/test_duplicate_soak.py
 """
 
 import base64
@@ -36,11 +36,11 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import func, select, update
 
-from autoflow.engine import queue
-from autoflow.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
-from autoflow.storage.db import engine as db_engine
-from autoflow.storage.db import session_scope, utc_now
-from autoflow.storage.models import (
+from luphina.engine import queue
+from luphina.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
+from luphina.storage.db import engine as db_engine
+from luphina.storage.db import session_scope, utc_now
+from luphina.storage.models import (
     Approval,
     BillableEvent,
     Invoice,
@@ -49,7 +49,7 @@ from autoflow.storage.models import (
     Workspace,
 )
 
-RUNS = int(os.getenv("AUTOFLOW_SOAK_RUNS", "60"))
+RUNS = int(os.getenv("LUPHINA_SOAK_RUNS", "60"))
 SECRET = "shopify-soak-secret-0123456789"
 SCENARIOS = ["normal", "same delivery twice", "redelivered", "double approval", "mail server blip", "crash while sending"]
 
@@ -58,7 +58,7 @@ SCENARIOS = ["normal", "same delivery twice", "redelivered", "double approval", 
 def mail(monkeypatch):
     """A fake mail server that records every message actually accepted."""
     monkeypatch.setenv("EMAIL_SEND_ENABLED", "true")
-    monkeypatch.setenv("AUTOFLOW_EXECUTION_MODE", "queue")
+    monkeypatch.setenv("LUPHINA_EXECUTION_MODE", "queue")
     sent, failed_once = Counter(), set()
     flaky = set()
 
@@ -69,7 +69,7 @@ def mail(monkeypatch):
             raise OSError("temporary failure")
         sent[to] += 1
 
-    with patch("autoflow.integrations.actions.smtplib") as smtp, patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.integrations.actions.smtplib") as smtp, patch("luphina.engine.executor.sleep"):
         smtp.SMTPException = smtplib.SMTPException
         smtp.SMTPAuthenticationError = smtplib.SMTPAuthenticationError
         smtp.SMTP_SSL.return_value.__enter__.return_value.send_message.side_effect = send_message
@@ -198,7 +198,7 @@ def test_no_duplicate_business_effects(client, signup, mail):
     if unfinished:
         problems.append(f"runs not finished: {unfinished}")
 
-    report = os.getenv("AUTOFLOW_SOAK_REPORT")
+    report = os.getenv("LUPHINA_SOAK_REPORT")
     if report:
         _write_report(Path(report), orders, executions, sum(invoices.values()), sum(sent.values()),
                       billed_emails, problems, time.monotonic() - started)

@@ -14,8 +14,8 @@ A feature or fix is **done** only when every point below is true. A version is r
 4. **Logged:** security-relevant actions write an audit event, and errors carry a clear, plain-language message. No secrets appear in logs or responses.
 5. **Reversible:**
    - database changes come as a migration with a working downgrade, checked with `alembic upgrade head`, `alembic check`, then downgrade and re-upgrade;
-   - risky or unfinished features ship behind a feature flag (`autoflow/features.py`) that is off by default;
-   - actions that change things outside AutoFlow either can't happen twice or have a defined undo (compensation).
+   - risky or unfinished features ship behind a feature flag (`luphina/features.py`) that is off by default;
+   - actions that change things outside Luphina either can't happen twice or have a defined undo (compensation).
 6. **Documented:**
    - the CHANGELOG entry and the help article for anything users see;
    - `docs/operations.md` for anything operators need;

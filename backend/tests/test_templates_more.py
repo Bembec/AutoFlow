@@ -4,11 +4,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import update
 
-from autoflow.engine.definition import WorkflowDefinition
-from autoflow.engine.templates import TEMPLATES
-from autoflow.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import Workspace
+from luphina.engine.definition import WorkflowDefinition
+from luphina.engine.templates import TEMPLATES
+from luphina.engine.templates_ecommerce import SAMPLE_SHOPIFY_ORDER
+from luphina.storage.db import session_scope
+from luphina.storage.models import Workspace
 
 NEW = [
     "shipping-notification", "refund-void-invoice", "weekly-sales-summary", "low-stock-alert",
@@ -20,8 +20,8 @@ AI_REPLY = {"category": "return or exchange", "confidence": 0.9, "summary": "Mug
 
 @pytest.fixture(autouse=True)
 def fakes():
-    with patch("autoflow.engine.executor.sleep"), \
-            patch("autoflow.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")):
+    with patch("luphina.engine.executor.sleep"), \
+            patch("luphina.ai.steps.providers.complete", side_effect=lambda s, p: (json.dumps(AI_REPLY), "fake")):
         yield
 
 
@@ -76,13 +76,13 @@ def test_every_new_template_test_runs_with_its_sample_data(ws, slug):
     }, headers=headers)
     reply = MagicMock(status_code=200, ok=True, headers={"Content-Type": "application/json"})
     reply.json.return_value = {"products": [{"title": "Mug", "stock": 2}]}
-    with patch("autoflow.integrations.actions.check_public_url"),             patch("autoflow.integrations.actions.requests.request", return_value=reply):
+    with patch("luphina.integrations.actions.check_public_url"),             patch("luphina.integrations.actions.requests.request", return_value=reply):
         tested = run(ws, install(ws, slug))
     assert tested["status"] == "succeeded", (slug, tested["error"], [s["error"] for s in tested["steps"]])
 
 
 def test_smart_templates_need_the_feature(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off")
+    monkeypatch.setenv("LUPHINA_FEATURES", "smarter_logic=off")
     headers, workspace_id = signup(email="plain@example.com")
     refused = client.post(f"/workspaces/{workspace_id}/workflows/from-template",
                           json={"template": "order-lines-to-sheet"}, headers=headers)

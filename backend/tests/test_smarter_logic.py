@@ -5,12 +5,12 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy import func, select, update
 
-from autoflow.engine import executor
-from autoflow.engine.definition import WorkflowDefinition, uses_smarter_logic
-from autoflow.engine.templating import evaluate_condition
-from autoflow.storage.db import engine as db_engine
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import BillableEvent, StepExecution, WorkflowExecution, Workspace
+from luphina.engine import executor
+from luphina.engine.definition import WorkflowDefinition, uses_smarter_logic
+from luphina.engine.templating import evaluate_condition
+from luphina.storage.db import engine as db_engine
+from luphina.storage.db import session_scope
+from luphina.storage.models import BillableEvent, StepExecution, WorkflowExecution, Workspace
 
 ORDER = {
     "total": "247.50",
@@ -25,7 +25,7 @@ ORDER = {
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -96,7 +96,7 @@ def test_definitions_are_checked():
 
 
 def test_the_feature_flag_guards_saving(client, signup, monkeypatch):
-    monkeypatch.setenv("AUTOFLOW_FEATURES", "smarter_logic=off")
+    monkeypatch.setenv("LUPHINA_FEATURES", "smarter_logic=off")
     headers, workspace_id = signup()
     smart = {"name": "Smart", "definition": {"steps": [{
         "id": "s", "action": "log_activity", "inputs": {"message": "big"},
@@ -176,8 +176,8 @@ def response(status):
 def test_a_failed_loop_resumes_without_repeating_finished_items(ws):
     client, headers, base, workspace_id = ws
     workflow = api_loop(ws)
-    with patch("autoflow.integrations.actions.check_public_url"), \
-            patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.check_public_url"), \
+            patch("luphina.integrations.actions.requests") as http:
         http.request.side_effect = [response(200), response(400)]
         failed = run(ws, workflow)
         assert failed["status"] == "failed" and "item 2" in failed["error"]
@@ -197,8 +197,8 @@ def test_a_failed_loop_resumes_without_repeating_finished_items(ws):
 def test_an_uncertain_loop_item_can_be_confirmed_and_the_loop_continues(ws):
     client, headers, base, _ = ws
     workflow = api_loop(ws)
-    with patch("autoflow.integrations.actions.check_public_url"), \
-            patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.check_public_url"), \
+            patch("luphina.integrations.actions.requests") as http:
         http.request.side_effect = [response(200)] * 3
         started = run(ws, workflow, mode="live")
         # Pretend the worker died while sending item 2 (item 1 already done)

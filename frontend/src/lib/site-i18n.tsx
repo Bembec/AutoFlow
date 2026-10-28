@@ -553,7 +553,7 @@ const SITE: Record<string, Row> = {
   "Your email (optional)": ["Tu correo (opcional)", "Votre e-mail (facultatif)", "Ihre E-Mail (optional)", "E-postanız (isteğe bağlı)"],
   "Only used if we need to ask you something.": ["Solo se usa si necesitamos preguntarte algo.", "Utilisé seulement si nous devons vous poser une question.", "Nur genutzt, falls wir Rückfragen haben.", "Yalnızca size bir şey sormamız gerekirse kullanılır."],
   "Workspace number (optional)": ["Número de espacio (opcional)", "Numéro d'espace (facultatif)", "Nummer des Arbeitsbereichs (optional)", "Çalışma alanı numarası (isteğe bağlı)"],
-  "From the email's X-AutoFlow-Workspace header.": ["Del encabezado X-AutoFlow-Workspace del correo.", "Dans l'en-tête X-AutoFlow-Workspace de l'e-mail.", "Aus dem Header X-AutoFlow-Workspace der E-Mail.", "E-postanın X-AutoFlow-Workspace başlığından."],
+  "From the email's X-Luphina-Workspace header.": ["Del encabezado X-Luphina-Workspace del correo.", "Dans l'en-tête X-Luphina-Workspace de l'e-mail.", "Aus dem Header X-Luphina-Workspace der E-Mail.", "E-postanın X-Luphina-Workspace başlığından."],
   "Send report": ["Enviar denuncia", "Envoyer le signalement", "Meldung senden", "Bildirimi gönder"],
   "Sending…": ["Enviando…", "Envoi…", "Wird gesendet…", "Gönderiliyor…"],
   "Thank you. Our team reviews every report and can stop a workspace from sending while we look into it.": [

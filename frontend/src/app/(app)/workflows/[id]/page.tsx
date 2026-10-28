@@ -480,7 +480,7 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
   );
   const action = useAction();
   const [created, setCreated] = useState<{ url: string; secret: string } | null>(null);
-  const [scheme, setScheme] = useState<"autoflow" | "shopify" | "woocommerce">("autoflow");
+  const [scheme, setScheme] = useState<"luphina" | "shopify" | "woocommerce">("luphina");
   const [storeSecret, setStoreSecret] = useState("");
 
   if (definition.trigger.type === "email") {
@@ -549,14 +549,14 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
             <select
               className={inputClass}
               value={scheme}
-              onChange={(e) => setScheme(e.target.value as "autoflow" | "shopify" | "woocommerce")}
+              onChange={(e) => setScheme(e.target.value as "luphina" | "shopify" | "woocommerce")}
             >
-              <option value="autoflow">Any app (X-AutoFlow-Signature header)</option>
+              <option value="luphina">Any app (X-Luphina-Signature header)</option>
               <option value="shopify">Shopify</option>
               <option value="woocommerce">WooCommerce</option>
             </select>
           </Field>
-          {scheme !== "autoflow" && (
+          {scheme !== "luphina" && (
             <Field
               label={scheme === "shopify" ? "Shopify signing secret" : "WooCommerce webhook secret"}
               hint={
@@ -576,14 +576,14 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
           )}
           <Button
             variant={webhook.data ? "secondary" : "primary"}
-            disabled={action.busy || (scheme !== "autoflow" && storeSecret.length < 16)}
+            disabled={action.busy || (scheme !== "luphina" && storeSecret.length < 16)}
             onClick={async () => {
-              const body = scheme === "autoflow" ? {} : { signature_scheme: scheme, secret: storeSecret };
+              const body = scheme === "luphina" ? {} : { signature_scheme: scheme, secret: storeSecret };
               const result = await action.run(() =>
                 api<{ url: string; secret: string }>(`${base}/workflows/${workflow.id}/webhook`, { body }),
               );
               if (result) {
-                setCreated(scheme === "autoflow" ? result : { url: result.url, secret: "(the secret from your store)" });
+                setCreated(scheme === "luphina" ? result : { url: result.url, secret: "(the secret from your store)" });
                 setStoreSecret("");
               }
             }}

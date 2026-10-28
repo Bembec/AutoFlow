@@ -27,8 +27,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from autoflow import config
-from autoflow.ai import builder, providers
+from luphina import config
+from luphina.ai import builder, providers
 
 
 CASES_FILE = Path(__file__).with_name("builder_cases.json")

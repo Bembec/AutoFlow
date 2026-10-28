@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import func, select
 
-from autoflow import config, worker
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import AccessToken, Workflow, WorkflowExecution
+from luphina import config, worker
+from luphina.storage.db import session_scope
+from luphina.storage.models import AccessToken, Workflow, WorkflowExecution
 
 
 @pytest.fixture
@@ -44,24 +44,24 @@ def test_sign_in_is_rate_limited(client):
 
 def test_production_refuses_unsafe_settings(monkeypatch):
     monkeypatch.setattr(config, "ENVIRONMENT", "production")
-    monkeypatch.setattr(config, "DATABASE_URL", "sqlite:///autoflow.db")
+    monkeypatch.setattr(config, "DATABASE_URL", "sqlite:///luphina.db")
     monkeypatch.setattr(config, "PUBLIC_URL", "http://127.0.0.1:8000")
-    monkeypatch.delenv("AUTOFLOW_SECRET_KEYS", raising=False)
+    monkeypatch.delenv("LUPHINA_SECRET_KEYS", raising=False)
 
     with pytest.raises(config.UnsafeConfiguration) as error:
         config.check_deployment_settings()
 
     message = str(error.value)
-    assert "AUTOFLOW_SECRET_KEYS" in message
+    assert "LUPHINA_SECRET_KEYS" in message
     assert "PostgreSQL" in message
     assert "https" in message
 
 
 def test_production_accepts_safe_settings(monkeypatch):
     monkeypatch.setattr(config, "ENVIRONMENT", "production")
-    monkeypatch.setattr(config, "DATABASE_URL", "postgresql+psycopg://u:p@db/autoflow")
-    monkeypatch.setattr(config, "PUBLIC_URL", "https://app.autoflow.example")
-    monkeypatch.setenv("AUTOFLOW_SECRET_KEYS", "key")
+    monkeypatch.setattr(config, "DATABASE_URL", "postgresql+psycopg://u:p@db/luphina")
+    monkeypatch.setattr(config, "PUBLIC_URL", "https://app.luphina.example")
+    monkeypatch.setenv("LUPHINA_SECRET_KEYS", "key")
     monkeypatch.delenv("EMAIL_TEST_RECIPIENT", raising=False)
 
     config.check_deployment_settings()
@@ -81,7 +81,7 @@ def test_export_contains_data_but_never_secrets(ws):
     assert response.status_code == 200
     assert "attachment" in response.headers["Content-Disposition"]
     export = response.json()
-    assert export["format"] == "autoflow-export-v1"
+    assert export["format"] == "luphina-export-v1"
     assert export["workflows"][0]["versions"][0]["definition"]["steps"]
     assert export["connections"][0]["name"] == "crm"
     assert "pat-secret" not in response.text
@@ -228,7 +228,7 @@ def test_housekeeping_removes_long_expired_tokens(ws):
         worker.housekeeping(session)
     assert tokens() == 1  # still valid
 
-    with patch("autoflow.worker.utc_now", return_value=datetime(2030, 1, 1, tzinfo=timezone.utc)):
+    with patch("luphina.worker.utc_now", return_value=datetime(2030, 1, 1, tzinfo=timezone.utc)):
         with session_scope() as session:
             worker.housekeeping(session)
     assert tokens() == 0

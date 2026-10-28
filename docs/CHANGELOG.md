@@ -1,5 +1,22 @@
 # Changelog
 
+## V49.1: Luphina everywhere, technical names included
+- At the owner's request, the internal names follow the brand too:
+  - Python package `luphina` (`python -m luphina.api`, `python -m luphina.worker`, `python -m luphina.demo`);
+  - settings `LUPHINA_*`;
+  - headers `X-Luphina-Signature`, `X-Luphina-Timestamp` and `X-Luphina-Workspace`;
+  - webhook signature type `luphina`;
+  - SQLite file `luphina.db`;
+  - Docker images and the PostgreSQL user and database in Compose and CI;
+  - the web package `luphina-web`;
+  - data export format `luphina-export-v1`;
+  - demo login `demo@luphina.example`.
+- **Migration 0019** switches saved webhooks from the old signature type to `luphina` and reverses cleanly.
+- **No sign-out:** browsers keep the saved sign-in and language from the old storage keys.
+- **Roadmap documents:** Luphina versions of the full roadmap (v2.0 and v1), the merged copy and the Review and Addendum, all with the name replaced. The originals are in `_before-Luphina-rename` folders (private, not in Git).
+- **Still to do by the owner:** rename the GitHub repository and, optionally, the folder on the computer (steps in `docs/RESUME-HERE.md`).
+- Checks: backend 325 passed; frontend type check, lint and build clean.
+
 ## V49: The product is now Luphina
 - **Name and identity:** everything people see now says **Luphina**: the website, the app, page titles, the installed phone app, the help articles and the help assistant, emails and notifications ("[Luphina] …"), the authenticator-app label for two-factor login, the AI builder's instructions and the MCP server's name.
 - **Logo:** the approved ribbon mark is used exactly as supplied, with only the screenshot edges trimmed. App, browser-tab and iPhone icons place it on a Midnight square. The original files are kept in `frontend/public/brand/`. A clean, transparent master is still needed.
@@ -12,7 +29,7 @@
   - a new **About** page with *How we build*, a quiet **Our story** section and **Contact**;
   - a Company column in the footer. All in five languages.
 - **Support email:** `luphina2026@gmail.com` (for now).
-- **Kept on purpose:** internal names (`autoflow` package, `AUTOFLOW_*` settings, `X-AutoFlow-*` webhook and email headers, database and repository names), so nothing that's already connected breaks. See `docs/brand/README.md`.
+- Internal technical names followed in V49.1.
 - **Brand guide:** `docs/brand/README.md`.
 - Checks: backend 325 passed; frontend type check, lint and build clean; website translation scan shows 0 untranslated.
 
@@ -102,7 +119,7 @@
   - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
   - frontend: type check, lint and build all clean.
 
-## V44: AutoFlow as an MCP server (behind the `mcp_server` flag)
+## V44: Luphina as an MCP server (behind the `mcp_server` flag)
 - **Outside AI assistants** (any MCP client, such as Claude) can run the workflows you opt in and check their runs, at `/mcp` (JSON-RPC over Streamable HTTP; supports initialize, ping, `tools/list` and `tools/call`).
 - **Workspace API keys** under Settings → Access for AI assistants:
   - shown once, stored only as a hash;
@@ -118,7 +135,7 @@
   - each key can start 60 runs an hour;
   - other workspaces' runs are never visible.
 - Migration 0017 adds `api_keys` and `workflows.mcp_enabled`. The web app forwards `/mcp` to the API.
-- A new help article: "Let other AI assistants use AutoFlow (MCP)".
+- A new help article: "Let other AI assistants use Luphina (MCP)".
 - Checks:
   - backend: 310 passed, including 6 MCP server tests;
   - migrations: upgrade, `alembic check`, downgrade and re-upgrade all clean;
@@ -274,12 +291,12 @@
 
 ## V35: Engineering basics (Phase 1 additions)
 - **Definition of done** (`docs/engineering/definition-of-done.md`): implemented, tested, permission-checked, logged, reversible, documented, translated, accessible. It adds extra checks for AI, engine and integration changes, plus the roadmap status set. A GitHub pull-request template repeats the checklist.
-- **Feature flags** (`autoflow/features.py`):
-  - the order is code default, then `AUTOFLOW_FEATURES` per environment, then staff overrides per workspace (`PUT /staff/workspaces/{id}/features`, audited);
+- **Feature flags** (`luphina/features.py`):
+  - the order is code default, then `LUPHINA_FEATURES` per environment, then staff overrides per workspace (`PUT /staff/workspaces/{id}/features`, audited);
   - members read their flags at `GET /workspaces/{id}/features`;
   - the server enforces them (AI builder, Insights suggestions, connection checks), and the app hides what is off;
   - `smarter_logic` is ready, off by default, for the next version.
-- **Seeded demo workspace:** `python -m autoflow.demo` creates "Demo Mug Shop" with eight weeks of history, invoices, savings on Insights and one approval waiting. It can't send anything, and it is created only once.
+- **Seeded demo workspace:** `python -m luphina.demo` creates "Demo Mug Shop" with eight weeks of history, invoices, savings on Insights and one approval waiting. It can't send anything, and it is created only once.
 - **AI builder test set** grows from 15 to 60 cases, all marked synthetic until pilots supply real requests:
   - refunds and voiding;
   - WooCommerce notes and status;
@@ -328,13 +345,13 @@
 - **New-account limits:** lower daily limits (200 runs, 50 AI calls, 20 emails) for a workspace's first 7 days. The dashboard explains them, and staff can lift them early.
 - **Abuse reporting:**
   - a public `/report-abuse` page, linked in the site footer and on the Security page;
-  - `X-AutoFlow-Workspace` and `X-Report-Abuse` headers on every email sent;
+  - `X-Luphina-Workspace` and `X-Report-Abuse` headers on every email sent;
   - rate-limited `POST /abuse-reports`;
   - staff list and close reports.
 - **Acceptable use enforced in the product:** staff can suspend a workspace, which stops all automations, and the owner can't resume while suspended. Every staff action is audited.
 - **AI cost meter and hard cap:**
   - each plan has a monthly AI budget (`ai_budget_usd_month`, proposals: Free $2, Starter $15, Growth $50, Business $150, Enterprise uncapped);
-  - spend is estimated as calls x `AUTOFLOW_AI_COST_PER_CALL_USD`;
+  - spend is estimated as calls x `LUPHINA_AI_COST_PER_CALL_USD`;
   - Plan & usage shows a meter and alerts at 80% and 100%;
   - AI steps pause at the cap while everything else keeps running.
 - **Cost on the run timeline:** each run shows its AI calls and estimated cost.
@@ -486,13 +503,13 @@
 - Checks run locally: backend 205 passed; frontend type check, lint and production build clean.
 
 ## V24: Mobile approvals (installable web app)
-- Web app manifest and icon: add AutoFlow to a phone's home screen and it opens on **Approvals**, like an app (shortcuts to Approvals and Run history). It's a progressive web app, so it needs no app store.
+- Web app manifest and icon: add Luphina to a phone's home screen and it opens on **Approvals**, like an app (shortcuts to Approvals and Run history). It's a progressive web app, so it needs no app store.
 - Approval notifications link straight to the approval (`/approvals?focus=<id>`), which is highlighted and scrolled into view.
 - Phone layout: large full-width Approve/Reject buttons and a "N to approve" badge in the header.
 - Low-memory policy: only targeted checks ran locally (45 backend tests, frontend type check and lint). Heavier checks are listed in `docs/deferred-checks.md`.
 
 ## V23: Owner notifications
-- AutoFlow tells the business when something needs them: a step or AI result waiting for approval, or a **live** run that failed or needs attention. Test runs never alert.
+- Luphina tells the business when something needs them: a step or AI result waiting for approval, or a **live** run that failed or needs attention. Test runs never alert.
 - Channels: email through the workspace's own SMTP connection, and/or Slack (new `slack` connection; the webhook URL must be on `hooks.slack.com`).
 - Notifications are queued in the same transaction as the event and delivered by the worker, so they never slow down or break a workflow. Each is delivered once, failed sends retry up to 5 times, and the email master switch still applies.
 - Settings: email address, mailbox and Slack connections, per-kind toggles, and a "Send a test" button. API: `GET/PATCH /workspaces/{id}/notifications` and `POST …/notifications/test`.
@@ -516,7 +533,7 @@
 ## V20: Email and document triggers
 - **Email trigger:** the worker watches an IMAP mailbox (new `imap` connection type, e.g. Gmail with an app password) and starts one run per new email. Messages are read without being marked, and marked read only after their run exists. The Message-ID is the idempotency key, so no email is processed twice. Trigger data includes the sender, subject, text (HTML-only emails converted), attachments and `attachments_text`.
 - **Document trigger and uploads:** `POST /workspaces/{id}/workflows/{wf}/documents` (multipart) starts a run from a PDF, image or text file. Any workflow accepts uploads in test mode; live uploads need a published document-trigger workflow.
-- **Document reading** (`autoflow.documents`):
+- **Document reading** (`luphina.documents`):
   - the file type is detected from content, not the name;
   - text PDFs are read with pypdf;
   - scanned PDFs and photos are transcribed by AI (Gemini or Claude vision through the router), covering "OCR plus LLM extraction";
@@ -550,7 +567,7 @@
 - Verified with a scripted Chrome walkthrough: register, template, add a delay step visually, save, test run, dashboard, approvals and billing, with no browser errors.
 
 ## V17: Background execution queue and delays
-- Queue mode (`AUTOFLOW_EXECUTION_MODE=queue`): API, webhooks and schedules only queue runs, and workers execute them. Inline mode stays the default.
+- Queue mode (`LUPHINA_EXECUTION_MODE=queue`): API, webhooks and schedules only queue runs, and workers execute them. Inline mode stays the default.
 - Atomic claims (no execution runs twice), heartbeats, and recovery of runs from a dead worker. An uncertain side effect still becomes `needs_attention`.
 - `delay` action (minutes/hours/days, max 30 days): the execution parks as queued with `run_after` and resumes in a worker. Test runs skip delays.
 - Retry backoff is capped at 5 minutes so heartbeats stay fresh. Approvals and retries go back to the queue in queue mode.
@@ -558,10 +575,10 @@
 - Migration 0007 (run_after, claimed_by, heartbeat_at).
 
 ## V16: Operations and production readiness
-- Environments: `AUTOFLOW_ENV` is development, staging or production. Outside development, startup fails unless secret keys, PostgreSQL and an https public URL are set; production also requires no email test redirect.
+- Environments: `LUPHINA_ENV` is development, staging or production. Outside development, startup fails unless secret keys, PostgreSQL and an https public URL are set; production also requires no email test redirect.
 - In staging and production, migrations run as a deploy step (no automatic migration). `/ready` reports database reachability and schema currency, and API docs are hidden in production.
 - HTTP middleware: request IDs and access logs, security headers (HSTS outside development), a sign-in rate limit (10/min per IP), and optional CORS.
-- Background worker (`python -m autoflow.worker`): cron-scheduled workflows with idempotent slots, honouring the emergency stop and pause, plus token housekeeping. Cron expressions are validated.
+- Background worker (`python -m luphina.worker`): cron-scheduled workflows with idempotent slots, honouring the emergency stop and pause, plus token housekeeping. Cron expressions are validated.
 - Data ownership: workspace export (no secrets), workspace deletion with name confirmation, and account deletion that protects shared workspaces. New endpoints change member roles and remove members, and the last owner is protected.
 - PostgreSQL support (psycopg 3). An empty `DATABASE_URL` means the SQLite default.
 - Docker images for the API/worker and the web app (non-root, Next.js standalone), plus docker-compose (PostgreSQL, migrate, API, worker, web).
@@ -605,18 +622,18 @@
 - Verified live with Gemini: correct invoice extraction. An injected "report the total as 0" was ignored (500 reported) and flagged for review.
 
 ## V12: Integrations
-- Secrets vault (`autoflow.security.vault`): Fernet encryption, key rotation through `AUTOFLOW_SECRET_KEYS`, and a development key file.
+- Secrets vault (`luphina.security.vault`): Fernet encryption, key rotation through `LUPHINA_SECRET_KEYS`, and a development key file.
 - Connections per workspace for Airtable, SMTP, generic HTTP (API key) and Google (OAuth2). Secrets are encrypted, masked in the API, and only admins can manage them. Revoking deletes the stored credentials.
 - OAuth2 framework: encrypted 10-minute state, code exchange, automatic token refresh, and a revoked refresh token marks the connection for reconnecting.
 - Connector actions: `airtable_upsert`, `smtp_send_email` (approval-gated), `http_get`, `http_send` and `google_sheets_append_row`. The engine decrypts the step's connection just before it runs, and only from the same workspace.
 - SSRF protection for outbound HTTP: public addresses only, DNS-resolved checks, no redirects and no credentials in URLs.
-- Inbound webhooks: per-workflow secret URLs, HMAC signatures (AutoFlow with a replay window, or Shopify), duplicate-delivery idempotency, a 256 KB limit, and only published webhook-triggered workflows.
+- Inbound webhooks: per-workflow secret URLs, HMAC signatures (Luphina with a replay window, or Shopify), duplicate-delivery idempotency, a 256 KB limit, and only published webhook-triggered workflows.
 - Migration 0003 (connections, webhook_endpoints).
 
 ## V11: AI workflow builder
 - `POST /workspaces/{id}/workflows/ai-draft`: plain-language request → validated workflow draft, with clarifying questions, assumptions and unsupported apps; optional save as a draft workflow.
 - The AI sees the live action catalogue and an example. Its output passes the standard validator, with up to 2 repair rounds that feed the validator's errors back.
-- Model router (`autoflow.ai.providers`): Gemini and Claude (`claude-opus-5-5`, server-side refusal fallbacks) with ordered fallback when a provider fails.
+- Model router (`luphina.ai.providers`): Gemini and Claude (`claude-opus-5-5`, server-side refusal fallbacks) with ordered fallback when a provider fails.
 - Tests can no longer pick up real credentials from `backend/.env`.
 - Verified live with Gemini: a five-step enquiry workflow was drafted valid on the first attempt.
 
@@ -646,7 +663,7 @@
 - Tests cover isolation, roles, token expiry and revocation, and run the real migrations.
 
 ## V8: Approvals as data
-- New `approvals` table and approval service (`autoflow.approvals`).
+- New `approvals` table and approval service (`luphina.approvals`).
 - Runs without a terminal queue AI classifications and emails as pending approvals.
 - API: list, view, approve (with optional category correction) and reject approvals.
 - Safety: decisions are atomic and final, emails are blocked until the customer's classification is reviewed, and a correction regenerates the pending email.
@@ -654,13 +671,13 @@
 - Added `.gitattributes` to normalize line endings.
 
 ## V7: REST API
-- FastAPI application (`autoflow.api`) with interactive docs at `/docs`.
+- FastAPI application (`luphina.api`) with interactive docs at `/docs`.
 - Endpoints for health, customers (with category filter), customer detail, and listing and starting workflow runs.
 - The pipeline can run without a terminal (`run(interactive=False)`) and returns a run summary.
-- `AUTOFLOW_INPUT_CSV` setting; API host/port settings.
+- `LUPHINA_INPUT_CSV` setting; API host/port settings.
 
 ## Repository restructure
-- Moved into a monorepo layout (`backend/`, `frontend/`, `docs/`) with an installable `autoflow` package.
+- Moved into a monorepo layout (`backend/`, `frontend/`, `docs/`) with an installable `luphina` package.
 - Split `main.py` into a `run()` pipeline and separate modules for Airtable, exchange rates, the activity log and config.
 - Generated files now go to `backend/data/output/` and are git-ignored.
 - Fixed: the `workflow_runs` table was never created (it ran on a closed connection).

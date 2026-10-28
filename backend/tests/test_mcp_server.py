@@ -3,13 +3,13 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import func, select, update
 
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import AuditEvent, Workspace
+from luphina.storage.db import session_scope
+from luphina.storage.models import AuditEvent, Workspace
 
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 

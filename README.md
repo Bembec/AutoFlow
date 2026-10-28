@@ -6,7 +6,7 @@
 
 Luphina helps businesses simplify repetitive work, connect their tools, and turn everyday processes into intelligent workflows. Describe a process in plain words and get a working, AI-powered automation, with no developers needed.
 
-Luphina was developed under the working name **AutoFlow**, which internal names (the `autoflow` package, `AUTOFLOW_*` settings, `X-AutoFlow-*` headers) still use. See the [brand guide](docs/brand/README.md).
+See the [brand guide](docs/brand/README.md) for the name, logo, colours and wording.
 
 This monorepo holds the product as described in the [product roadmap](docs/roadmap/README.md):
 
@@ -21,9 +21,9 @@ This monorepo holds the product as described in the [product roadmap](docs/roadm
 ## Repository layout
 
 ```
-AutoFlow/
+Luphina/
 ├── backend/                  Python API and workflow engine (FastAPI, SQLAlchemy, Alembic)
-│   ├── src/autoflow/
+│   ├── src/luphina/
 │   │   ├── api/              HTTP routes, schemas, auth and role dependencies
 │   │   ├── accounts/         Users, workspaces, memberships, tokens
 │   │   ├── engine/           Definitions, actions, executor, versions, limits, templates
@@ -47,7 +47,7 @@ python -m venv .venv
 .venv\Scripts\activate             # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt -e ".[dev]"
 copy .env.example .env             # macOS/Linux: cp …; then fill it in
-python -m autoflow.api             # http://127.0.0.1:8000 (docs at /docs)
+python -m luphina.api             # http://127.0.0.1:8000 (docs at /docs)
 
 # Web app (second terminal)
 cd frontend
@@ -64,7 +64,7 @@ cp deploy/compose.env.example deploy/compose.env
 docker compose up --build          # http://localhost:3000
 ```
 
-Scheduled workflows need the worker: `python -m autoflow.worker`.
+Scheduled workflows need the worker: `python -m luphina.worker`.
 
 Safety switches (`EMAIL_SEND_ENABLED`, `AI_CLASSIFICATION_ENABLED`) default to `false`. During development, emails are redirected to a test inbox and only fake customer data is used.
 

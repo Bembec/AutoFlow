@@ -17,7 +17,7 @@ const CATEGORIES = [
 
 export function AbuseForm() {
   const text = useSiteText();
-  // Emails sent through AutoFlow link here with ?workspace=<id>
+  // Emails sent through Luphina link here with ?workspace=<id>
   const linked = useSearchParams().get("workspace") ?? "";
   const [category, setCategory] = useState("phishing");
   const [message, setMessage] = useState("");
@@ -72,7 +72,7 @@ export function AbuseForm() {
         <Field label={text("Your email (optional)")} hint={text("Only used if we need to ask you something.")}>
           <input className={inputClass} type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
-        <Field label={text("Workspace number (optional)")} hint={text("From the email's X-AutoFlow-Workspace header.")}>
+        <Field label={text("Workspace number (optional)")} hint={text("From the email's X-Luphina-Workspace header.")}>
           <input className={inputClass} inputMode="numeric" value={workspace} onChange={(event) => setWorkspace(event.target.value)} />
         </Field>
       </div>

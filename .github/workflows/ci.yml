@@ -20,12 +20,12 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: autoflow
-          POSTGRES_PASSWORD: autoflow
-          POSTGRES_DB: autoflow_test
+          POSTGRES_USER: luphina
+          POSTGRES_PASSWORD: luphina
+          POSTGRES_DB: luphina_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U autoflow"
+          --health-cmd "pg_isready -U luphina"
           --health-interval 5s
           --health-retries 10
     defaults:
@@ -33,7 +33,7 @@ jobs:
         working-directory: backend
     env:
       # Empty means the SQLite default
-      DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg://autoflow:autoflow@localhost:5432/autoflow_test' || '' }}
+      DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg://luphina:luphina@localhost:5432/luphina_test' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -47,7 +47,7 @@ jobs:
         run: pytest -q
       - name: Migrations match models
         env:
-          AUTOFLOW_DATA_DIR: ${{ runner.temp }}/autoflow
+          LUPHINA_DATA_DIR: ${{ runner.temp }}/luphina
         run: |
           alembic upgrade head
           alembic check
@@ -78,5 +78,5 @@ jobs:
     needs: [backend, frontend]
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t autoflow-api ./backend
-      - run: docker build -t autoflow-web ./frontend
+      - run: docker build -t luphina-api ./backend
+      - run: docker build -t luphina-web ./frontend

@@ -2,8 +2,6 @@
 // colours in app/globals.css and the images in public/brand/ (plus
 // app/icon.png and app/apple-icon.png). The product name also appears in
 // translated text (lib/i18n.tsx, lib/site-i18n.tsx) and the help articles.
-// Internal names (the `autoflow` package, AUTOFLOW_* settings, X-AutoFlow-*
-// headers) keep the original project name so integrations don't break.
 
 export const BRAND = {
   name: "Luphina",

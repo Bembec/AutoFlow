@@ -1,4 +1,4 @@
-from autoflow.emails.templates import create_email_preview
+from luphina.emails.templates import create_email_preview
 
 
 def make_customer(category, quote_usd=""):

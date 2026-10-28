@@ -29,15 +29,16 @@ cd frontend && npm run build         # production build
 | Version | Check | Where | Status |
 | --- | --- | --- | --- |
 | V49 | Look at the Luphina brand on desktop and phone: logo in the header, sign-in and app sidebar; browser-tab icon; iPhone/Android home-screen icon; About page; contrast of buttons and links | **manual**, browser + phone | to do |
+| V49.1 | Rename the GitHub repository to `Luphina`, then update the git remote (steps in RESUME-HERE.md) | **manual**, GitHub login | to do |
 | V49 | Replace the logo images once the transparent master arrives (`frontend/public/brand/`, `src/app/icon.png`, `apple-icon.png`) | needs the logo master | to do |
 | V24–V25 | Full backend suite and frontend build | ran locally (205 passed, build clean) and in CI | done |
 | V31 | Look through the website pages on desktop and phone; try the "type a task" demo → Build this for real → sign up → the builder opens with your task | **manual**, browser | to do |
 | V30 | Time a fresh sign-up through the checklist to a published workflow (target: under 5 minutes) on desktop and phone | **manual**, browser | to do |
 | V29 | Visual check of the new look on desktop and phone: icons, skeleton loading, run detail with "Technical details", keyboard Tab through the menu (focus ring + "Skip to content") | **manual**, browser | to do |
-| V44 | Connect a real MCP client (e.g. Claude) to `<public URL>/mcp` with an AutoFlow API key; list tools, run an opted-in workflow, read the run | **manual**, needs a public URL (hosting) | to do |
+| V44 | Connect a real MCP client (e.g. Claude) to `<public URL>/mcp` with an Luphina API key; list tools, run an opted-in workflow, read the run | **manual**, needs a public URL (hosting) | to do |
 | V43 | Try the three assistant roles with a real AI key: does the Support inbox assistant write good replies and propose sensible tags; does the Order watcher stay quiet on ordinary orders? | **manual**, needs an AI key | to do |
 | V39 | Connect a real MCP server (any public Streamable HTTP server with a token): Show tools, Check connection, one `mcp_read` test run and one approved `mcp_call_tool` | **manual**, needs an MCP server | to do |
-| V34 | Run the 1,000-order duplicate test on PostgreSQL (staging): `DATABASE_URL=postgresql+psycopg://... AUTOFLOW_SOAK_RUNS=1000 pytest tests/test_duplicate_soak.py`; SQLite result is in docs/evidence/duplicate-soak.md | **cloud**, PostgreSQL | to do |
+| V34 | Run the 1,000-order duplicate test on PostgreSQL (staging): `DATABASE_URL=postgresql+psycopg://... LUPHINA_SOAK_RUNS=1000 pytest tests/test_duplicate_soak.py`; SQLite result is in docs/evidence/duplicate-soak.md | **cloud**, PostgreSQL | to do |
 | V24 | Install on a real phone: open the app in Chrome (Android) or Safari (iPhone) → "Add to Home Screen" → it opens on Approvals; approve one item with a thumb tap | **manual**, phone | to do |
 | V24 | Open a notification link `/approvals?focus=<id>` on the phone and check that the right approval is highlighted | **manual**, phone | to do |
 | V22/V35 | Run the full AI builder eval: `cd backend && python evals/run_builder_eval.py` (60 cases, about 60–180 AI calls; gate: first-time pass rate ≥ 80%) | **manual**, any machine with an AI key | 9 of the original 15 checked; the 45 new cases not yet run |

@@ -1,4 +1,4 @@
-# AutoFlow web app: standalone Next.js server
+# Luphina web app: standalone Next.js server
 FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -9,8 +9,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # The API address is built into the /api rewrite
-ARG AUTOFLOW_API_URL=http://api:8000
-ENV AUTOFLOW_API_URL=$AUTOFLOW_API_URL \
+ARG LUPHINA_API_URL=http://api:8000
+ENV LUPHINA_API_URL=$LUPHINA_API_URL \
     NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

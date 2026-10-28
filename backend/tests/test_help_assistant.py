@@ -1,8 +1,8 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from autoflow import help_assistant
-from autoflow.ai import providers
+from luphina import help_assistant
+from luphina.ai import providers
 
 DOCS = Path(__file__).resolve().parents[2] / "docs" / "help"
 
@@ -20,7 +20,7 @@ def test_search_finds_the_right_section():
 
 def test_ask_answers_from_help_and_does_not_use_the_customers_ai_budget(client, signup):
     headers, workspace_id = signup()
-    with patch("autoflow.help_assistant.providers.complete", return_value=("Press Void on Invoices.", "fake")) as ai:
+    with patch("luphina.help_assistant.providers.complete", return_value=("Press Void on Invoices.", "fake")) as ai:
         reply = client.post(f"/workspaces/{workspace_id}/help/ask", json={"question": "How do I void an invoice?"},
                             headers=headers).json()
     assert reply["ai"] and reply["answer"] == "Press Void on Invoices." and reply["sources"]
@@ -28,7 +28,7 @@ def test_ask_answers_from_help_and_does_not_use_the_customers_ai_budget(client, 
     usage = client.get(f"/workspaces/{workspace_id}/dashboard", headers=headers).json()["usage_today"]
     assert usage["ai_calls"] == 0
 
-    with patch("autoflow.help_assistant.providers.complete", side_effect=providers.AIUnavailable("none")):
+    with patch("luphina.help_assistant.providers.complete", side_effect=providers.AIUnavailable("none")):
         fallback = client.post(f"/workspaces/{workspace_id}/help/ask", json={"question": "AI budget"},
                                headers=headers).json()
     assert fallback["ai"] is False and fallback["excerpts"]

@@ -1,4 +1,4 @@
-// Shapes returned by the AutoFlow API (see backend/src/autoflow/api).
+// Shapes returned by the Luphina API (see backend/src/luphina/api).
 
 export type Role = "viewer" | "member" | "admin" | "owner";
 

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from autoflow import observability
+from luphina import observability
 
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
@@ -10,7 +10,7 @@ PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 
 @pytest.fixture(autouse=True)
 def no_sleep():
-    with patch("autoflow.engine.executor.sleep"):
+    with patch("luphina.engine.executor.sleep"):
         yield
 
 
@@ -43,7 +43,7 @@ def test_reading_scans_counts_toward_the_ai_limit(ws):
         return client.post(f"{base}/workflows/{workflow['id']}/documents",
                            files={"file": ("photo.png", PNG, "image/png")}, data={"mode": "test"}, headers=headers)
 
-    with patch("autoflow.documents.providers.transcribe", return_value=("Receipt 12.00", "fake")) as ocr:
+    with patch("luphina.documents.providers.transcribe", return_value=("Receipt 12.00", "fake")) as ocr:
         first = upload()
         second = upload()
 
@@ -108,7 +108,7 @@ def run_live(ws, workflow_id, payload):
 def test_shopify_tags_are_merged_not_replaced(ws):
     workflow = tag_workflow(ws)
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         http.get.return_value = response(200, {"order": {"id": 42, "tags": "wholesale, vip"}})
         http.put.return_value = response(200, {"order": {"id": 42}})
         run = run_live(ws, workflow["id"], {"id": 42})
@@ -124,7 +124,7 @@ def test_shopify_tags_are_merged_not_replaced(ws):
 def test_shopify_tagging_twice_changes_nothing(ws):
     workflow = tag_workflow(ws)
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         http.get.return_value = response(200, {"order": {"id": 42, "tags": "invoiced, vip"}})
         run = run_live(ws, workflow["id"], {"id": 42})
 
@@ -135,7 +135,7 @@ def test_shopify_tagging_twice_changes_nothing(ws):
 def test_shopify_rejects_non_numeric_order_ids(ws):
     workflow = tag_workflow(ws)
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         run = run_live(ws, workflow["id"], {"id": "42/../../shop"})
 
     assert run["status"] == "failed"
@@ -152,7 +152,7 @@ def test_shopify_note_action(ws):
     }}, headers=headers).json()
     client.post(f"{base}/workflows/{workflow['id']}/publish", headers=headers)
 
-    with patch("autoflow.integrations.actions.requests") as http:
+    with patch("luphina.integrations.actions.requests") as http:
         http.put.return_value = response(200, {})
         run = run_live(ws, workflow["id"], {})
 

@@ -1,0 +1,645 @@
+"""
+Runs workflow executions step by step, reliably.
+
+Guarantees:
+- A step that already succeeded is never run again (resume and retry
+  continue from where the execution stopped).
+- A step is marked "running" and committed *before* its action starts.
+  If a non-idempotent side effect (e.g. sending an email) is found still
+  "running" or timed out, its outcome is unknown, so the execution stops
+  with status needs_attention instead of risking a duplicate.
+- Live side effects that need approval wait for a human decision.
+- Test executions simulate side effects, so nothing real happens.
+- Cancelling is checked before every step.
+
+Executions currently run in the calling process. The same functions can
+later be driven by a background worker or a durable engine (Temporal).
+"""
+
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+
+from luphina import audit, config, notifications, quality
+from luphina.billing import service as billing
+from luphina.engine import limits
+from luphina.engine.actions import ActionContext, ActionError, delay_seconds, get_action, validate_inputs
+from luphina.engine.definition import MAX_FOR_EACH_ITEMS, WorkflowDefinition
+from luphina.engine.templating import evaluate_condition, render
+from luphina.security import outbound
+from luphina.storage.db import utc_now
+from luphina.storage.models import Approval, StepExecution, Workflow, Workspace
+
+
+TERMINAL_STATUSES = {"succeeded", "failed", "cancelled", "needs_attention"}
+
+# Longest wait between retry attempts (keeps heartbeats frequent)
+MAX_BACKOFF_SECONDS = 300
+
+# Replaced in tests so retries do not really wait
+sleep = time.sleep
+
+
+class ExecutionConflict(Exception):
+    """The execution cannot do what was asked in its current state."""
+
+
+def _workflow_name(session, execution):
+    workflow = session.get(Workflow, execution.workflow_id)
+    return workflow.name if workflow else f"Workflow {execution.workflow_id}"
+
+
+def _finish(session, execution, status, error=None):
+    execution.status = status
+    execution.error = error
+    execution.finished_at = utc_now()
+
+    if status in ("failed", "needs_attention") and execution.mode == "live":
+        label = "needs your attention" if status == "needs_attention" else "failed"
+        notifications.enqueue(
+            session,
+            execution.workspace_id,
+            "failure",
+            f"{_workflow_name(session, execution)}: run #{execution.id} {label}",
+            error or "",
+            link=f"/executions/{execution.id}",
+        )
+
+    session.commit()
+
+
+def _step_record(session, execution, step, position):
+    for record in execution.steps:
+        if record.step_id == step.id:
+            return record
+
+    record = StepExecution(
+        execution_id=execution.id,
+        step_id=step.id,
+        position=position,
+        action=step.action,
+    )
+    session.add(record)
+    execution.steps.append(record)
+    session.flush()
+    return record
+
+
+def _invoke(action, ctx, inputs, timeout_seconds):
+    validate_inputs(action, inputs)
+
+    if ctx.mode == "test" and action.side_effect:
+        if action.simulate is not None:
+            return action.simulate(ctx, inputs)
+        return {"dry_run": True}
+
+    if action.connection_provider and inputs.get("connection"):
+        ctx.credentials = _load_credentials(ctx, action, inputs["connection"])
+
+    if not action.uses_network:
+        return action.handler(ctx, inputs)
+
+    # Network actions run in a worker thread so a timeout can apply.
+    # They never receive the database session.
+    pool = ThreadPoolExecutor(max_workers=1)
+    try:
+        thread_ctx = ActionContext(**{**ctx.__dict__, "session": None})
+        future = pool.submit(action.handler, thread_ctx, inputs)
+        return future.result(timeout=timeout_seconds)
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+
+
+def _load_credentials(ctx, action, connection_name):
+    """Decrypt this workspace's connection (main thread, has the session)."""
+
+    from luphina.integrations import connections
+
+    try:
+        config, secrets = connections.credentials_for(
+            ctx.session, ctx.workspace_id, connection_name, action.connection_provider
+        )
+    except connections.ReconnectNeeded as error:
+        raise ActionError(str(error), retryable=False) from error
+
+    return {"config": config, "secrets": secrets}
+
+
+def execute(session, execution):
+    """Run (or continue) an execution until it finishes or must wait."""
+
+    if execution.status in TERMINAL_STATUSES:
+        return execution
+
+    definition = WorkflowDefinition.model_validate(execution.version.definition)
+    context = {"trigger": execution.trigger_payload, "steps": {}}
+    workspace = session.get(Workspace, execution.workspace_id)
+
+    execution.status = "running"
+    execution.started_at = execution.started_at or utc_now()
+    execution.heartbeat_at = utc_now()
+    execution.run_after = None
+    session.commit()
+
+    for position, step in enumerate(definition.steps):
+        # Stop at once if someone cancelled the execution
+        session.refresh(execution, ["status"])
+        if execution.status == "cancelled":
+            return execution
+
+        record = _step_record(session, execution, step, position)
+        action = get_action(step.action)
+
+        if record.status in ("succeeded", "skipped"):
+            context["steps"][step.id] = {"output": record.output}
+            continue
+
+        if record.status == "rejected":
+            _finish(session, execution, "cancelled", f"Step {step.id} was rejected by a reviewer.")
+            return execution
+
+        if record.status == "running" and action.side_effect and not action.idempotent:
+            record.status = "failed"
+            record.error = "Interrupted while running; the outcome is unknown."
+            _finish(
+                session,
+                execution,
+                "needs_attention",
+                f"Step {step.id} may or may not have completed. Check before retrying.",
+            )
+            return execution
+
+        if step.when is not None and not evaluate_condition(step.when, context):
+            record.status = "skipped"
+            record.output = None
+            record.finished_at = utc_now()
+            session.commit()
+            context["steps"][step.id] = {"output": None}
+            continue
+
+        inputs = render(step.inputs, context)
+        record.input = inputs
+
+        if action.name == "delay":
+            if not _delay_elapsed(session, execution, step, record, inputs):
+                return execution
+            context["steps"][step.id] = {"output": record.output}
+            continue
+
+        loop_inputs = None
+        if step.for_each is not None:
+            items = render(step.for_each, context)
+            items = [] if items is None else items
+            if not isinstance(items, list) or len(items) > MAX_FOR_EACH_ITEMS:
+                record.status = "failed"
+                record.error = (
+                    f"for_each needs a list of at most {MAX_FOR_EACH_ITEMS} items "
+                    f"(got {len(items) if isinstance(items, list) else type(items).__name__})."
+                )
+                record.finished_at = utc_now()
+                _finish(session, execution, "failed", f"Step {step.id} failed: {record.error}")
+                return execution
+            loop_inputs = [render(step.inputs, {**context, "item": item, "index": index}) for index, item in enumerate(items)]
+            inputs = {"items": loop_inputs}
+            record.input = inputs
+
+        # Outgoing email is checked for phishing and spam before anyone approves it
+        warnings = []
+        if action.name in limits.EMAIL_ACTIONS:
+            findings = outbound.check_email(inputs)
+            blocked = outbound.blocking(findings)
+            if blocked:
+                record.status = "failed"
+                record.error = blocked[0]["reason"]
+                record.finished_at = utc_now()
+                audit.record(
+                    session, "outbound.blocked", workspace_id=execution.workspace_id,
+                    target=f"execution:{execution.id}", details={"step": step.id, "reasons": [f["reason"] for f in blocked]},
+                )
+                _finish(session, execution, "failed", f"Step {step.id} blocked by the safety check: {blocked[0]['reason']}")
+                return execution
+            warnings = [finding["reason"] for finding in findings]
+
+        needs_approval = step.needs_approval() or (
+            workspace.approve_all_side_effects and action.side_effect
+        )
+
+        if execution.mode == "live" and needs_approval and record.status != "approved":
+            _request_approval(session, execution, step, record, inputs, warnings=warnings)
+            return execution
+
+        try:
+            limits.check_can_run_step(session, workspace, action.name, execution.mode)
+            if billing.is_billable(action, execution.mode):
+                billing.check_can_run_billable(session, workspace.id)
+        except (limits.LimitReached, billing.PlanLimitReached) as limit:
+            record.status = "failed"
+            record.error = str(limit)
+            _finish(session, execution, "failed", f"Step {step.id} stopped: {limit}")
+            return execution
+
+        if loop_inputs is not None:
+            if not _run_loop(session, execution, step, record, action, loop_inputs):
+                return execution
+        elif not _run_step(session, execution, step, record, action, inputs):
+            return execution
+        if warnings:
+            record.output = {**(record.output or {}), "safety_warnings": warnings}
+            session.commit()
+
+        context["steps"][step.id] = {"output": record.output}
+
+    _finish(session, execution, "succeeded")
+    return execution
+
+
+def _delay_elapsed(session, execution, step, record, inputs):
+    """Handle a delay step. Returns True once the wait is over.
+
+    The first time, the execution is parked as "queued" with run_after set
+    to the resume time; a worker continues it then. Test runs skip waits.
+    """
+
+    if execution.mode == "test":
+        record.status = "succeeded"
+        record.output = {"skipped_in_test": True}
+        record.finished_at = utc_now()
+        session.commit()
+        return True
+
+    resume_at = (record.output or {}).get("resume_at")
+
+    if resume_at is None:
+        try:
+            seconds = delay_seconds(inputs)
+        except ActionError as error:
+            record.status = "failed"
+            record.error = str(error)
+            _finish(session, execution, "failed", f"Step {step.id} failed: {error}")
+            return False
+
+        resume = utc_now() + timedelta(seconds=seconds)
+        record.output = {"resume_at": resume.isoformat()}
+        record.started_at = utc_now()
+    else:
+        resume = datetime.fromisoformat(resume_at)
+
+    if utc_now() >= resume:
+        record.status = "succeeded"
+        record.finished_at = utc_now()
+        session.commit()
+        return True
+
+    record.status = "waiting"
+    execution.status = "queued"
+    execution.run_after = resume
+    execution.claimed_by = None
+    session.commit()
+    return False
+
+
+def _request_approval(session, execution, step, record, inputs, review=None, warnings=None):
+    """Pause the execution until a human decides.
+
+    Without `review` this gates the step before it runs. With `review`
+    ({"reason", "output"}) the step already ran and a person checks (and
+    may correct) its output before the workflow continues.
+    """
+
+    record.status = "waiting_approval"
+    payload = {
+        "execution_id": execution.id,
+        "step_id": step.id,
+        "step_name": step.name or step.id,
+        "action": step.action,
+        "inputs": inputs,
+    }
+    if review is not None:
+        payload.update({"review": True, **review})
+    if warnings:
+        payload["safety_warnings"] = warnings
+
+    existing = session.query(Approval).filter_by(
+        execution_id=execution.id, step_id=step.id
+    ).first()
+
+    approval = existing
+    if existing is None:
+        approval = Approval(
+            workspace_id=execution.workspace_id,
+            kind="step",
+            customer_email=str(inputs.get("to") or inputs.get("email") or ""),
+            payload=payload,
+            execution_id=execution.id,
+            step_id=step.id,
+        )
+        session.add(approval)
+        session.flush()  # gives the approval its id for the notification link
+    elif existing.status != "pending":
+        # The step was approved to run; now its result needs a review too
+        payload["previous_decision"] = existing.decision
+        existing.payload = payload
+        existing.status = "pending"
+        existing.decision = None
+        existing.decided_at = None
+        existing.decided_by_user_id = None
+
+    if existing is None or payload.get("review"):
+        what = "check an AI result" if payload.get("review") else f"approve \"{payload['step_name']}\""
+        notifications.enqueue(
+            session,
+            execution.workspace_id,
+            "approval",
+            f"{_workflow_name(session, execution)}: please {what}",
+            f"Run #{execution.id} is waiting for you." + (f" Reason: {review['reason']}" if review else ""),
+            link=f"/approvals?focus={approval.id}",
+        )
+
+    execution.status = "waiting_approval"
+    session.commit()
+
+
+def _review_reason(step, output):
+    """Why a live AI result must be checked by a person (None if not)."""
+
+    if output.get("injection_suspected"):
+        return "The input may contain a prompt-injection attempt."
+
+    threshold = step.review_threshold()
+    confidence = output.get("confidence")
+
+    if threshold and isinstance(confidence, (int, float)) and confidence < threshold:
+        return f"Confidence {confidence:.2f} is below the review threshold {threshold:.2f}."
+
+    return None
+
+
+def _run_step(session, execution, step, record, action, inputs):
+    """Run one step with retries. Returns True if the execution may continue."""
+
+    ctx = ActionContext(
+        workspace_id=execution.workspace_id,
+        execution_id=execution.id,
+        step_id=step.id,
+        idempotency_key=f"execution-{execution.id}-step-{step.id}",
+        mode=execution.mode,
+        session=session,
+    )
+
+    while True:
+        # Record the attempt before acting, so a crash is detectable
+        record.attempts += 1
+        record.status = "running"
+        record.error = None
+        record.started_at = utc_now()
+        execution.heartbeat_at = utc_now()
+        session.commit()
+
+        try:
+            output = _invoke(action, ctx, inputs, step.timeout_seconds)
+        except TimeoutError:
+            if action.side_effect and not action.idempotent and execution.mode == "live":
+                record.status = "failed"
+                record.error = f"Timed out after {step.timeout_seconds}s; the outcome is unknown."
+                _finish(
+                    session,
+                    execution,
+                    "needs_attention",
+                    f"Step {step.id} timed out and may have completed. Check before retrying.",
+                )
+                return False
+            error, retryable = f"Timed out after {step.timeout_seconds}s.", True
+        except ActionError as action_error:
+            error, retryable = str(action_error), action_error.retryable
+        except Exception as unexpected:  # noqa: BLE001 - any action bug fails the step
+            error, retryable = f"Unexpected error: {unexpected}", False
+        else:
+            record.output = output if isinstance(output, dict) else {"result": output}
+            reason = _review_reason(step, record.output) if execution.mode == "live" else None
+
+            if reason:
+                _request_approval(
+                    session, execution, step, record, inputs,
+                    review={"reason": reason, "output": record.output},
+                )
+                return False
+
+            record.status = "succeeded"
+            record.finished_at = utc_now()
+            if billing.is_billable(action, execution.mode, record.output):
+                # Same commit as the success, so it is counted exactly once
+                billing.record_billable(session, execution.workspace_id, record, action.name)
+            # Production evaluation: some live AI results are kept for a person to judge
+            quality.maybe_sample(session, session.get(Workspace, execution.workspace_id), execution,
+                                 step.id, action.name, inputs, record.output)
+            session.commit()
+            return True
+
+        if not retryable or record.attempts >= step.retry.max_attempts:
+            record.status = "failed"
+            record.error = error
+            record.finished_at = utc_now()
+            _finish(session, execution, "failed", f"Step {step.id} failed: {error}")
+            return False
+
+        record.error = error
+        session.commit()
+        # Capped so the execution's heartbeat never goes quiet for long
+        sleep(min(MAX_BACKOFF_SECONDS, step.retry.backoff_seconds * 2 ** (record.attempts - 1)))
+
+
+def _run_loop(session, execution, step, record, action, item_inputs):
+    """Run a for_each step: the action once per item, with retries per item.
+
+    Progress is saved after every item, so a retry or a resumed run
+    continues where it stopped and never repeats a finished item.
+    """
+
+    progress = record.output if isinstance(record.output, dict) and record.output.get("in_progress") else None
+    done = list(progress["items"]) if progress else []
+    total = len(item_inputs)
+
+    for index in range(len(done), total):
+        ctx = ActionContext(
+            workspace_id=execution.workspace_id,
+            execution_id=execution.id,
+            step_id=step.id,
+            idempotency_key=f"execution-{execution.id}-step-{step.id}-item-{index}",
+            mode=execution.mode,
+            session=session,
+        )
+        attempts = 0
+        while True:
+            attempts += 1
+            record.attempts += 1
+            record.status = "running"
+            record.error = None
+            record.started_at = record.started_at or utc_now()
+            execution.heartbeat_at = utc_now()
+            session.commit()
+
+            try:
+                output = _invoke(action, ctx, item_inputs[index], step.timeout_seconds)
+            except TimeoutError:
+                if action.side_effect and not action.idempotent and execution.mode == "live":
+                    record.status = "failed"
+                    record.error = f"Item {index + 1} of {total} timed out; its outcome is unknown."
+                    _finish(session, execution, "needs_attention",
+                            f"Step {step.id} item {index + 1} timed out and may have completed. Check before retrying.")
+                    return False
+                error, retryable = f"Timed out after {step.timeout_seconds}s.", True
+            except ActionError as action_error:
+                error, retryable = str(action_error), action_error.retryable
+            except Exception as unexpected:  # noqa: BLE001 - any action bug fails the step
+                error, retryable = f"Unexpected error: {unexpected}", False
+            else:
+                done.append(output if isinstance(output, dict) else {"result": output})
+                record.output = {"items": done, "count": len(done), "in_progress": True}
+                session.commit()
+                break
+
+            if not retryable or attempts >= step.retry.max_attempts:
+                record.status = "failed"
+                record.error = f"Item {index + 1} of {total}: {error}"
+                record.finished_at = utc_now()
+                _finish(session, execution, "failed", f"Step {step.id} failed on item {index + 1}: {error}")
+                return False
+
+            record.error = error
+            session.commit()
+            sleep(min(MAX_BACKOFF_SECONDS, step.retry.backoff_seconds * 2 ** (attempts - 1)))
+
+    record.status = "succeeded"
+    record.output = {"items": done, "count": len(done)}
+    record.finished_at = utc_now()
+    if done and billing.is_billable(action, execution.mode):
+        # One billable task per item that called an app
+        billing.record_billable(session, execution.workspace_id, record, action.name, quantity=len(done))
+    session.commit()
+    return True
+
+
+# --- operator actions -------------------------------------------------------
+
+def cancel(session, execution):
+    """Stop an execution; pending step approvals are withdrawn."""
+
+    if execution.status in TERMINAL_STATUSES:
+        raise ExecutionConflict(f"Execution is already {execution.status}.")
+
+    for approval in session.query(Approval).filter_by(
+        execution_id=execution.id, status="pending"
+    ):
+        approval.status = "cancelled"
+        approval.decided_at = utc_now()
+
+    _finish(session, execution, "cancelled", "Cancelled by a user.")
+    return execution
+
+
+def retry(session, execution, confirm_not_completed=False):
+    """Continue a failed execution from the step that failed.
+
+    For needs_attention executions the caller must confirm that the
+    uncertain step did not complete, so it is never duplicated blindly.
+    """
+
+    if execution.status == "needs_attention" and not confirm_not_completed:
+        raise ExecutionConflict(
+            "Confirm the uncertain step did not complete before retrying."
+        )
+
+    if execution.status not in ("failed", "needs_attention"):
+        raise ExecutionConflict(f"Only failed executions can be retried (status: {execution.status}).")
+
+    for record in execution.steps:
+        if record.status == "failed":
+            # A step a human already approved keeps that approval
+            already_approved = session.query(Approval).filter_by(
+                execution_id=execution.id, step_id=record.step_id, status="approved"
+            ).first()
+
+            record.status = "approved" if already_approved else "pending"
+            record.attempts = 0
+            record.error = None
+
+    execution.status = "queued"
+    execution.error = None
+    execution.finished_at = None
+    session.commit()
+
+    return _continue(session, execution)
+
+
+def confirm_completed(session, execution):
+    """A person checked that the uncertain step DID happen: keep it, move on.
+
+    The other half of needs_attention (retry covers "it did not happen").
+    The step is recorded as done by a person and is never run again.
+    """
+
+    if execution.status != "needs_attention":
+        raise ExecutionConflict(
+            f"Only runs that need attention can be confirmed (status: {execution.status})."
+        )
+
+    for record in execution.steps:
+        if record.status != "failed":
+            continue
+        record.error = None
+        if isinstance(record.output, dict) and record.output.get("in_progress"):
+            # A loop: the uncertain item happened; the loop goes on with the next one
+            items = record.output["items"] + [{"confirmed_by_person": True}]
+            record.output = {"items": items, "count": len(items), "in_progress": True}
+            record.status = "approved" if session.query(Approval).filter_by(
+                execution_id=execution.id, step_id=record.step_id, status="approved"
+            ).first() else "pending"
+        else:
+            record.status = "succeeded"
+            record.output = {"confirmed_by_person": True}
+            record.finished_at = utc_now()
+
+    execution.status = "queued"
+    execution.error = None
+    execution.finished_at = None
+    session.commit()
+
+    return _continue(session, execution)
+
+
+def _continue(session, execution):
+    """Run now (inline mode) or hand the execution to the workers (queue mode)."""
+
+    if config.execution_mode() == "queue":
+        execution.status = "queued"
+        execution.claimed_by = None
+        session.commit()
+        return execution
+
+    return execute(session, execution)
+
+
+def resume_after_decision(session, execution, step_id, approved, review=False, corrected_output=None):
+    """Continue (approved) or stop (rejected) after a step approval.
+
+    For a review, approving accepts the step's output (or the reviewer's
+    corrected output) and the workflow continues after that step.
+    """
+
+    record = next(r for r in execution.steps if r.step_id == step_id)
+
+    if not approved:
+        record.status = "rejected"
+        record.finished_at = utc_now()
+    elif review:
+        if corrected_output is not None:
+            record.output = {**(record.output or {}), **corrected_output, "reviewed": True}
+        else:
+            record.output = {**(record.output or {}), "reviewed": True}
+        record.status = "succeeded"
+        record.finished_at = utc_now()
+    else:
+        record.status = "approved"
+
+    session.commit()
+    return _continue(session, execution)

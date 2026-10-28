@@ -1,8 +1,8 @@
 from sqlalchemy import select
 
-from autoflow.engine.diff import compare
-from autoflow.storage.db import session_scope
-from autoflow.storage.models import AuditEvent
+from luphina.engine.diff import compare
+from luphina.storage.db import session_scope
+from luphina.storage.models import AuditEvent
 
 V1 = {
     "trigger": {"type": "webhook"},

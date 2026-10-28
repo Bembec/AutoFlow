@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from sqlalchemy import select, update
 
-from autoflow.storage.db import session_scope, utc_now
-from autoflow.storage.models import Workflow, WorkflowExecution, WorkflowVersion
+from luphina.storage.db import session_scope, utc_now
+from luphina.storage.models import Workflow, WorkflowExecution, WorkflowVersion
 
 
 def add_runs(workflow_id, statuses, days_ago=1):

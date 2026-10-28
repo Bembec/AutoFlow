@@ -15,7 +15,7 @@ def workspace(client, signup):
     headers, workspace_id = signup()
     base = f"/workspaces/{workspace_id}"
 
-    with patch("autoflow.pipeline.classify_with_ai", side_effect=fake_ai):
+    with patch("luphina.pipeline.classify_with_ai", side_effect=fake_ai):
         client.post(f"{base}/workflow-runs", headers=headers)
 
     return client, headers, base
@@ -39,7 +39,7 @@ def test_run_queues_approvals_instead_of_acting(workspace):
     assert sum(a["kind"] == "email" for a in queued) == 4
 
     # Running again refreshes pending approvals instead of duplicating them
-    with patch("autoflow.pipeline.classify_with_ai", side_effect=fake_ai):
+    with patch("luphina.pipeline.classify_with_ai", side_effect=fake_ai):
         client.post(f"{base}/workflow-runs", headers=headers)
 
     queued = client.get(f"{base}/approvals", params={"status": "pending"}, headers=headers).json()
@@ -85,7 +85,7 @@ def test_approved_email_is_sent_exactly_once(workspace):
     client.post(f"{base}/approvals/{review['id']}/approve", headers=headers)
     email_approval = pending(workspace, "email", "ada@example.com")
 
-    with patch("autoflow.approvals.send_email", return_value=True) as send:
+    with patch("luphina.approvals.send_email", return_value=True) as send:
         first = client.post(f"{base}/approvals/{email_approval['id']}/approve", headers=headers)
         second = client.post(f"{base}/approvals/{email_approval['id']}/approve", headers=headers)
 
@@ -98,7 +98,7 @@ def test_reject_sends_nothing(workspace):
     client, headers, base = workspace
     email_approval = pending(workspace, "email", "sara@example.com")
 
-    with patch("autoflow.approvals.send_email") as send:
+    with patch("luphina.approvals.send_email") as send:
         response = client.post(
             f"{base}/approvals/{email_approval['id']}/reject", headers=headers
         )
