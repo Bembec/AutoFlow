@@ -41,7 +41,7 @@ Where the codebase stands against the roadmap's build order and Phase 1 (MVP) re
 
 ## Next, in order
 
-1. **Decide the remaining open questions**: launch country, brand name, build vs. buy integrations, funding route, and (added October 2026) positioning, Shopify route, Gmail access, Free plan. (Niche decided: e-commerce.)
+1. **Decide the remaining open questions**: launch country, ~~brand name~~ (decided 2026-10-28: **Luphina**, applied in V49), build vs. buy integrations, funding route, and (added October 2026) positioning, Shopify route, Gmail access, Free plan. (Niche decided: e-commerce.)
 2. ~~Three niche automations~~: done in V19 (they use Shopify webhooks; a Shopify Admin API connector can come later, e.g. to post review replies or tag orders).
 3. ~~Visual step editing~~: done in V18 (form editor with drag-to-reorder, next to the canvas).
 4. ~~Background execution queue and `delay` steps~~: done in V17.

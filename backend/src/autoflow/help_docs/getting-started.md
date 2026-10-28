@@ -4,17 +4,17 @@
 
 Sign up with your email. You get your own **workspace**: everything you build and connect stays private to it. You can invite teammates later in **Settings → Team**.
 
-After signing up you land on **Get started**. Choose where you sell (Shopify, WooCommerce or somewhere else) and AutoFlow suggests the best first automation. One click sets it up and takes you straight to a test run. A **checklist** on the dashboard ticks off each step below as you finish it. You can hide it at any time.
+After signing up you land on **Get started**. Choose where you sell (Shopify, WooCommerce or somewhere else) and Luphina suggests the best first automation. One click sets it up and takes you straight to a test run. A **checklist** on the dashboard ticks off each step below as you finish it. You can hide it at any time.
 
 ## 2. Add your business details
 
-Go to **Settings → Business details** and fill in your business name, address and tax/VAT number. These are printed on the invoices AutoFlow creates.
+Go to **Settings → Business details** and fill in your business name, address and tax/VAT number. These are printed on the invoices Luphina creates.
 
 ## 3. Pick an automation
 
 Open **Workflows → New workflow**. You can:
 
-- **Describe it in plain words.** For example: *"When a Shopify order is paid, create an invoice and email it to the customer."* AutoFlow drafts the steps and asks if anything is unclear.
+- **Describe it in plain words.** For example: *"When a Shopify order is paid, create an invoice and email it to the customer."* Luphina drafts the steps and asks if anything is unclear.
 - **Start from a template.** Each one lists what it needs to work ("Needs to work live").
 
 ## 4. Test it safely

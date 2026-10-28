@@ -22,7 +22,7 @@ const WORKS_WITH = ["Shopify", "WooCommerce", "Gmail and any email", "Google She
 const STEPS = [
   {
     title: "Describe it",
-    text: "Type what should happen, in your own words. AutoFlow asks about anything unclear.",
+    text: "Type what should happen, in your own words. Luphina asks about anything unclear.",
   },
   {
     title: "Test it safely",
@@ -77,17 +77,20 @@ export default function Home() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-brand-50 to-white" />
+        <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-lilac to-ivory" />
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-16 pb-20 sm:px-6 lg:grid-cols-2 lg:pt-24">
           <div>
             <p className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-medium text-brand-700 ring-1 ring-brand-200">
               <S t={"Automation for online shops"} />
             </p>
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-900 sm:text-6xl">
-              <S t={"Tell it what you want done."} />
+            <h1 className="mt-5 font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
+              <S t={"Automate the busywork. Focus on what matters."} />
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-600">
-              <S t={"AutoFlow builds the workflow, connects your store and apps, and runs it for you. A person stays in the loop for anything that matters."} />
+            <p className="mt-5 max-w-xl text-lg text-slate-700">
+              <S t={"Luphina brings customer interactions, everyday tasks, and connected tools into simpler, smarter workflows."} />
+            </p>
+            <p className="mt-3 max-w-xl text-slate-600">
+              <S t={"Describe a task in your own words. Luphina builds the workflow, connects your store and apps, and runs it, with a person in the loop for anything that matters."} />
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <StartOrOpen className={ctaClass} />

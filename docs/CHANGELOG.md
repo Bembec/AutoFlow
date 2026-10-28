@@ -1,5 +1,21 @@
 # Changelog
 
+## V49: The product is now Luphina
+- **Name and identity:** everything people see now says **Luphina**: the website, the app, page titles, the installed phone app, the help articles and the help assistant, emails and notifications ("[Luphina] …"), the authenticator-app label for two-factor login, the AI builder's instructions and the MCP server's name.
+- **Logo:** the approved ribbon mark is used exactly as supplied, with only the screenshot edges trimmed. App, browser-tab and iPhone icons place it on a Midnight square. The original files are kept in `frontend/public/brand/`. A clean, transparent master is still needed.
+- **Look:**
+  - the Luphina palette: Midnight, Luphina Purple, Sunrise Gold, Soft Lilac, Ivory, Ink. Buttons use a slightly darker purple so white text stays readable;
+  - Inter for the app, Lora for marketing headlines.
+- **Website:**
+  - new home headline "Automate the busywork. Focus on what matters." with the brief's subheading;
+  - "Turning Challenges Into Progress." in the footer;
+  - a new **About** page with *How we build*, a quiet **Our story** section and **Contact**;
+  - a Company column in the footer. All in five languages.
+- **Support email:** `luphina2026@gmail.com` (for now).
+- **Kept on purpose:** internal names (`autoflow` package, `AUTOFLOW_*` settings, `X-AutoFlow-*` webhook and email headers, database and repository names), so nothing that's already connected breaks. See `docs/brand/README.md`.
+- **Brand guide:** `docs/brand/README.md`.
+- Checks: backend 325 passed; frontend type check, lint and build clean; website translation scan shows 0 untranslated.
+
 ## V48.2: Website and app linked both ways
 - **Signed-in visitors** see **Open the app** instead of "Sign in / Start free" in the website header, the mobile menu, the home page button and the closing banner. The sign-in page offers "You're already signed in. Open the app".
 - The header's sign-in and start-free links, plus "Works with" and the footer's "Report abuse", are now translated too (a full re-scan found no untranslated site text left).

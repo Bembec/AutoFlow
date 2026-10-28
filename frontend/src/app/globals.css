@@ -1,24 +1,32 @@
 @import "tailwindcss";
 
 /*
- * Brand theme.
+ * Brand theme: Luphina.
  *
- * Every accent in the app uses the `brand-*` colours below, so a new brand
- * is one edit here (plus src/lib/brand.ts for the name and logo).
- * The default palette is indigo.
+ * Every accent in the app uses the `brand-*` colours below (a scale built
+ * around Luphina Purple #6B5BFF), so a new brand is one edit here (plus
+ * src/lib/brand.ts for the name and logo). Buttons use brand-600, a little
+ * darker than the swatch, so white text keeps a readable contrast.
+ * The named tokens are the brand board's swatches.
  */
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-brand-50: #f5f4ff;
+  --color-brand-100: #edebff;
+  --color-brand-200: #dcd8ff;
+  --color-brand-300: #c0b9ff;
+  --color-brand-400: #998fff;
+  --color-brand-500: #6b5bff;
+  --color-brand-600: #5a46f0;
+  --color-brand-700: #4a37d4;
+  --color-brand-800: #3d2eab;
+  --color-brand-900: #2f2780;
+  --color-brand-950: #1c1850;
+
+  --color-midnight: #0f1b3d;
+  --color-gold: #f2c572;
+  --color-lilac: #edebff;
+  --color-ivory: #faf8f4;
+  --color-ink: #17213b;
 
   --animate-shimmer: shimmer 1.4s ease-in-out infinite;
 
@@ -28,13 +36,15 @@
   }
 }
 
+/* Inter for the app and body text; Lora (serif) for selected marketing headlines */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-lora);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Visible keyboard focus everywhere, invisible for mouse clicks */

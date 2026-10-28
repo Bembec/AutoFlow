@@ -29,11 +29,78 @@ const SITE: Record<string, Row> = {
   "Create an account": ["Crear una cuenta", "Créer un compte", "Konto erstellen", "Hesap oluştur"],
   "Report abuse": ["Denunciar abuso", "Signaler un abus", "Missbrauch melden", "Kötüye kullanımı bildir"],
   "Language": ["Idioma", "Langue", "Sprache", "Dil"],
-  "Tell it what you want done. AutoFlow builds the workflow, connects your apps, and runs it for you.": [
-    "Dile lo que quieres hacer. AutoFlow crea el flujo, conecta tus apps y lo ejecuta por ti.",
-    "Dites-lui ce que vous voulez faire. AutoFlow crée le flux, connecte vos applis et l'exécute pour vous.",
-    "Sagen Sie, was erledigt werden soll. AutoFlow baut den Workflow, verbindet Ihre Apps und führt ihn für Sie aus.",
-    "Ne yapılmasını istediğinizi söyleyin. AutoFlow iş akışını kurar, uygulamalarınızı bağlar ve sizin için çalıştırır.",
+  "AI-powered business automation for people and teams who want to work smarter.": [
+    "Automatización empresarial con IA para personas y equipos que quieren trabajar de forma más inteligente.",
+    "L'automatisation d'entreprise propulsée par l'IA, pour les personnes et les équipes qui veulent travailler plus intelligemment.",
+    "KI-gestützte Geschäftsautomatisierung für Menschen und Teams, die smarter arbeiten wollen.",
+    "Daha akıllı çalışmak isteyen kişiler ve ekipler için yapay zekâ destekli iş otomasyonu.",
+  ],
+  "Turning Challenges Into Progress.": ["Convertir los retos en progreso.", "Transformer les défis en progrès.", "Aus Herausforderungen wird Fortschritt.", "Zorlukları ilerlemeye dönüştürmek."],
+  "Company": ["Empresa", "Entreprise", "Unternehmen", "Şirket"],
+  "About": ["Acerca de", "À propos", "Über uns", "Hakkımızda"],
+  "Our story": ["Nuestra historia", "Notre histoire", "Unsere Geschichte", "Hikâyemiz"],
+  "Contact": ["Contacto", "Contact", "Kontakt", "İletişim"],
+  // --- home (brand) ---
+  "Automate the busywork. Focus on what matters.": [
+    "Automatiza lo rutinario. Céntrate en lo que importa.",
+    "Automatisez les tâches répétitives. Concentrez-vous sur l'essentiel.",
+    "Automatisieren Sie den Kleinkram. Konzentrieren Sie sich auf das Wesentliche.",
+    "Rutin işleri otomatikleştirin. Önemli olana odaklanın.",
+  ],
+  "Luphina brings customer interactions, everyday tasks, and connected tools into simpler, smarter workflows.": [
+    "Luphina reúne las conversaciones con clientes, las tareas diarias y tus herramientas en flujos más simples e inteligentes.",
+    "Luphina rassemble les échanges avec vos clients, les tâches du quotidien et vos outils dans des flux plus simples et plus intelligents.",
+    "Luphina bringt Kundenkontakte, alltägliche Aufgaben und verbundene Tools in einfachere, intelligentere Abläufe.",
+    "Luphina müşteri etkileşimlerini, günlük işleri ve bağlı araçları daha basit ve akıllı iş akışlarında bir araya getirir.",
+  ],
+  "Describe a task in your own words. Luphina builds the workflow, connects your store and apps, and runs it, with a person in the loop for anything that matters.": [
+    "Describe una tarea con tus palabras. Luphina crea el flujo, conecta tu tienda y tus apps y lo ejecuta, con una persona al tanto de todo lo importante.",
+    "Décrivez une tâche avec vos mots. Luphina crée le flux, connecte votre boutique et vos applis et l'exécute, avec une personne aux commandes pour tout ce qui compte.",
+    "Beschreiben Sie eine Aufgabe in eigenen Worten. Luphina baut den Workflow, verbindet Shop und Apps und führt ihn aus; bei allem Wichtigen entscheidet ein Mensch.",
+    "Bir işi kendi sözlerinizle anlatın. Luphina iş akışını kurar, mağazanızı ve uygulamalarınızı bağlar ve çalıştırır; önemli her şeyde bir insan devrede kalır.",
+  ],
+  // --- about ---
+  "About Luphina": ["Acerca de Luphina", "À propos de Luphina", "Über Luphina", "Luphina hakkında"],
+  "Built to make progress easier.": ["Hecho para que avanzar sea más fácil.", "Conçu pour faciliter le progrès.", "Gemacht, damit Fortschritt leichter fällt.", "İlerlemeyi kolaylaştırmak için tasarlandı."],
+  "Luphina helps businesses simplify repetitive work, connect their tools, and turn everyday processes into intelligent workflows.": [
+    "Luphina ayuda a las empresas a simplificar el trabajo repetitivo, conectar sus herramientas y convertir los procesos diarios en flujos inteligentes.",
+    "Luphina aide les entreprises à simplifier le travail répétitif, à connecter leurs outils et à transformer les processus du quotidien en flux intelligents.",
+    "Luphina hilft Unternehmen, wiederkehrende Arbeit zu vereinfachen, ihre Tools zu verbinden und alltägliche Abläufe in intelligente Workflows zu verwandeln.",
+    "Luphina, işletmelerin tekrarlayan işleri basitleştirmesine, araçlarını bağlamasına ve günlük süreçleri akıllı iş akışlarına dönüştürmesine yardımcı olur.",
+  ],
+  "Reduce manual effort, bring customer interactions together, and give people more control over how work gets done.": [
+    "Reduce el esfuerzo manual, reúne las conversaciones con clientes y da a las personas más control sobre cómo se hace el trabajo.",
+    "Réduisez l'effort manuel, rassemblez les échanges avec vos clients et donnez aux gens plus de maîtrise sur la façon dont le travail se fait.",
+    "Weniger Handarbeit, Kundenkontakte an einem Ort und mehr Kontrolle darüber, wie die Arbeit erledigt wird.",
+    "Elle yapılan işi azaltın, müşteri etkileşimlerini bir araya getirin ve işin nasıl yapıldığı üzerinde insanlara daha fazla kontrol verin.",
+  ],
+  "How we build": ["Cómo lo construimos", "Notre façon de construire", "Wie wir bauen", "Nasıl geliştiriyoruz"],
+  "Dependable": ["Fiable", "Fiable", "Verlässlich", "Güvenilir"],
+  "Understandable": ["Comprensible", "Compréhensible", "Verständlich", "Anlaşılır"],
+  "Every run explained step by step, in plain language.": [
+    "Cada ejecución explicada paso a paso, en lenguaje sencillo.",
+    "Chaque exécution expliquée étape par étape, en langage clair.",
+    "Jeder Lauf Schritt für Schritt erklärt, in einfacher Sprache.",
+    "Her çalıştırma adım adım, sade bir dille açıklanır.",
+  ],
+  "In your control": ["Bajo tu control", "Sous votre contrôle", "Unter Ihrer Kontrolle", "Kontrol sizde"],
+  "Anything that reaches your customers waits for a person's approval, and one emergency stop pauses everything.": [
+    "Todo lo que llega a tus clientes espera la aprobación de una persona, y una parada de emergencia lo pausa todo.",
+    "Tout ce qui atteint vos clients attend l'accord d'une personne, et un arrêt d'urgence met tout en pause.",
+    "Alles, was Ihre Kunden erreicht, wartet auf die Freigabe eines Menschen, und ein Not-Aus pausiert alles.",
+    "Müşterilerinize ulaşan her şey bir kişinin onayını bekler ve tek bir acil durdurma her şeyi duraklatır.",
+  ],
+  "The name Luphina honours the founder's mother, whose strength, resourcefulness, and commitment to helping others inspired a simple belief: difficult circumstances should not end the search for a better way. That belief informs how we build: practical tools that help people make progress.": [
+    "El nombre Luphina rinde homenaje a la madre del fundador, cuya fortaleza, ingenio y compromiso con ayudar a los demás inspiraron una idea sencilla: las circunstancias difíciles no deberían poner fin a la búsqueda de una manera mejor. Esa idea guía cómo construimos: herramientas prácticas que ayudan a las personas a avanzar.",
+    "Le nom Luphina rend hommage à la mère du fondateur, dont la force, l'ingéniosité et l'engagement envers les autres ont inspiré une conviction simple : les circonstances difficiles ne devraient pas mettre fin à la recherche d'une meilleure façon de faire. Cette conviction guide notre façon de construire : des outils pratiques qui aident les gens à progresser.",
+    "Der Name Luphina ehrt die Mutter des Gründers, deren Stärke, Einfallsreichtum und Einsatz für andere eine einfache Überzeugung geprägt haben: Schwierige Umstände sollten die Suche nach einem besseren Weg nicht beenden. Diese Überzeugung bestimmt, wie wir bauen: praktische Werkzeuge, die Menschen voranbringen.",
+    "Luphina adı, gücü, becerikliliği ve başkalarına yardım etme kararlılığı basit bir inanca ilham veren kurucunun annesini onurlandırır: Zor koşullar daha iyi bir yol arayışını bitirmemeli. Bu inanç nasıl geliştirdiğimizi belirler: insanların ilerlemesine yardımcı olan pratik araçlar.",
+  ],
+  "Questions or feedback? Email us at {email}.": [
+    "¿Preguntas o comentarios? Escríbenos a {email}.",
+    "Des questions ou des remarques ? Écrivez-nous à {email}.",
+    "Fragen oder Feedback? Schreiben Sie uns an {email}.",
+    "Sorunuz veya geri bildiriminiz mi var? Bize {email} adresinden yazın.",
   ],
   "Your first automation is five minutes away.": [
     "Tu primera automatización está a cinco minutos.",
@@ -51,12 +118,6 @@ const SITE: Record<string, Row> = {
   // --- home ---
   "Automation for online shops": ["Automatización para tiendas online", "L'automatisation pour les boutiques en ligne", "Automatisierung für Onlineshops", "Online mağazalar için otomasyon"],
   "Tell it what you want done.": ["Dile lo que quieres hacer.", "Dites-lui ce que vous voulez faire.", "Sagen Sie, was erledigt werden soll.", "Ne yapılmasını istediğinizi söyleyin."],
-  "AutoFlow builds the workflow, connects your store and apps, and runs it for you. A person stays in the loop for anything that matters.": [
-    "AutoFlow crea el flujo, conecta tu tienda y tus apps y lo ejecuta por ti. Una persona sigue al tanto de todo lo importante.",
-    "AutoFlow crée le flux, connecte votre boutique et vos applis, et l'exécute pour vous. Une personne garde la main sur tout ce qui compte.",
-    "AutoFlow baut den Workflow, verbindet Ihren Shop und Ihre Apps und führt ihn aus. Bei allem Wichtigen entscheidet ein Mensch.",
-    "AutoFlow iş akışını kurar, mağazanızı ve uygulamalarınızı bağlar ve sizin için çalıştırır. Önemli her şeyde bir insan devrede kalır.",
-  ],
   "See templates": ["Ver plantillas", "Voir les modèles", "Vorlagen ansehen", "Şablonları gör"],
   "Free plan available. No card needed to try it.": [
     "Plan gratuito disponible. No necesitas tarjeta para probarlo.",
@@ -69,11 +130,11 @@ const SITE: Record<string, Row> = {
   "Any REST API": ["Cualquier API REST", "Toute API REST", "Jede REST-API", "Her REST API"],
   "Live in three steps": ["En marcha en tres pasos", "En ligne en trois étapes", "In drei Schritten live", "Üç adımda canlıda"],
   "Describe it": ["Descríbelo", "Décrivez-le", "Beschreiben Sie es", "Anlatın"],
-  "Type what should happen, in your own words. AutoFlow asks about anything unclear.": [
-    "Escribe lo que debe pasar, con tus palabras. AutoFlow pregunta lo que no esté claro.",
-    "Écrivez ce qui doit se passer, avec vos mots. AutoFlow pose des questions sur ce qui n'est pas clair.",
-    "Schreiben Sie in eigenen Worten, was passieren soll. AutoFlow fragt nach, wenn etwas unklar ist.",
-    "Ne olması gerektiğini kendi sözlerinizle yazın. AutoFlow belirsiz olanı sorar.",
+  "Type what should happen, in your own words. Luphina asks about anything unclear.": [
+    "Escribe lo que debe pasar, con tus palabras. Luphina pregunta lo que no esté claro.",
+    "Écrivez ce qui doit se passer, avec vos mots. Luphina pose des questions sur ce qui n'est pas clair.",
+    "Schreiben Sie in eigenen Worten, was passieren soll. Luphina fragt nach, wenn etwas unklar ist.",
+    "Ne olması gerektiğini kendi sözlerinizle yazın. Luphina belirsiz olanı sorar.",
   ],
   "Test it safely": ["Pruébalo sin riesgos", "Testez sans risque", "Sicher testen", "Güvenle test edin"],
   "See every step on a diagram and run it with an example order. Nothing reaches customers.": [

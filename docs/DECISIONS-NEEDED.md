@@ -2,14 +2,15 @@
 
 These are the choices only you can make. The product is built so that each one is quick to apply once you decide. Each row says what it unblocks and where it goes in the code.
 
-**Last updated:** 2026-10-23 (V48). Tick the box once you've decided, and tell Claude the answer.
+**Last updated:** 2026-10-28 (V49). Tick the box once you've decided, and tell Claude the answer.
 
 ## Most urgent (they block the launch)
 
 | ☐ | Decision | Options | Recommendation in the roadmap | What it unblocks | Where it goes |
 | --- | --- | --- | --- | --- | --- |
-| ☐ | **Brand name and look** | Keep "AutoFlow", or a new name | A new, invented name, cleared by a trademark lawyer before buying a domain or logo | Website, emails, invoices, app store listings | `frontend/src/lib/brand.ts` (name, tagline, colour, support email), `frontend/src/app/globals.css` (colours), the two `icon.svg` files |
-| ☐ | **Support email address** | Any address on your domain | Decide together with the brand | The "contact support" messages | `frontend/src/lib/brand.ts` → `supportEmail` (now a placeholder) |
+| ☑ | **Brand name and look** | Decided 2026-10-28: **Luphina**, with the ribbon logo, palette and wording from the brand brief | Done in V49 | | `docs/brand/README.md` |
+| ☐ | **Brand follow-ups** | Trademark and name check; a domain; a clean transparent (vector) master of the logo | A trademark lawyer checks the name before you buy the domain; ask the designer for the logo as SVG with a transparent background | Final icons and monochrome logo versions; your own email address | `frontend/public/brand/`, `docs/brand/README.md` |
+| ☐ | **Support email address** | `luphina2026@gmail.com` is used for now | Switch to an address on your domain once you have one | The "contact support" messages and the About page | `frontend/src/lib/brand.ts` → `supportEmail` |
 | ☐ | **Hosting** | AWS, Google Cloud, or a simpler platform | Choose one region close to your first customers | Going live; a staging copy; backups and restore targets; status page; uptime monitoring; on-call; most of the real-world tests | `docs/operations.md` (deploy steps are ready: Docker images, CI, PostgreSQL) |
 | ☐ | **Launch country and currency** | Where you live, US, UK, EU, Turkey, Africa… | One country first. Turkey-first is a credible option if the 20 owner interviews confirm it | Payments, data laws (GDPR, KVKK…), local integrations, prices, website wording | Kept country-neutral on purpose until you decide |
 | ☐ | **Legal pages** | A startup lawyer, or a template service | Have a lawyer review them | Terms of service, privacy policy, acceptable-use policy (the product already enforces it), data processing agreement, list of sub-processors, AI-label wording for customer emails | New website pages (the structure is ready) |

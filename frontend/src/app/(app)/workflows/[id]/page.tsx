@@ -551,7 +551,7 @@ function TriggerPanel({ workflow, definition, editable }: { workflow: Workflow; 
               value={scheme}
               onChange={(e) => setScheme(e.target.value as "autoflow" | "shopify" | "woocommerce")}
             >
-              <option value="autoflow">Any app (AutoFlow signature)</option>
+              <option value="autoflow">Any app (X-AutoFlow-Signature header)</option>
               <option value="shopify">Shopify</option>
               <option value="woocommerce">WooCommerce</option>
             </select>

@@ -31,9 +31,9 @@ The same as Order → invoice, but for WooCommerce shops. It invoices orders onc
 1. Install and publish **Order → invoice** first. It tells this workflow who bought.
 2. Install and publish this template.
 3. Add the Shopify webhook for **Checkout creation**.
-4. Make sure the AutoFlow background worker is running (needed for the one-hour wait).
+4. Make sure the Luphina background worker is running (needed for the one-hour wait).
 
-**Good to know:** if AutoFlow cannot be sure whether someone bought (for example because the order workflow isn't running yet), it **does not send** a reminder. Buyers are never nagged.
+**Good to know:** if Luphina cannot be sure whether someone bought (for example because the order workflow isn't running yet), it **does not send** a reminder. Buyers are never nagged.
 
 ## Review reply assistant
 
@@ -75,17 +75,17 @@ When an order is refunded, its invoice is **voided**: the number is kept and the
 
 ## Weekly sales summary
 
-Every Monday at 9:00 (UTC), AutoFlow fetches last week's orders from your shop's API and emails you a short summary: revenue, best sellers, anything unusual.
+Every Monday at 9:00 (UTC), Luphina fetches last week's orders from your shop's API and emails you a short summary: revenue, best sellers, anything unusual.
 
 **Needs:** an API connection named "shop-api" and your own address in the last step.
 
 ## Low-stock alert (early access)
 
-Every morning, AutoFlow checks your stock levels and emails you the products with fewer than 5 left. On days when everything is stocked, nothing is sent.
+Every morning, Luphina checks your stock levels and emails you the products with fewer than 5 left. On days when everything is stocked, nothing is sent.
 
 ## Order lines → stock sheet (early access)
 
-For every paid order, AutoFlow adds one row per product to a Google Sheet: order, product, quantity and price. Each line is written once, even if the store resends the order.
+For every paid order, Luphina adds one row per product to a Google Sheet: order, product, quantity and price. Each line is written once, even if the store resends the order.
 
 ## Big-order thank-you (early access)
 
@@ -99,7 +99,7 @@ When a customer emails your support address, AI sorts the message (return, deliv
 
 ## WooCommerce "we're packing it" note
 
-When a WooCommerce order starts processing, AutoFlow adds a note the customer can see, "Thanks, we're packing it now". WooCommerce emails it to them.
+When a WooCommerce order starts processing, Luphina adds a note the customer can see, "Thanks, we're packing it now". WooCommerce emails it to them.
 
 **Needs:** a WooCommerce order webhook and a WooCommerce connection named "store".
 

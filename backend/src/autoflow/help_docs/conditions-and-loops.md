@@ -28,7 +28,7 @@ Example: *for each line item, add a row to the stock sheet with the product name
 
 Good to know:
 - **Up to 100 items** per run. A longer list fails with a clear message instead of running half-way.
-- **Nothing runs twice.** AutoFlow remembers which items are done. If item 3 fails, fixing the cause and retrying continues from item 3. If AutoFlow isn't sure whether an item went through, you choose: retry it, or confirm it happened and carry on.
+- **Nothing runs twice.** Luphina remembers which items are done. If item 3 fails, fixing the cause and retrying continues from item 3. If Luphina isn't sure whether an item went through, you choose: retry it, or confirm it happened and carry on.
 - Later steps can use the results: `steps.<step>.output.count` is the number of items, and `steps.<step>.output.items` holds each item's result.
 - **Billing:** each item that calls an app counts as one task. Test runs are still free.
 - **Not every step can loop.** Emails and AI steps have their own limits and approvals, so they can't be repeated in a loop. Send one summary email after the loop instead.

@@ -1,6 +1,6 @@
 # Help centre
 
-Plain-language guides for shop owners using AutoFlow.
+Plain-language guides for shop owners using Luphina.
 
 1. [Getting started](getting-started.md): your first automation in five minutes
 2. [Connect your Gmail](connect-gmail.md): sending replies and reading incoming email

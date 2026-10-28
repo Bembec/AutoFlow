@@ -120,7 +120,7 @@ class Session:
         result = self.request("initialize", {
             "protocolVersion": PROTOCOL_VERSION,
             "capabilities": {},
-            "clientInfo": {"name": "AutoFlow", "version": __version__},
+            "clientInfo": {"name": "Luphina", "version": __version__},
         })
         self.protocol = result.get("protocolVersion") or PROTOCOL_VERSION
         # A notification has no id and no answer to wait for

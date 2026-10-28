@@ -28,11 +28,11 @@ class BillingSettings(BaseModel):
 
 
 def staff_user(user: CurrentUser):
-    """AutoFlow team members (AUTOFLOW_STAFF_EMAILS), e.g. for invoiced pilots."""
+    """Luphina team members (AUTOFLOW_STAFF_EMAILS), e.g. for invoiced pilots."""
 
     staff = {e.strip().lower() for e in os.getenv("AUTOFLOW_STAFF_EMAILS", "").split(",") if e.strip()}
     if user.email not in staff:
-        raise HTTPException(status_code=403, detail="AutoFlow staff only.")
+        raise HTTPException(status_code=403, detail="Luphina staff only.")
     return user
 
 

@@ -147,7 +147,7 @@ function PoliciesForm({ data, onSaved }: { data: Policies; onSaved: (policies: P
             disabled={!editable}
           />
           <span>
-            <strong>Approve everything.</strong> Every action that changes something outside AutoFlow (saving, sending, posting) waits for a person, not just emails.
+            <strong>Approve everything.</strong> Every action that changes something outside Luphina (saving, sending, posting) waits for a person, not just emails.
           </span>
         </label>
         <ErrorNote message={action.error} />

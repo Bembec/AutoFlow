@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/integrations", label: "Integrations" },
   { href: "/pricing", label: "Pricing" },
   { href: "/security", label: "Security" },
+  { href: "/about", label: "About" },
 ];
 
 export const ctaClass =
@@ -62,10 +63,11 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-[2fr_1fr_1fr] sm:px-6">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-[2fr_1fr_1fr_1fr] sm:px-6">
         <div>
           <Logo />
-          <p className="mt-3 max-w-xs text-slate-500"><S t={BRAND.tagline} /></p>
+          <p className="mt-3 max-w-xs text-slate-600"><S t={BRAND.tagline} /></p>
+          <p className="mt-2 font-display text-slate-500 italic"><S t={BRAND.philosophy} /></p>
         </div>
         <div>
           <p className="font-medium text-slate-900"><S t={"Product"} /></p>
@@ -85,8 +87,16 @@ export function SiteFooter() {
             <li><Link href="/report-abuse" className="hover:text-slate-900"><S t="Report abuse" /></Link></li>
           </ul>
         </div>
+        <div>
+          <p className="font-medium text-slate-900"><S t={"Company"} /></p>
+          <ul className="mt-3 space-y-2 text-slate-600">
+            <li><Link href="/about" className="hover:text-slate-900"><S t={"About"} /></Link></li>
+            <li><Link href="/about#our-story" className="hover:text-slate-900"><S t={"Our story"} /></Link></li>
+            <li><a href={`mailto:${BRAND.supportEmail}`} className="hover:text-slate-900"><S t={"Contact"} /></a></li>
+          </ul>
+        </div>
       </div>
-      <p className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">© {BRAND.name}</p>
+      <p className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">© {BRAND.name} · <S t={BRAND.philosophy} /></p>
     </footer>
   );
 }
@@ -96,7 +106,7 @@ export function SiteHero({ eyebrow, title, children }: { eyebrow: string; title:
   return (
     <section className="mx-auto max-w-3xl px-4 pt-16 pb-10 text-center sm:px-6 sm:pt-20">
       <p className="text-sm font-semibold text-brand-600"><S t={eyebrow} /></p>
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl"><S t={title} /></h1>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl"><S t={title} /></h1>
       {children && <div className="mt-5 text-lg text-slate-600">{children}</div>}
     </section>
   );
@@ -106,12 +116,12 @@ export function SiteHero({ eyebrow, title, children }: { eyebrow: string; title:
 export function SiteCta({ title = "Your first automation is five minutes away." }: { title?: string }) {
   return (
     <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-      <div className="rounded-2xl bg-brand-950 px-6 py-12 text-center text-white sm:px-12">
-        <h2 className="text-2xl font-semibold sm:text-3xl"><S t={title} /></h2>
+      <div className="rounded-2xl bg-midnight px-6 py-12 text-center text-white sm:px-12">
+        <h2 className="font-display text-2xl font-semibold sm:text-3xl"><S t={title} /></h2>
         <p className="mx-auto mt-3 max-w-xl text-brand-100">
           <S t={"Free to start. Test with sample data first: nothing reaches your customers until you switch it on."} />
         </p>
-        <StartOrOpen className="mt-6 inline-flex rounded-lg bg-white px-5 py-3 font-medium text-brand-900 hover:bg-brand-50" />
+        <StartOrOpen className="mt-6 inline-flex rounded-lg bg-gold px-5 py-3 font-medium text-midnight hover:bg-white" />
       </div>
     </section>
   );

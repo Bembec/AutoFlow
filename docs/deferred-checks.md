@@ -28,6 +28,8 @@ cd frontend && npm run build         # production build
 
 | Version | Check | Where | Status |
 | --- | --- | --- | --- |
+| V49 | Look at the Luphina brand on desktop and phone: logo in the header, sign-in and app sidebar; browser-tab icon; iPhone/Android home-screen icon; About page; contrast of buttons and links | **manual**, browser + phone | to do |
+| V49 | Replace the logo images once the transparent master arrives (`frontend/public/brand/`, `src/app/icon.png`, `apple-icon.png`) | needs the logo master | to do |
 | V24–V25 | Full backend suite and frontend build | ran locally (205 passed, build clean) and in CI | done |
 | V31 | Look through the website pages on desktop and phone; try the "type a task" demo → Build this for real → sign up → the builder opens with your task | **manual**, browser | to do |
 | V30 | Time a fresh sign-up through the checklist to a published workflow (target: under 5 minutes) on desktop and phone | **manual**, browser | to do |

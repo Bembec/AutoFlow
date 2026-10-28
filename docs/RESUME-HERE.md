@@ -2,19 +2,19 @@
 
 **Read this first when work starts again**, whether it's you, Claude or another developer. It says where the work stopped and exactly where to begin.
 
-- **Last updated:** 2026-10-23
-- **Version:** 0.48.1 (V48 plus a data-safety fix)
+- **Last updated:** 2026-10-28
+- **Version:** 0.49.0 (V49: the product is now **Luphina**)
 - **Repository:** github.com/Bembec/AutoFlow (`main`)
 
 ## Where we stopped
 
-Work paused at the owner's request after **V48** ("make everything active and interconnected"). Everything up to V48 is committed, pushed and passing:
+Work paused at the owner's request after **V48** ("make everything active and interconnected"), then **V49** applied the owner's chosen brand, **Luphina** (see `docs/brand/README.md`). Everything up to V49 is committed, pushed and passing:
 - backend: 325 tests;
 - frontend: type check, lint and production build.
 
 The decisions only you can make are in **[DECISIONS-NEEDED.md](DECISIONS-NEEDED.md)**.
 
-### What is built (V1 to V48)
+### What is built (V1 to V49)
 
 | Area | What exists |
 | --- | --- |
@@ -26,14 +26,15 @@ The decisions only you can make are in **[DECISIONS-NEEDED.md](DECISIONS-NEEDED.
 | Shop features | 36 templates (32 for e-commerce, 3 assistant roles, 1 general), invoices with voiding, abandoned-cart tracking, insights with time and money saved, suggestions |
 | Safety | Approvals, emergency stop, daily limits, monthly AI budget, phishing check on outgoing email, new-account limits, abuse reports, staff suspension, prompt-injection guard |
 | Business | Plans and billing (Stripe-ready), usage alerts, onboarding checklist, demo workspace |
-| Website | Home with live demo, templates, integrations, pricing, security, report abuse; in 5 languages |
+| Website | Home with live demo, templates, integrations, pricing, security, about (with Our story and Contact), report abuse; in 5 languages |
+| Brand | Luphina: logo, palette, fonts and wording from the owner's brand brief (`docs/brand/README.md`) |
 | App languages | English, Spanish, French, German, Turkish |
 
 **All features are on by default since V48.** Any of them can be switched off per environment (`AUTOFLOW_FEATURES="name=off"`) or per workspace (staff API). See `docs/operations.md`.
 
 ## Where to begin next
 
-### 1. First, no decisions needed: V49 tidy-up pass
+### 1. First, no decisions needed: V50 tidy-up pass
 
 - **Make the remaining English-only text in the app translatable.** Some buttons, hints and confirmation pop-ups are still hard-coded English. Search the app screens for literal text:
   - `frontend/src/app/(app)/settings/page.tsx` (most of the cards);
@@ -81,7 +82,8 @@ cd .next/standalone && PORT=3000 HOSTNAME=127.0.0.1 node server.js   # http://lo
 3. After editing `docs/help/*.md`, run `python backend/scripts/sync_help.py`; a test fails otherwise.
 4. Keep everything country-neutral until the launch country is decided.
 5. The repository is public. Never commit `backend/.env`, secrets or the private roadmap `.docx` files; `.gitignore` covers them.
-6. TrustLayer and GreyGuard are not linked to AutoFlow. Never mention them.
+6. TrustLayer and GreyGuard are not linked to the product. Never mention them.
+7. The product name is **Luphina** (exact spelling). Internal names keep `autoflow` / `AUTOFLOW_*` / `X-AutoFlow-*` until a planned rename.
 
 ## Where everything is written down
 
@@ -95,3 +97,4 @@ cd .next/standalone && PORT=3000 HOSTNAME=127.0.0.1 node server.js   # http://lo
 | `docs/operations.md` | Running, deploying, feature flags, staff tools, incidents |
 | `docs/help/` | The user help articles; the in-app help assistant answers from these |
 | `docs/DECISIONS-NEEDED.md` | Your decisions, and what each one unblocks |
+| `docs/brand/README.md` | The Luphina brand guide: wording, logo files, colours, fonts, where they live in code |

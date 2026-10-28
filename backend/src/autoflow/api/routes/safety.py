@@ -110,7 +110,7 @@ def suspend_workspace(workspace_id: int, request: Suspension, staff: Staff, sess
     """Stop all automations for an acceptable-use breach; owners can't resume."""
     workspace = _workspace(session, workspace_id)
     workspace.staff_suspended_reason = request.reason
-    cancelled = engine.emergency_stop(session, workspace_id, reason=f"Paused by AutoFlow staff: {request.reason}")
+    cancelled = engine.emergency_stop(session, workspace_id, reason=f"Paused by Luphina staff: {request.reason}")
     audit.record(session, "safety.suspended", workspace_id=workspace_id, user_id=staff.id,
                  details={"reason": request.reason, "cancelled": cancelled})
     return {"workspace_id": workspace_id, "suspended": True, "executions_cancelled": cancelled}

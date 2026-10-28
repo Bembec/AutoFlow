@@ -62,7 +62,7 @@ def _send_email(session, workspace, notification):
     message = EmailMessage()
     message["From"] = smtp_config["from_address"]
     message["To"] = workspace.notify_email
-    message["Subject"] = f"[AutoFlow] {notification.subject}"
+    message["Subject"] = f"[Luphina] {notification.subject}"
     message.set_content(notification.body + (f"\n\nOpen: {notification.link}" if notification.link else ""))
 
     with smtplib.SMTP_SSL(
@@ -80,7 +80,7 @@ def _send_slack(session, workspace, notification):
 
     text = f"*{notification.subject}*\n{notification.body}"
     if notification.link:
-        text += f"\n<{notification.link}|Open in AutoFlow>"
+        text += f"\n<{notification.link}|Open in Luphina>"
 
     response = requests.post(url, json={"text": text}, timeout=15, allow_redirects=False)
     if response.status_code >= 400:

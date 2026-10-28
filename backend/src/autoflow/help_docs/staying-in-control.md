@@ -12,11 +12,11 @@ To approve *every* action that changes something (saving, sending, posting), tur
 
 ## Notifications
 
-Under **Settings → Notifications**, choose an email address (sent through one of your email connections) and/or a Slack channel (add a **Slack** connection with an incoming-webhook URL). AutoFlow then tells you when something waits for your approval, or when a live run fails. Press **Send a test** to check it works.
+Under **Settings → Notifications**, choose an email address (sent through one of your email connections) and/or a Slack channel (add a **Slack** connection with an incoming-webhook URL). Luphina then tells you when something waits for your approval, or when a live run fails. Press **Send a test** to check it works.
 
 ## Two-factor login
 
-Under **Settings → Two-factor login**, add AutoFlow to an authenticator app (Google Authenticator, Authy, 1Password…). After that, signing in also asks for the 6-digit code. Keep the 10 recovery codes somewhere safe; each one works once if you lose your phone. **Recent sign-ins** shows where your account was used.
+Under **Settings → Two-factor login**, add Luphina to an authenticator app (Google Authenticator, Authy, 1Password…). After that, signing in also asks for the 6-digit code. Keep the 10 recovery codes somewhere safe; each one works once if you lose your phone. **Recent sign-ins** shows where your account was used.
 
 ## Activity log
 
@@ -28,7 +28,7 @@ Admins see **Settings → Activity log**: who added people, connected apps, publ
 
 ## Daily limits
 
-Under **Settings → Safety limits** you choose the most runs, AI calls and emails per day. When a limit is reached, AutoFlow stops that step and tells you why. This prevents runaway costs or accidental mass emails.
+Under **Settings → Safety limits** you choose the most runs, AI calls and emails per day. When a limit is reached, Luphina stops that step and tells you why. This prevents runaway costs or accidental mass emails.
 
 New accounts start with lower daily limits for their first week: 200 runs, 50 AI calls and 20 emails. This stops brand-new accounts being misused for spam. Contact support if you need them lifted sooner.
 
@@ -60,7 +60,7 @@ Each plan includes a monthly AI budget, estimated from the number of AI calls. *
 Open **Run history** and click the run to see each step's input, output and error.
 
 - **Failed:** fix the cause (e.g. reconnect an app), then press **Retry from failed step**. Steps that already worked are not repeated.
-- **Needs attention:** AutoFlow is not sure whether a step (like sending an email) happened. Check first, for example in your sent folder. Then choose:
+- **Needs attention:** Luphina is not sure whether a step (like sending an email) happened. Check first, for example in your sent folder. Then choose:
   - **I checked — retry** if it did **not** happen. The step runs again.
   - **It did happen — continue** if it did. The step is recorded as done by you, and the workflow carries on without repeating it.
 

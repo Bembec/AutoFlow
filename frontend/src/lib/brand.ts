@@ -1,13 +1,18 @@
 // Product identity in one place. A rebrand changes this file, the brand
-// colours in app/globals.css and the two icon.svg files.
+// colours in app/globals.css and the images in public/brand/ (plus
+// app/icon.png and app/apple-icon.png). The product name also appears in
+// translated text (lib/i18n.tsx, lib/site-i18n.tsx) and the help articles.
+// Internal names (the `autoflow` package, AUTOFLOW_* settings, X-AutoFlow-*
+// headers) keep the original project name so integrations don't break.
 
 export const BRAND = {
-  name: "AutoFlow",
-  /** The wordmark is drawn as `lead` + accent-coloured `accent` */
-  lead: "Auto",
-  accent: "Flow",
-  tagline: "Tell it what you want done. AutoFlow builds the workflow, connects your apps, and runs it for you.",
-  /** Must match --color-brand-600 in globals.css (used where CSS can't reach: browser chrome, manifest) */
-  themeColor: "#4f46e5",
-  supportEmail: "support@example.com",
+  name: "Luphina",
+  /** Brand line from the Luphina brand brief */
+  philosophy: "Turning Challenges Into Progress.",
+  tagline: "AI-powered business automation for people and teams who want to work smarter.",
+  /** The approved ribbon mark, as supplied (a raster; a transparent vector master is still to come) */
+  mark: "/brand/luphina-mark.png",
+  /** Browser chrome and installed-app colour: Midnight */
+  themeColor: "#0f1b3d",
+  supportEmail: "luphina2026@gmail.com",
 } as const;

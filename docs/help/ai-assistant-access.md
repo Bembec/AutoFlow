@@ -1,6 +1,6 @@
-# Let other AI assistants use AutoFlow (MCP)
+# Let other AI assistants use Luphina (MCP)
 
-If you already use an AI assistant that supports MCP (for example Claude), it can run your AutoFlow workflows for you ("tag order 1001 as VIP") and tell you how runs went.
+If you already use an AI assistant that supports MCP (for example Claude), it can run your Luphina workflows for you ("tag order 1001 as VIP") and tell you how runs went.
 
 ## Set it up
 

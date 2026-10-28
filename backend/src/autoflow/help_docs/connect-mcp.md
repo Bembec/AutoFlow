@@ -1,6 +1,6 @@
 # Use tools from MCP servers
 
-MCP (Model Context Protocol) is the standard way AI services offer their tools to other apps. A product catalogue service, for example, might offer "search products". AutoFlow can use those tools as workflow steps.
+MCP (Model Context Protocol) is the standard way AI services offer their tools to other apps. A product catalogue service, for example, might offer "search products". Luphina can use those tools as workflow steps.
 
 ## Connect a server
 
@@ -10,7 +10,7 @@ MCP (Model Context Protocol) is the standard way AI services offer their tools t
    - **allowed tools:** the tools workflows may use, separated by commas, for example `search_products, create_discount`. Use `*` only for servers you fully trust.
    - **token:** if the server needs one. It's encrypted and never shown again.
 3. Press **Show tools** on the connection to see every tool the server offers. Each tool is marked **read-only** or **can change things**, and tools you haven't allowed are greyed out.
-4. **Check connection** confirms that AutoFlow can reach the server and that your allowed tools exist.
+4. **Check connection** confirms that Luphina can reach the server and that your allowed tools exist.
 
 ## Use a tool in a workflow
 

@@ -61,7 +61,7 @@ def test_handshake_and_only_opted_in_workflows_become_tools(shop):
     client, headers, base, auth = shop
     hello = rpc(client, auth, "initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
                                              "clientInfo": {"name": "test", "version": "1"}}).json()["result"]
-    assert hello["serverInfo"]["name"] == "AutoFlow" and hello["protocolVersion"] == "2025-06-18"
+    assert hello["serverInfo"]["name"] == "Luphina" and hello["protocolVersion"] == "2025-06-18"
     assert rpc(client, auth, "notifications/initialized", message_id=None).status_code == 202
     assert rpc(client, auth, "ping").json()["result"] == {}
 

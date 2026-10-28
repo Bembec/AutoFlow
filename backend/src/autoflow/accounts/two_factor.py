@@ -24,7 +24,7 @@ from autoflow.security import vault
 STEP_SECONDS = 30
 DIGITS = 6
 RECOVERY_CODE_COUNT = 10
-ISSUER = "AutoFlow"
+ISSUER = "Luphina"
 
 
 class TwoFactorError(Exception):

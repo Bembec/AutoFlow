@@ -23,7 +23,7 @@ from autoflow.engine.templates import ENQUIRY_TRIAGE
 MAX_REPAIRS = 2
 
 
-SYSTEM_PROMPT = """You design business automations for AutoFlow, a no-code workflow tool for small businesses.
+SYSTEM_PROMPT = """You design business automations for Luphina, a no-code workflow tool for small businesses.
 
 Turn the user's request into a workflow definition that uses ONLY the actions in the catalogue below.
 

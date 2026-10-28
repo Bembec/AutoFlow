@@ -1,5 +1,5 @@
 """
-AutoFlow as an MCP server: outside AI assistants can run workflows and check runs.
+Luphina as an MCP server: outside AI assistants can run workflows and check runs.
 
 Streamable HTTP transport, JSON replies (no server-sent events needed):
 POST /mcp with one JSON-RPC message. Authenticated by a workspace API key
@@ -91,7 +91,7 @@ def _authenticate(request, session):
     token = header[7:].strip() if header.lower().startswith("bearer ") else ""
     key = session.scalar(select(ApiKey).where(ApiKey.key_hash == hash_token(token))) if token else None
     if key is None or key.revoked_at is not None:
-        raise HTTPException(status_code=401, detail="A valid AutoFlow API key is required.",
+        raise HTTPException(status_code=401, detail="A valid Luphina API key is required.",
                             headers={"WWW-Authenticate": "Bearer"})
     workspace = limits.get_workspace(session, key.workspace_id)
     if not features.enabled("mcp_server", workspace):
@@ -134,7 +134,7 @@ def _tools(session, workspace):
             "name": _tool_name(workflow),
             "title": workflow.name,
             "description": (workflow.description or workflow.name)
-            + " Runs the AutoFlow workflow; steps that need a person's approval wait for it.",
+            + " Runs the Luphina workflow; steps that need a person's approval wait for it.",
             "inputSchema": _schema_for(published.definition.get("trigger", {}).get("sample_payload")),
             "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False,
                             "openWorldHint": True},
@@ -259,9 +259,9 @@ async def mcp_endpoint(request: Request, session: Session):
         return _reply(message_id, {
             "protocolVersion": asked if asked in SUPPORTED_VERSIONS else SUPPORTED_VERSIONS[0],
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "AutoFlow", "version": __version__},
+            "serverInfo": {"name": "Luphina", "version": __version__},
             "instructions": (
-                "Run this shop's AutoFlow workflows and check their runs. Runs follow the shop's rules: "
+                "Run this shop's Luphina workflows and check their runs. Runs follow the shop's rules: "
                 "steps needing approval wait for a person, so report that instead of retrying."
             ),
         })

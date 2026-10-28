@@ -149,4 +149,4 @@ def test_email_notifications_use_the_workspace_mailbox(ws, monkeypatch):
     server.login.assert_called_once_with("shop@example.com", "app-password-123")
     message = server.send_message.call_args.args[0]
     assert message["To"] == "owner@shop.example"
-    assert message["Subject"] == "[AutoFlow] Test notification"
+    assert message["Subject"] == "[Luphina] Test notification"

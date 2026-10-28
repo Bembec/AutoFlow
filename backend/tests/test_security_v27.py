@@ -38,7 +38,7 @@ def login(client, code=None, password="correct-horse"):
 
 def enable_2fa(client, headers):
     setup = client.post("/auth/2fa/setup", headers=headers).json()
-    assert setup["otpauth_uri"].startswith("otpauth://totp/AutoFlow:")
+    assert setup["otpauth_uri"].startswith("otpauth://totp/Luphina:")
     secret = setup["secret"]
     code = two_factor.code_at(secret, two_factor.current_step())
     enabled = client.post("/auth/2fa/enable", json={"code": code}, headers=headers).json()

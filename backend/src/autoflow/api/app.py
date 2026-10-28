@@ -1,5 +1,5 @@
 """
-Creates the AutoFlow FastAPI application.
+Creates the Luphina FastAPI application.
 
 Start the development server with:  python -m autoflow.api
 Interactive documentation is then available at /docs.
@@ -65,7 +65,7 @@ def create_app():
     """Build the API application with all routes registered."""
 
     app = FastAPI(
-        title="AutoFlow API",
+        title="Luphina API",
         version=__version__,
         lifespan=lifespan,
         # No public API docs in production

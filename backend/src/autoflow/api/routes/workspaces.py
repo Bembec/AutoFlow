@@ -114,7 +114,7 @@ def send_test_notification(membership: AdminAccess, session: Session):
         membership.workspace_id,
         "test",
         "Test notification",
-        "Notifications are set up. You will hear from AutoFlow when something needs you.",
+        "Notifications are set up. You will hear from Luphina when something needs you.",
         link="/dashboard",
     )
     if queued is None:
@@ -180,7 +180,7 @@ def resume_automations(membership: AdminAccess, session: Session):
     if workspace.staff_suspended_reason:
         raise HTTPException(
             status_code=403,
-            detail=f"AutoFlow staff paused this workspace: {workspace.staff_suspended_reason} Contact support to resolve it.",
+            detail=f"Luphina staff paused this workspace: {workspace.staff_suspended_reason} Contact support to resolve it.",
         )
     engine.resume_automations(session, membership.workspace_id)
     audit.for_member(membership, session, "automation.resumed")

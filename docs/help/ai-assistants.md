@@ -23,7 +23,7 @@ It never changes anything itself.
 
 ## 2. You approve, then it acts
 
-The **Carry out the proposals** step always waits for your approval. If the assistant proposes nothing, there is nothing to approve and the step is skipped. In **Approvals** you see each proposed action and why the assistant suggests it. Only after you approve does AutoFlow carry them out.
+The **Carry out the proposals** step always waits for your approval. If the assistant proposes nothing, there is nothing to approve and the step is skipped. In **Approvals** you see each proposed action and why the assistant suggests it. Only after you approve does Luphina carry them out.
 
 ## The guardrails
 

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { BRAND } from "@/lib/brand";
 
-// Lets owners add AutoFlow to their phone's home screen and open the
+// Lets owners add the app to their phone's home screen and open the
 // approvals inbox like an app.
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -12,11 +12,12 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/approvals",
     scope: "/",
     display: "standalone",
-    background_color: "#f8fafc",
+    background_color: "#0f1b3d",
     theme_color: BRAND.themeColor,
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/brand/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/brand/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       { name: "Approvals", url: "/approvals" },
